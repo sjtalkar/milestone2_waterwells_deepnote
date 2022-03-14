@@ -28,8 +28,11 @@ A deep study of well construction and aquifers had to be conducted to understand
 ## Features of interest
 
 The columns specified here are as per original dataset name:
+
 [Explanation of geologic terms](https://mbmggwic.mtech.edu/sqlserver/v11/help/welldesign.asp)
+
 ![welldiagram](https://github.com/sjtalkar/milestone2_waterwells_deepnote/blob/master/doc/images/welldiagram.png)
+
 > **Aquifer**: An aquifer is a geologic unit (sand and gravel, sandstone, limestone, or other rock) that will yield usable amounts of water to a well or spring.
 
 > **Perforations**: All wells are open to the aquifer so that water can enter the well. Well completions vary from "open hole" in consolidated rock that does not need a casing, 
@@ -92,10 +95,11 @@ The columns specified here are as per original dataset name:
 ## Mapping at the TRS level
 
 The strategy in the project is:
-     - Create a GeoDataFrame when starting from a regular DataFrame that has latitudinal and longitudinal coordinates. In the well completion reports, we have columns for latitude and longitude.
-     - A GeoDataFrame needs a shapely object.
-     - We use geopandas points_from_xy() to transform Longitude and Latitude into a list of shapely.Point objects and set it as a geometry while creating the GeoDataFrame.
-	 - Once we have a GeoDataframe with the points in the coordinate reference system, we spatially join to the California PLSS GeoJSON to map to the closest TownshipRange using sjoin method in geopandas.
+
+- Create a GeoDataFrame when starting from a regular DataFrame that has latitudinal and longitudinal coordinates. In the well completion reports, we have columns for latitude and longitude.
+- A GeoDataFrame needs a shapely object.
+- We use geopandas points_from_xy() to transform Longitude and Latitude into a list of shapely.Point objects and set it as a geometry while creating the GeoDataFrame.
+- Once we have a GeoDataframe with the points in the coordinate reference system, we spatially join to the California PLSS GeoJSON to map to the closest TownshipRange using sjoin method in geopandas.
 
 
 ## Potential issues

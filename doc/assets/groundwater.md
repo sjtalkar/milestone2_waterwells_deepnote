@@ -34,10 +34,9 @@ This dataset is maintained in the DWR Enterprise Water Management database, and 
 The Stations resource identifies **well location coordinates** and other supplementary items about the well type.
 
 The strategy in the project is:
-     - Create a GeoDataFrame when starting from a regular DataFrame that has latitudinal and longitudinal coordinates.
-     - A GeoDataFrame needs a shapely object.
-     -  We use geopandas points_from_xy() to transform Longitude and Latitude into a list of shapely.Point objects and set it as a geometry while creating 
-        the GeoDataFrame.
+- Create a GeoDataFrame when starting from a regular DataFrame that has latitudinal and longitudinal coordinates.
+- A GeoDataFrame needs a shapely object.
+-  We use geopandas points_from_xy() to transform Longitude and Latitude into a list of shapely.Point objects and set it as a geometry while creating the GeoDataFrame.
 
 ## How to download ?
 [NOTE: Download, preview and Data API links](https://data.cnra.ca.gov/dataset/dd9b15f5-6d08-4d8c-bace-37dc761a9c08/resource/bfa9f262-24a1-45bd-8dc8-138bc8107266/download/measurements.csv)
