@@ -99,7 +99,7 @@ Water levels in many aquifers in the United States follow a natural cyclic patte
 then declining during the summer and fall owing to less recharge and greater evapotranspiration. Spring measurements generally occur before most of the irrigation season so static groundwater levels are
 usually measured in production wells.Because static levels are measured, elevation gradients between monitoring wells can be determined as well as groundwater flow direction within the aquifer systems.
 Springtime measurements also indicate the extent that the storage in the aquifer systems has recharged from winter precipitation.
- 
+
 Hence, we filter for spring measurements of groundwater.
 
 ## Mapping at the TRS level
