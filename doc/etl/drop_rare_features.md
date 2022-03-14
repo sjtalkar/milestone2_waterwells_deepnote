@@ -31,12 +31,12 @@ Let's suppose we have the following Soil dataset
 
 | TOWNSHIP | YEAR | DOMINANT_SOIL_TYPE | AREA_PCT | geometry                                                    |
 |----------|------|--------------------|----------|-------------------------------------------------------------|
-| T1       | 2018 | A                  | 0.025    | POLYGON((0,1), (0.05,1), (0.05,0.95), (0,0.95))             |
-| T1       | 2018 | B                  | 0.025    | POLYGON((0.05,1), (0.1,1), (0.1,0.95), (0.05,0.95))         |
-| T1       | 2018 | C                  | 0.95     | POLYGON((0,0), (0,0.95), (0.1,0.95), (0.1,1), (1,1), (1,0)) |
-| T2       | 2018 | A                  | 0.025    | POLYGON((0,1), (0.05,1), (0.05,0.95), (0,0.95))             |
-| T2       | 2018 | C                  | 0.475    | POLYGON((0,0), (0,0.95), (0.05,0.95), (0.05,1), (1,1))      |
-| T2       | 2018 | B                  | 0.5      | POLYGON((0,0), (1,1), (1,0))                                |
+| T1 R1    | 2018 | A                  | 0.025    | POLYGON((0,1), (0.05,1), (0.05,0.95), (0,0.95))             |
+| T1 R1    | 2018 | B                  | 0.025    | POLYGON((0.05,1), (0.1,1), (0.1,0.95), (0.05,0.95))         |
+| T1 R1    | 2018 | C                  | 0.95     | POLYGON((0,0), (0,0.95), (0.1,0.95), (0.1,1), (1,1), (1,0)) |
+| T2 R1    | 2018 | A                  | 0.025    | POLYGON((0,1), (0.05,1), (0.05,0.95), (0,0.95))             |
+| T2 R1    | 2018 | C                  | 0.475    | POLYGON((0,0), (0,0.95), (0.05,0.95), (0.05,1), (1,1))      |
+| T2 R1    | 2018 | B                  | 0.5      | POLYGON((0,0), (1,1), (1,0))                                |
 
 !["Map of TRS boundaries"](../images/drop_rare_features.jpg)
 
@@ -45,8 +45,8 @@ After pivoting the dataframe and removing the geometry by applying the `compute_
 
 | TOWNSHIP | YEAR | A     | B     | C    |
 |----------|------|-------|-------|------|
-| T1       | 2018 | 0.025 | 0.025 | 0.95 | 
-| T2       | 2018 | 0.025 | 0.475 | 0.5  | 
+| T1 R1    | 2018 | 0.025 | 0.025 | 0.95 | 
+| T2 R1    | 2018 | 0.025 | 0.475 | 0.5  | 
 
 Applying a `drop_rate` of for example 1% it would drop features which cover less than 1% of the land surface of all
 Townships for every year resulting in:
@@ -58,22 +58,22 @@ The resulting dataframe would then be
 
 | TOWNSHIP | YEAR | B     | C    |
 |----------|------|-------|------|
-| T1       | 2018 | 0.025 | 0.95 | 
-| T2       | 2018 | 0.475 | 0.5  | 
+| T1 R1    | 2018 | 0.025 | 0.95 | 
+| T2 R1    | 2018 | 0.475 | 0.5  | 
 
 The same apply across Townships AND years. E.g. for the below dataframe 
 
 | TOWNSHIP | YEAR | A     | B     | C    |
 |----------|------|-------|-------|------|
-| T1       | 2016 | 0.025 | 0.025 | 0.95 | 
-| T1       | 2018 | 0.025 | 0.475 | 0.5  | 
+| T1 R1    | 2016 | 0.025 | 0.025 | 0.95 | 
+| T1 R1    | 2018 | 0.025 | 0.475 | 0.5  | 
 
 only the feature `A` would also be dropped, resulting in the below dataframe:
 
 | TOWNSHIP | YEAR | B     | C    |
 |----------|------|-------|------|
-| T1       | 2016 | 0.025 | 0.95 | 
-| T1       | 2018 | 0.475 | 0.5  | 
+| T1 R1    | 2016 | 0.025 | 0.95 | 
+| T1 R1    | 2018 | 0.475 | 0.5  | 
 
 ## What is the effect in practice?
 In practice dropping features covering less than 5% of the land surface of every Townships for every year result in very

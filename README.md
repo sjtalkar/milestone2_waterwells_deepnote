@@ -24,5 +24,6 @@ This repository is organized following the below folder structure:
 * Output Dataset
 * Custom Libraries
 * ETL operations
-  * [Overlaying San Joaquin Valley Township Boundaries](doc/etl/township_overlay.md)
+  * [Overlaying San Joaquin Valley Township-Range Boundaries](doc/etl/township_overlay.md)
+  * [Squaring San Joaquin Valley Township-Ranges](doc/etl/squaring_townships.md)
   * [Dropping Rare Township Features](doc/etl/drop_rare_features.md)
