@@ -1,6 +1,4 @@
-import os
 import json
-import numpy as np
 import pandas as pd
 import geopandas as gpd
 
@@ -25,9 +23,9 @@ class CropsDataset(WsGeoDataset):
             raise KeyError(
                 "The input_geofiles dictionnary must at least contain the data files for the years 2014, 2016 and 2018")
         WsGeoDataset.__init__(self, [])
-        self.map_2014_df = gpd.read_file(input_geofiles.get("2014")).to_crs(epsg=4326)
-        self.map_2016_df = gpd.read_file(input_geofiles.get("2016")).to_crs(epsg=4326)
-        self.map_2018_df = gpd.read_file(input_geofiles.get("2018")).to_crs(epsg=4326)
+        self.map_2014_df = self._read_geospatial_file(input_geofiles.get("2014"))
+        self.map_2016_df = self._read_geospatial_file(input_geofiles.get("2016"))
+        self.map_2018_df = self._read_geospatial_file(input_geofiles.get("2018"))
         with open(crop_name_to_type_file) as f:
             self.crop_name_to_type_mapping = json.load(f)
 
@@ -92,15 +90,13 @@ class CropsDataset(WsGeoDataset):
         these townships for all the years where they have no data"""
         all_townships = set(self.sjv_township_range_df["TOWNSHIP"].unique())
         for year in self.map_df["YEAR"].unique():
-            year_df = self.map_df[self.map_df["YEAR"]==year]
+            year_df = self.map_df[self.map_df["YEAR"] == year]
             missing_townships = all_townships - set(year_df["TOWNSHIP"].unique())
-            nb_missing_townships = len(missing_townships)
-            missing_data = {
-                "TOWNSHIP": list(missing_townships),
-                "YEAR": [year] * nb_missing_townships,
-                "CROP_TYPE": ["X"] * nb_missing_townships
-            }
-            self.map_df = pd.concat([self.map_df, pd.DataFrame(missing_data)], axis=0)
+            missing_townships_df = self.sjv_township_range_df[self.sjv_township_range_df["TOWNSHIP"].
+                isin(missing_townships)]
+            missing_townships_df["YEAR"] = year
+            missing_townships_df["CROP_TYPE"] = "X"
+            self.map_df = pd.concat([self.map_df, missing_townships_df], axis=0)
 
 
     def fill_missing_years(self):

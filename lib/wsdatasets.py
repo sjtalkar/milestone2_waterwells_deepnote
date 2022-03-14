@@ -1,12 +1,10 @@
 # This file contains the base Class definition for the Waters Shortage Datasets
 import abc
-import os
 import pandas as pd
 import geopandas as gpd
-import numpy as np
 
 from typing import List, Tuple
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, MultiPolygon, MultiPoint
 
 
 class BaseWsDataset(abc.ABC):
@@ -35,19 +33,19 @@ class WsGeoDataset(BaseWsDataset):
         """
         # map_df is a GeoPandas dataframe containing geospatial land areas together with the data.
         # This dataframe can be use to display features of land areas
-        self.map_df = None
+        self.map_df = pd.DataFrame()
         # data_df is an optional Pandas dataframe containing additional data describing the land areas in map_df
-        self.data_df = None
+        self.data_df = pd.DataFrame()
         # output_df is the Pandas dataframe containing the processed data by township and year and without the
         # geospatial data. It is meant to be exported in a file for the downstream analysis.
-        self.output_df = None
+        self.output_df = pd.DataFrame()
         self.__merging_keys = None
 
         if input_geofiles:
-            self.map_df = gpd.read_file(input_geofiles[0]).to_crs(epsg=4326)
+            self.map_df = self._read_geospatial_file(input_geofiles[0])
             if len(input_geofiles) > 1:
                 for input_shapefile in input_geofiles[1:]:
-                    self.map_df = self.map_df.concat(gpd.read_file(input_shapefile).to_crs(epsg=4326), axis=0)
+                    self.map_df = self.map_df.concat(self._read_geospatial_file(input_shapefile), axis=0)
                 self.map_df.reset_index(inplace=True, drop=True)
 
         if input_datafile:
@@ -55,6 +53,14 @@ class WsGeoDataset(BaseWsDataset):
             self.__merging_keys = merging_keys
 
         self.sjv_township_range_df, self.sjv_boundaries = self._preprocess_sjv_shapefile(sjv_shapefile)
+
+    def _read_geospatial_file(self, filename: str):
+        """Read a Geospatial dataframe and set the projection as WGS84 Latitude/Longitude ("EPSG:4326").
+
+        :param filename: the geospatial fle
+        :return: the GeoPandas Dataframe with projection set to EPSG:4326
+        """
+        return gpd.read_file(filename).to_crs(epsg=4326)
 
     def _read_input_datafile(self, input_datafile: str, input_datafile_format: str = "csv") -> pd.DataFrame:
         """This functions loads additional data not provided together with the map data.
@@ -70,18 +76,26 @@ class WsGeoDataset(BaseWsDataset):
             data_df = pd.read_excel(input_datafile)
         return data_df
 
-    def _close_holes(self, poly: Polygon) -> Polygon:
-        """This function closes polygon holes by limitation to the exterior ring.
-        I.e. if there are any empty space inside a Polygon (e.g. O) it will only keep the coordinates
-        of the external boundaries of the Polygon as the new Polygon shape (e.g. █).
+    def _square_township_shapes(self, shape) -> Polygon:
+        """This function returns a square polygon encapsulating all the polygons making a Township. This function g
+        reatly simplifies the Townships shapes as full square compare to the original shapes.
 
-        :param poly: Input shapely Polygon to close
-        :return: the closed Polygon
+        :param shape: Input shapely Polygon or Multipolygon to close
+        :return: the encapsulating closed Polygon
         """
-        if poly.interiors:
-            return Polygon(list(poly.exterior.coords))
-        else:
-            return poly
+        if isinstance(shape, MultiPolygon):
+            # Extract all the points from the MultiPolygon
+            points = []
+            for polygon in shape.geoms:
+                points.extend(polygon.exterior.coords[:-1])
+            # Compute the convex hull of all the points to get the outer boundary of the shape
+            shape = MultiPoint(points).convex_hull
+        # Compute the square Polygon encapsulating the shape
+        bounding_polygon = Polygon([(shape.bounds[0], shape.bounds[1]),
+                                    (shape.bounds[0], shape.bounds[3]),
+                                    (shape.bounds[2], shape.bounds[3]),
+                                    (shape.bounds[2], shape.bounds[1])])
+        return bounding_polygon
 
     def _preprocess_sjv_shapefile(self, sjv_shapefile: str) -> Tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
         """This function loads the geojson file containing the township Range Section land survey polygons
@@ -107,7 +121,7 @@ class WsGeoDataset(BaseWsDataset):
         # Fill in any potential holes within the shape. This is important when clipping the San Joaquin Valley
         # polygon over a dataset containing data for the entire state of California. Otherwise it would also clip
         # out data within those holes
-        sjv_polygon.geometry = sjv_polygon.geometry.apply(lambda p: self._close_holes(p))
+        sjv_polygon.geometry = sjv_polygon.geometry.apply(lambda p: self._square_township_shapes(p))
         sjv_boundaries = sjv_polygon.geometry[0]
         return sjv_township_range_df, sjv_boundaries
 
@@ -163,7 +177,8 @@ class WsGeoDataset(BaseWsDataset):
             apply(lambda x:x/x.sum())
         self.map_df.drop(columns=["AREA"], inplace=True)
 
-    def compute_feature_at_township_level(self, feature_name: str, drop_rate: float = 0.0):
+    def compute_feature_at_township_level(self, feature_name: str, drop_rate: float = 0.0,
+                                          unwanted_features: List[str] = ["X", "U"]):
         """This function essentially pivots the geospatial dataframe, using the values in the feature_name parameter as
         the new feature columns and the land surface percentage the feature occupies in the townships as the cell
         values. E.g. if a township for a specific year, has 2 land areas, one classified as 'A' covering 75% of the
@@ -174,9 +189,10 @@ class WsGeoDataset(BaseWsDataset):
         :param feature_name: the name of the original feature to use to compute the values for each new features
         :param drop_rate: any feature which does not appear more that the drop_rate in any of the townships for every
         year will be dropped. This is used to drop features which cover a very small amount of land surface in all the
-        townships.
-        Warning: by dropping feature columns, the sum of the feature percentage in impacted townships will not sum to
-        100%.
+        townships. Warning: by dropping feature columns, the sum of the feature percentage in impacted townships will
+        not sum to 100%.
+        :param unwanted_features: the list of crop types to drop. This is used to drop some crops of types like
+        "X - Unclassified" and "U -Urban".
         """
         self._compute_areas(feature_name)
         # Get the land surface used for each feature class
@@ -194,11 +210,10 @@ class WsGeoDataset(BaseWsDataset):
             if feature not in {"TOWNSHIP", "YEAR"} and self.output_df[feature].max() < drop_rate:
                 self.output_df.drop(columns=[feature], inplace=True)
 
-
     def output_dataset_to_csv(self, output_filename: str):
         """This function writes the self.output_df dataframe into a CSV file.
 
         :param output_filename: the name of the file with the relative path
         """
-        if self.output_df:
+        if not self.output_df.empty:
             self.output_df.to_csv(output_filename)

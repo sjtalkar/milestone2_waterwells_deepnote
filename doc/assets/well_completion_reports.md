@@ -26,6 +26,7 @@ A deep study of well construction and aquifers had to be conducted to understand
 
 
 ## Features of interest
+<<<<<<< HEAD
 
 The columns specified here are as per original dataset name:
 [Explanation of geologic terms](https://mbmggwic.mtech.edu/sqlserver/v11/help/welldesign.asp)
