@@ -1,9 +1,7 @@
 # This file contains the base Class definition for the Waters Shortage Datasets
 import abc
-import os
 import pandas as pd
 import geopandas as gpd
-import numpy as np
 
 from typing import List, Tuple
 from shapely.geometry import Polygon
@@ -171,7 +169,8 @@ class WsGeoDataset(BaseWsDataset):
             apply(lambda x:x/x.sum())
         self.map_df.drop(columns=["AREA"], inplace=True)
 
-    def compute_feature_at_township_level(self, feature_name: str, drop_rate: float = 0.0):
+    def compute_feature_at_township_level(self, feature_name: str, drop_rate: float = 0.0,
+                                          unwanted_features: List[str] = ["X", "U"]):
         """This function essentially pivots the geospatial dataframe, using the values in the feature_name parameter as
         the new feature columns and the land surface percentage the feature occupies in the townships as the cell
         values. E.g. if a township for a specific year, has 2 land areas, one classified as 'A' covering 75% of the
@@ -182,9 +181,10 @@ class WsGeoDataset(BaseWsDataset):
         :param feature_name: the name of the original feature to use to compute the values for each new features
         :param drop_rate: any feature which does not appear more that the drop_rate in any of the townships for every
         year will be dropped. This is used to drop features which cover a very small amount of land surface in all the
-        townships.
-        Warning: by dropping feature columns, the sum of the feature percentage in impacted townships will not sum to
-        100%.
+        townships. Warning: by dropping feature columns, the sum of the feature percentage in impacted townships will
+        not sum to 100%.
+        :param unwanted_features: the list of crop types to drop. This is used to drop some crops of types like
+        "X - Unclassified" and "U -Urban".
         """
         self._compute_areas(feature_name)
         # Get the land surface used for each feature class
@@ -201,7 +201,6 @@ class WsGeoDataset(BaseWsDataset):
         for feature in self.output_df.columns:
             if feature not in {"TOWNSHIP", "YEAR"} and self.output_df[feature].max() < drop_rate:
                 self.output_df.drop(columns=[feature], inplace=True)
-
 
     def output_dataset_to_csv(self, output_filename: str):
         """This function writes the self.output_df dataframe into a CSV file.
