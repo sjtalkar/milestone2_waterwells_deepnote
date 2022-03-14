@@ -54,7 +54,7 @@ The precipitation data is collected for each year and for each precipitation rec
 We have the station's latitude and longitude available to us. We use the strategy described in well_completion_reports.md and groundwater.md to convert the latitude and longitude to point geomtery and then through spatial join 
 into TownshipRange. Merge to othe datasets can now be performed through this TownshipRange.
 
-The primary feature to be derived from this dataset is the average precipitation in inches for a TownshipRange
+The primary feature to be derived from this dataset is the average precipitation in inches for a TownshipRange.
 
 ## Mapping at the Township level
 
