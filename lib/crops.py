@@ -92,8 +92,8 @@ class CropsDataset(WsGeoDataset):
         for year in self.map_df["YEAR"].unique():
             year_df = self.map_df[self.map_df["YEAR"] == year]
             missing_townships = all_townships - set(year_df["TOWNSHIP"].unique())
-            missing_townships_df = self.sjv_township_range_df[self.sjv_township_range_df["TOWNSHIP"].
-                isin(missing_townships)]
+            missing_townships_df = self.sjv_township_range_df[self.sjv_township_range_df["TOWNSHIP"].isin(
+                missing_townships)].copy()
             missing_townships_df["YEAR"] = year
             missing_townships_df["CROP_TYPE"] = "X"
             self.map_df = pd.concat([self.map_df, missing_townships_df], axis=0)
@@ -106,7 +106,7 @@ class CropsDataset(WsGeoDataset):
         :return: the function updates the self.map_df dataframe
         """
         # Use the 2014 data for 2015
-        map_2015_df = self.map_df[self.map_df["YEAR"] == "2014"].copy()
+        map_2015_df = self.map_2014_df.copy()
         map_2015_df["YEAR"] = "2015"
         # Use the 2016 data for 2017
         map_2017_df = self.map_df[self.map_df["YEAR"] == "2016"].copy()

@@ -189,22 +189,15 @@ class WsGeoDataset(BaseWsDataset):
             apply(lambda x:x/x.sum())
         self.map_df.drop(columns=["AREA"], inplace=True)
 
-    def compute_feature_at_township_level(self, feature_name: str, drop_rate: float = 0.0,
-                                          unwanted_features: List[str] = ["X", "U"]):
+    def compute_feature_at_township_level(self, feature_name: str):
         """This function essentially pivots the geospatial dataframe, using the values in the feature_name parameter as
         the new feature columns and the land surface percentage the feature occupies in the townships as the cell
         values. E.g. if a township for a specific year, has 2 land areas, one classified as 'A' covering 75% of the
         township land and one classified as 'B' covering 25% of the township range, these two rows will transformed as
-        1 row for the township but with 2 features A with value 75% and feature B with value 25%. The geospatial data
-        are dropped and the result is store in teh output_df. The result is saved in the self.output_df variable.
+        1 row for the township but with 2 features A with value 75% and feature B with value 25%. The result is saved
+        in the self.output_df variable.
 
         :param feature_name: the name of the original feature to use to compute the values for each new features
-        :param drop_rate: any feature which does not appear more that the drop_rate in any of the townships for every
-        year will be dropped. This is used to drop features which cover a very small amount of land surface in all the
-        townships. Warning: by dropping feature columns, the sum of the feature percentage in impacted townships will
-        not sum to 100%.
-        :param unwanted_features: the list of crop types to drop. This is used to drop some crops of types like
-        "X - Unclassified" and "U -Urban".
         """
         self._compute_areas(feature_name)
         # Get the land surface used for each feature class
@@ -216,11 +209,25 @@ class WsGeoDataset(BaseWsDataset):
         # Merge the townships with their new features
         self.output_df = self.sjv_township_range_df.dissolve(by='TOWNSHIP').reset_index().\
             merge(township_features_df, how="right", left_on="TOWNSHIP", right_on="TOWNSHIP")
-        self.output_df.drop(columns=["geometry"], inplace=True)
+
+    def drop_features(self, drop_rate: float = 0.0, unwanted_features: List[str] = []):
+        """This function removes features (columns) from the self.output_df dataset in two ways. 1) it drops the
+        features which cover a smaller land surface percentage of every township for any given year. 2) it drops
+        unwanted features (e.g. the "Urban" class from the crops dataset).
+
+        :param drop_rate: any feature which does not appear more that the drop_rate in any of the townships for every
+        year will be dropped. This is used to drop features which cover a very small amount of land surface in all the
+        townships. Warning: by dropping feature columns, the sum of the feature percentage in impacted townships will
+        not sum to 100%.
+        :param unwanted_features: the list of crop types to drop.
+        """
+        self.output_df.drop(columns=["geometry"], errors="ignore", inplace=True)
         # Drop features which cover a very small amount of land surface.
         for feature in self.output_df.columns:
             if feature not in {"TOWNSHIP", "YEAR"} and self.output_df[feature].max() < drop_rate:
                 self.output_df.drop(columns=[feature], inplace=True)
+        if unwanted_features:
+            self.output_df.drop(columns=unwanted_features, errors="ignore", inplace=True)
 
     def output_dataset_to_csv(self, output_filename: str):
         """This function writes the self.output_df dataframe into a CSV file.
