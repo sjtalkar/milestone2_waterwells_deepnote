@@ -13,7 +13,7 @@ in a 6 by 6 square make a Township.
 !["Map of TRS boundaries"](../images/san_joaquin_valley.png)
 
 ## A zoom in the San Joaquin Valley Township boundaries
-!["San Joaquin Valley Townships"](../images/sjv_townships.png)
+!["San Joaquin Valley Townships"](../images/sjv_squarred_townships.png)
 
 ## Overlaying Township boundaries on Datasets
 The TRS system is used for public survey but the Township boundaries do no match the "natural" boundaries of crops
