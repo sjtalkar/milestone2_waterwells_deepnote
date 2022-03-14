@@ -10,10 +10,10 @@ of the system is the _Section_, a square piece of land one mile by one mile cont
 in a 6 by 6 square make a Township.
 
 ## The San Joaquin Valley Townships in California
-!["Map of TRS boundaries"](doc/images/san_joaquin_valley.png)
+!["Map of TRS boundaries"](../images/san_joaquin_valley.png)
 
 ## A zoom in the San Joaquin Valley Township boundaries
-!["San Joaquin Valley Townships"](doc/images/sjv_townships.png)
+!["San Joaquin Valley Townships"](../images/sjv_townships.png)
 
 ## Overlaying Township boundaries on Datasets
 The TRS system is used for public survey but the Township boundaries do no match the "natural" boundaries of crops 
@@ -27,7 +27,7 @@ level.
 
 Here is an illustration of how this is done on various datasets: crops, vegetation, soils, population.
 
-!["Townships Overlay Illustration"](doc/images/township_overlay_illustration.jpg)
+!["Townships Overlay Illustration"](../images/township_overlay_illustration.jpg)
 
 Using GeoPandas the two datasets in that illustration (crops and townships) will be as follow:
 

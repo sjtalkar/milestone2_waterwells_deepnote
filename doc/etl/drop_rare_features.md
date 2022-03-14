@@ -38,7 +38,7 @@ Let's suppose we have the following Soil dataset
 | T2       | 2018 | C                  | 0.475    | POLYGON((0,0), (0,0.95), (0.05,0.95), (0.05,1), (1,1))      |
 | T2       | 2018 | B                  | 0.5      | POLYGON((0,0), (1,1), (1,0))                                |
 
-!["Map of TRS boundaries"](doc/images/drop_rare_features.jpg)
+!["Map of TRS boundaries"](../images/drop_rare_features.jpg)
 
 After pivoting the dataframe and removing the geometry by applying the `compute_feature_at_township_level()` function
 (the default `drop_rate` is `0`), we get the following dataframe:
