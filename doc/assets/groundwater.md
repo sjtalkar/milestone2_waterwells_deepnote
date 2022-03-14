@@ -1,11 +1,22 @@
 # [California Groundwater Dataset and Stations](https://cdec.water.ca.gov/)
 
 ## Description
+![What is groundwater](https://github.com/sjtalkar/milestone2_waterwells_deepnote/blob/master/doc/images/groundwater.png)
+
+
 Groundwater, which is found in aquifers below the surface of the earth, is one of our most important natural resources. 
 Groundwater provides drinking water for a large portion of Califoria, nay, the nation's population. It also supplies business and industries, and is used **extensively 
 for irrigation**. California depends on groundwater for a major portion of its annual water supply, particularly during times of drought.
 This reliance on groundwater has resulted in overdraft and unsustainable groundwater usage in many of California’s basins, 
 particularly so in the San Joaquin River basin which is our area of interest.
+
+## So what is groundwater?
+Groundwater is water that exists underground in saturated zones beneath the land surface. The upper
+surface of the saturated zone is called the water table. Groundwater is a part of the natural water 
+cycle. Some part of the precipitation that lands on the ground surface infiltrates into the subsurface.
+The part that continues downward through the soil until it reaches rock material that is saturated is groundwater
+recharge. Water in the saturated groundwater system moves slowly and may eventually discharge into 
+streams, lakes, and oceans. An aquifer is a body of rock and/or sediment that holds this groundwater.
 
 The water level in an aquifer that supplies water to a well does not always remain the same. Factors affecting groundwater levels that are studied in this project include:
  1. Droughts
@@ -13,8 +24,8 @@ The water level in an aquifer that supplies water to a well does not always rema
  3. Reservoir levels
  4. Pumping for human needs such as domestic, agriculture and industrial
  
- If a water is pumped at a faster rate than an aquifer is recharged by precipitation or other sources of recharge, water levels can drop. 
- This can happen during drought, due to the extreme deficit of rain.
+If a water is pumped at a faster rate than an aquifer is recharged by precipitation or other sources
+of recharge, water levels can drop. This can happen during drought, due to the extreme deficit of rain.
 
 **Long-term water-level data** are fundamental to the resolution of many of the most complex problems dealing with groundwater availability and sustainability. 
 Significant periods of time - years to decades - typically are required to collect water-level data needed to assess the effects of climate variability, 
@@ -23,7 +34,6 @@ to monitor the effects of regional aquifer development, or to obtain data suffic
 [](https://water.ca.gov/programs/groundwater-management/sgma-groundwater-management)
 The analyis is performed against the backdrop of the Sustainable Groundwater Management Act that was passed in 2014 in California. SGMA requires locals agencies 
 to form groundwater sustainability agencies (GSAs) for the high and medium priority basins.
-
 
 ## Source
 
@@ -43,8 +53,8 @@ The strategy in the project is:
 
 A set of methods to retrieve this large dataset were experimented with before picking the optimal solution. The raw data in CSV stored in Deepnote was retrieved 
 using Python's requests library. No API key or secret is required for the call, but each call was limited to 4000 records (since the dataset is extremely large:
- 5,064,676, and counting, entries) and we loop to get additional data. The records are converted to JSON and then can easily be stored into a dataframe that is 
- ultimately saved as a CSV file.
+5,064,676, and counting, entries) and we loop to get additional data. The records are converted to JSON and then can easily be stored into a dataframe that is 
+ultimately saved as a CSV file.
 
 Data collection was performed in a community edition of Databricks that was connected to an Azure account. After storing the file in Filestore, it was downloaded to an Azure VM
 and then uploaded to Deepnote running in a browser on the same VM.
