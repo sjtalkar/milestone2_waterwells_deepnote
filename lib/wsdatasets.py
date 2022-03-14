@@ -1,12 +1,10 @@
 # This file contains the base Class definition for the Waters Shortage Datasets
 import abc
-import os
 import pandas as pd
 import geopandas as gpd
-import numpy as np
 
 from typing import List, Tuple
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, MultiPolygon, MultiPoint
 
 
 class BaseWsDataset(abc.ABC):
@@ -70,18 +68,26 @@ class WsGeoDataset(BaseWsDataset):
             data_df = pd.read_excel(input_datafile)
         return data_df
 
-    def _close_holes(self, poly: Polygon) -> Polygon:
-        """This function closes polygon holes by limitation to the exterior ring.
-        I.e. if there are any empty space inside a Polygon (e.g. O) it will only keep the coordinates
-        of the external boundaries of the Polygon as the new Polygon shape (e.g. █).
+    def _square_township_shapes(self, shape) -> Polygon:
+        """This function returns a square polygon encapsulating all the polygons making a Township. This function g
+        reatly simplifies the Townships shapes as full square compare to the original shapes.
 
-        :param poly: Input shapely Polygon to close
-        :return: the closed Polygon
+        :param shape: Input shapely Polygon or Multipolygon to close
+        :return: the encapsulating closed Polygon
         """
-        if poly.interiors:
-            return Polygon(list(poly.exterior.coords))
-        else:
-            return poly
+        if isinstance(shape, MultiPolygon):
+            # Extract all the points from the MultiPolygon
+            points = []
+            for polygon in shape.geoms:
+                points.extend(polygon.exterior.coords[:-1])
+            # Compute the convex hull of all the points to get the outer boundary of the shape
+            shape = MultiPoint(points).convex_hull
+        # Compute the square Polygon encapsulating the shape
+        bounding_polygon = Polygon([(shape.bounds[0], shape.bounds[1]),
+                                    (shape.bounds[0], shape.bounds[3]),
+                                    (shape.bounds[2], shape.bounds[3]),
+                                    (shape.bounds[2], shape.bounds[1])])
+        return bounding_polygon
 
     def _preprocess_sjv_shapefile(self, sjv_shapefile: str) -> Tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
         """This function loads the geojson file containing the township Range Section land survey polygons
@@ -107,7 +113,7 @@ class WsGeoDataset(BaseWsDataset):
         # Fill in any potential holes within the shape. This is important when clipping the San Joaquin Valley
         # polygon over a dataset containing data for the entire state of California. Otherwise it would also clip
         # out data within those holes
-        sjv_polygon.geometry = sjv_polygon.geometry.apply(lambda p: self._close_holes(p))
+        sjv_polygon.geometry = sjv_polygon.geometry.apply(lambda p: self._square_township_shapes(p))
         sjv_boundaries = sjv_polygon.geometry[0]
         return sjv_township_range_df, sjv_boundaries
 
