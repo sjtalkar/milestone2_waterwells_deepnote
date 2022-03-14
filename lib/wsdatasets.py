@@ -76,6 +76,18 @@ class WsGeoDataset(BaseWsDataset):
             data_df = pd.read_excel(input_datafile)
         return data_df
 
+    def _close_holes(self, poly: Polygon) -> Polygon:
+        """This function closes polygon holes by limitation to the exterior ring.
+        I.e. if there are any empty space inside a Polygon (e.g. O) it will only keep the coordinates
+        of the external boundaries of the Polygon as the new Polygon shape (e.g. █).
+        :param poly: Input shapely Polygon to close
+        :return: the closed Polygon
+        """
+        if poly.interiors:
+            return Polygon(list(poly.exterior.coords))
+        else:
+            return poly
+
     def _square_township_shapes(self, shape) -> Polygon:
         """This function returns a square polygon encapsulating all the polygons making a Township. This function g
         reatly simplifies the Townships shapes as full square compare to the original shapes.
@@ -111,17 +123,17 @@ class WsGeoDataset(BaseWsDataset):
         # Keep only the 'TownshipRange' and 'geometry' columns
         sjv_township_range_df = sjv_township_range_df[["TownshipRange", "geometry"]]
         sjv_township_range_df.rename(columns={"TownshipRange": "TOWNSHIP"}, inplace=True)
-        # Explode the rows containing Mulipolygons into multiple rows containing each 1 polygon
-        # This is important when overlaying the San Joaquin Valley map on datasets maps
-        #sjv_township_range_df = sjv_township_range_df.explode(ignore_index=True)
+        # Simplify the Township shapes to squares
+        sjv_township_range_df.geometry = sjv_township_range_df.geometry.apply(lambda p: self._square_township_shapes(p))
 
         # Create an artificial column with a unique value to merge all the Polygons together
-        sjv_plss_df["merge"] = 0
-        sjv_polygon = sjv_plss_df.dissolve(by="merge")
+        sjv_polygon = sjv_township_range_df.copy()
+        sjv_polygon["merge"] = 0
+        sjv_polygon = sjv_polygon.dissolve(by="merge")
         # Fill in any potential holes within the shape. This is important when clipping the San Joaquin Valley
         # polygon over a dataset containing data for the entire state of California. Otherwise it would also clip
         # out data within those holes
-        sjv_polygon.geometry = sjv_polygon.geometry.apply(lambda p: self._square_township_shapes(p))
+        sjv_polygon.geometry = sjv_polygon.geometry.apply(lambda p: self._close_holes(p))
         sjv_boundaries = sjv_polygon.geometry[0]
         return sjv_township_range_df, sjv_boundaries
 
