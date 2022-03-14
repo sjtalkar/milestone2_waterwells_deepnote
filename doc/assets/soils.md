@@ -51,7 +51,7 @@ Soil orders are described as follow:
 * `Histosols` - Soils formed in organic material
 * `Vertisols` - Shrinking and swelling clay soils
 ## Mapping at the TRS level
-Please refer to this documentation [Overlaying San Joaquin Valley Township Boundaries](../doc/etl/township_overlay.md)
+Please refer to this documentation [Overlaying San Joaquin Valley Township Boundaries](doc/etl/township_overlay.md)
 ## Potential issues
 ### Description
 1. Some map units have `taxorder` with NaN values. This is the case for map units covering cities, lakes, beaches, etc.
@@ -73,6 +73,6 @@ value set to the `compname` value (e.g. Urban Land, Beaches, Glaciers, Dune land
 `hydgrp`) is dominant in this map unit and assign it as the `dominant_soil_type` for this map unit. The soil dataset is 
 then merged to the map dataset giving one `dominant_soil_type` per map unit.
 3. To split the soil survey map per townships from the TRS land survey system we use the same method described in the 
-documentation [Overlaying San Joaquin Valley Township Boundaries](../doc/etl/township_overlay.md).
+documentation [Overlaying San Joaquin Valley Township Boundaries](doc/etl/township_overlay.md).
 4. As we do not expect the soil type to change from year, the 2016 soil data are used for all the other years.
 5. XXXXXXXXXXXXXXXX Write something smart
