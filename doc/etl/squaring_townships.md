@@ -40,14 +40,14 @@ The original San Joaquin Valley TRS dataset from the L.A. Times contains the fol
 
 !["Original Township-Range shapes"](../images/sjv_original_townships.png)
 
-After squaring all the Township-Ranges we get the below boundaries:
+After squaring all the Township-Ranges we get the below reults:
 * the within-township borders which can be seen in the original data above have disappeared
 * the holes which can be seen in the original data above have disappeared
 * the townships on the outer region have been simplified
-
-A negative side effect of squaring the township shapes to their outermost square boundaries is that some township
+* a negative side effect of squaring the township shapes to their outermost square boundaries is that some township
 shapes slightly overlap. This means that some map data will be duplicated in two townships. But this overlapping appears
-to be very limited and has thus been ignored.
+to be very limited and has thus been ignored
+* there is still one empty area in the map which is ignored
 
 !["Final Township-Range shapes"](../images/sjv_squarred_townships.png)
 
