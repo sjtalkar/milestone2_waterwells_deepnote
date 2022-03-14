@@ -29,7 +29,7 @@ A deep study of well construction and aquifers had to be conducted to understand
 
 The columns specified here are as per original dataset name:
 [Explanation of geologic terms](https://mbmggwic.mtech.edu/sqlserver/v11/help/welldesign.asp)
-![welldiagram](/work/milestone2_waterwells_deepnote/doc/images/welldiagram.png)
+![welldiagram](https://github.com/sjtalkar/milestone2_waterwells_deepnote/blob/master/doc/images/welldiagram.png)
 > **Aquifer**: An aquifer is a geologic unit (sand and gravel, sandstone, limestone, or other rock) that will yield usable amounts of water to a well or spring.
 
 > **Perforations**: All wells are open to the aquifer so that water can enter the well. Well completions vary from "open hole" in consolidated rock that does not need a casing, 
