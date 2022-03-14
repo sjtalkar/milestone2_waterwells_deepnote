@@ -35,19 +35,19 @@ class WsGeoDataset(BaseWsDataset):
         """
         # map_df is a GeoPandas dataframe containing geospatial land areas together with the data.
         # This dataframe can be use to display features of land areas
-        self.map_df = None
+        self.map_df = pd.DataFrame()
         # data_df is an optional Pandas dataframe containing additional data describing the land areas in map_df
-        self.data_df = None
+        self.data_df = pd.DataFrame()
         # output_df is the Pandas dataframe containing the processed data by township and year and without the
         # geospatial data. It is meant to be exported in a file for the downstream analysis.
-        self.output_df = None
+        self.output_df = pd.DataFrame()
         self.__merging_keys = None
 
         if input_geofiles:
-            self.map_df = gpd.read_file(input_geofiles[0]).to_crs(epsg=4326)
+            self.map_df = self._read_geospatial_file(input_geofiles[0])
             if len(input_geofiles) > 1:
                 for input_shapefile in input_geofiles[1:]:
-                    self.map_df = self.map_df.concat(gpd.read_file(input_shapefile).to_crs(epsg=4326), axis=0)
+                    self.map_df = self.map_df.concat(self._read_geospatial_file(input_shapefile), axis=0)
                 self.map_df.reset_index(inplace=True, drop=True)
 
         if input_datafile:
@@ -55,6 +55,14 @@ class WsGeoDataset(BaseWsDataset):
             self.__merging_keys = merging_keys
 
         self.sjv_township_range_df, self.sjv_boundaries = self._preprocess_sjv_shapefile(sjv_shapefile)
+
+    def _read_geospatial_file(self, filename: str):
+        """Read a Geospatial dataframe and set the projection as WGS84 Latitude/Longitude ("EPSG:4326").
+
+        :param filename: the geospatial fle
+        :return: the GeoPandas Dataframe with projection set to EPSG:4326
+        """
+        return gpd.read_file(filename).to_crs(epsg=4326)
 
     def _read_input_datafile(self, input_datafile: str, input_datafile_format: str = "csv") -> pd.DataFrame:
         """This functions loads additional data not provided together with the map data.
@@ -200,5 +208,5 @@ class WsGeoDataset(BaseWsDataset):
 
         :param output_filename: the name of the file with the relative path
         """
-        if self.output_df:
+        if not self.output_df.empty:
             self.output_df.to_csv(output_filename)
