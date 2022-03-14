@@ -60,7 +60,7 @@ class CropsDataset(WsGeoDataset):
             lambda x: x[0] if not get_crops_details else self.crop_name_to_type_mapping.get(x[0].split("|")[1], "X"))
         self.map_2014_df = self.map_2014_df[features_to_keep]
         # Merge contiguous land areas of the same crop class together
-        self.map_2014_df = self.map_2014_df.dissolve(by=["YEAR", "CROP_TYPE"]).reset_index()\
+        #self.map_2014_df = self.map_2014_df.dissolve(by=["YEAR", "CROP_TYPE"]).reset_index()\
             #.explode(ignore_index=True)
 
         # Transform the 2016 dataset
@@ -69,7 +69,7 @@ class CropsDataset(WsGeoDataset):
         self.map_2016_df.rename(columns={crop_type_mapping["2016"]: "CROP_TYPE"}, inplace=True)
         self.map_2016_df = self.map_2016_df[features_to_keep]
         # Merge contiguous land areas of the same crop class together
-        self.map_2016_df = self.map_2016_df.dissolve(by=["YEAR", "CROP_TYPE"]).reset_index()
+        #self.map_2016_df = self.map_2016_df.dissolve(by=["YEAR", "CROP_TYPE"]).reset_index()
 
         # Transform the 2018 dataset
         self.map_2018_df["YEAR"] = "2018"
@@ -77,7 +77,7 @@ class CropsDataset(WsGeoDataset):
         self.map_2018_df.rename(columns={crop_type_mapping["2018"]: "CROP_TYPE"}, inplace=True)
         self.map_2018_df = self.map_2018_df[features_to_keep]
         # Merge contiguous land areas of the same crop class together
-        self.map_2018_df = self.map_2018_df.dissolve(by=["YEAR", "CROP_TYPE"]).reset_index()
+        #self.map_2018_df = self.map_2018_df.dissolve(by=["YEAR", "CROP_TYPE"]).reset_index()
 
         # Concatenate the 2016 and 2018 datasets vertically.
         # The 2014 dataset is not included in the map dataset as for this analysis
