@@ -46,6 +46,8 @@ the season having the biggest impact on water usage. For this analysis we thus l
 Some Crops classes are manually discarded during the ETL processing, including land areas classified as:
 * "X - Not Classified"
 * "U - Urban"
+* "NR - Native Riparian" which are not crops but existing water banks vegetation (we have another dataset for existing
+vegetation)
 
 These classes do not describe actual crops and instead of having such additional features, we consider it equivalent for
 a Township fully covered by urban area, to have a value of zero for all crop types than having an "urban" feature set to 
