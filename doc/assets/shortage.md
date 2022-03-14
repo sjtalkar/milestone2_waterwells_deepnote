@@ -73,8 +73,8 @@ ignored at this stage.
 Aquifers water level are usually measured in spring when they are at their maximum levels due to water recharge from
 snowpack melting and precipitations. On the contrary the main crop growing season is the summer months and is as such
 the season having the biggest impact on water usage. For this analysis we thus limit ourselves to the summer crops data.
-## Mapping at the TRS level
-Please refer to this documentation [Overlaying San Joaquin Valley Township Boundaries](../doc/etl/township_overlay.md)
+## Mapping at the Township level
+Please refer to this documentation [Overlaying San Joaquin Valley Township Boundaries](doc/etl/township_overlay.md)
 ## Potential issues
 ### Description
 1. The 2014 and 2016-2018 datasets organize data differently
