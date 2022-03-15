@@ -48,7 +48,7 @@ After squaring all the Township-Ranges we get the below reults:
 shapes slightly overlap. This means that some map data will be duplicated in two townships. But this overlapping appears
 to be very limited and has thus been ignored
 * there is still one empty area in the map. This land surface represents 0.076% of the surface of the San Joaquin
-Valley definition, resulting from the above process. We have considered this negligible and decided to ignore it.
+Valley as computed by the above process. We have considered this negligible and decided to ignore it.
 
 !["Final Township-Range shapes"](../images/sjv_squarred_townships.png)
 
