@@ -28,7 +28,7 @@ shapefiles.
 For this analysis we limit ourselves to the main class of crops (e.g. `Deciduous fruits and nuts`, `Vineyard`, etc),
 without going the subclass details of each crop (e.g. `Apples`, `Apricots`, `Cherries`, etc for the `Deciduous fruits 
 and nuts` class). This means that we are assuming that each crop in a class have the same agricultural impact on
-water usage and resources. This assumption obviously does not hold but is made in order to simplify the analysis.
+water usage and resources. This assumption is broad, but is made in order to simplify the analysis.
 
 Thus, the features extracted from the original dataset are:
 * `DWR_Standa` - the July crop class in the 2014 dataset. We keep only the first letter of the column which corresponds
@@ -58,9 +58,7 @@ The 2016 and 2018 have other interesting features like:
 * `IRR_TYP1PA` - which indicates if the land is irrigated or not for the crop farming
 * `IRR_TYP2PA` - which provides details on the type of irrigation performed on a specific farming land.
 
-Unfortunately those data are available only for the 2016 and 2018 datasets. It feels very complicated to augment the
-2014 dataset with irrigation status from past years as a crop/farming land in 2014 might not necessary cover the
-same land area and might be used for a different crop with a different irrigation system. These fields have thus been 
+Unfortunately those data are available only for the 2016 and 2018 datasets so these fields have thus been 
 ignored at this stage.
 ## Mapping at the Township level
 Please refer to this documentation [Overlaying San Joaquin Valley Township Boundaries](doc/etl/township_overlay.md)
