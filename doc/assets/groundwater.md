@@ -105,6 +105,7 @@ df_groundwater.coalesce(1).write.format("com.databricks.spark.csv").option("head
 We are interested in the elevation of the groundwater surface, that can be calculated by subtracting the depth to groundwater from the ground surface elevation.
 
 [DECIDING WHEN TO MONITOR GROUNDWATER LEVELS](https://www.countyofcolusa.org/DocumentCenter/View/4260/Series1Article4-GroundwaterLevelMonitoring?bidId=#:~:text=The%20elevation%20of%20the%20groundwater,groundwater%20flow%20can%20be%20determined.&text=Figure%201.)
+
 Water levels in many aquifers in the United States follow a natural cyclic pattern of seasonal fluctuation,typically rising during the winter and spring due to greater precipitation and recharge, 
 then declining during the summer and fall owing to less recharge and greater evapotranspiration. Spring measurements generally occur before most of the irrigation season so static groundwater levels are
 usually measured in production wells.Because static levels are measured, elevation gradients between monitoring wells can be determined as well as groundwater flow direction within the aquifer systems.

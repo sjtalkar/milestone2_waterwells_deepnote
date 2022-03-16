@@ -39,6 +39,7 @@ The geojson is used as is.
 
 ## Mapping at the TRS level
 The geojson is joined spatially with points in a geo dataframe to yield columns that can then be merged on Township, Range or TownshipRange levels.
+For details, please refer to [this documentation](../etl/township_overlay.md). 
 
 ## Potential issues
 ### Description
