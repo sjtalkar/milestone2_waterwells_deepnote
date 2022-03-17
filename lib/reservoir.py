@@ -13,7 +13,7 @@ from typing import List, Tuple, Dict
 from lib.wsdatasets import WsGeoDataset
 
 
-class ReservoirDataset(year_start, year_end, output_file_directory):
+class ReservoirDataset:
     """
         This class loads the reservoir dataset
 
@@ -24,13 +24,13 @@ class ReservoirDataset(year_start, year_end, output_file_directory):
         output_file_directory : directory to store both weekly and yearly granularity file e.g. = /work/milestone2_waterwells_deepnote/assets/inputs/reservoir
 
     """
-    def __init__(self):
+    def __init__(self, year_start, year_end, output_file_directory)):
         self.year_start = year_start
         self.year_end = year_end
         self.output_file = output_file_directory
             
             
-    def scrape_weekly_reservoir_data():
+    def scrape_weekly_reservoir_data(self):
         """
             This function loops through a set of years in a list
             It creates URLS at weekly intervals for reservoir data
@@ -107,7 +107,7 @@ class ReservoirDataset(year_start, year_end, output_file_directory):
 
         return all_years_reservoir_data
 
-    def get_reservoir_station_data():
+    def get_reservoir_station_data(self):
         """
             This function retrieves the station location data for reservoirs through webscraping
         """
@@ -141,7 +141,7 @@ class ReservoirDataset(year_start, year_end, output_file_directory):
         return station_table
 
         
-def save_precipitation_data(reservoir_station_df, granularity):
+def save_precipitation_data(self, reservoir_station_df, granularity):
     """
         This function saves weekly and yearly level reservoir data in separate CSV files
     """
@@ -150,7 +150,7 @@ def save_precipitation_data(reservoir_station_df, granularity):
     else:
         reservoir_station_df.to_csv(fr"{self.output_file_directory}/reservoir_station_data.csv", index=False)
 
- def retrieve_merge_precipitation_stations():
+ def retrieve_merge_precipitation_stations(self):
     """
         This function calls web scraping functions for weekly reservoir data and the stattion and merges the two
         It saves off the weekly data in a file

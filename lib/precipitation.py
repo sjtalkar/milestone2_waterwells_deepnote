@@ -13,7 +13,7 @@ from typing import List, Tuple, Dict
 from lib.wsdatasets import WsGeoDataset
 
 
-class PrecipitationDataset(year_start, year_end, output_file_directory):
+class PrecipitationDataset:
     """This class loads, processes the precipitation dataset 
        The range of years for which the data is to be collected  is captured in 
 
@@ -22,14 +22,14 @@ class PrecipitationDataset(year_start, year_end, output_file_directory):
         output_file_directory : directory to store both weekly and yearly granularity file e.g. = /work/milestone2_waterwells_deepnote/assets/inputs/precipitation
     
     """
-    def __init__(self):
+    def __init__(self, year_start, year_end, output_file_directory):
             self.year_start = year_start
             self.year_end = year_end
             self.output_file = output_file_directory
             
             
         
-    def scrape_monthly_precipitation_data():
+    def scrape_monthly_precipitation_data(self):
         """
             This function loops through a set of years in a list
             It creates URLS at yearly level for precipitation In each URL, the data is at monthly level
@@ -83,7 +83,7 @@ class PrecipitationDataset(year_start, year_end, output_file_directory):
         return all_years_precipitation_data
 
 
-        def get_precipitation_station_data(level):
+        def get_precipitation_station_data(self, level):
             """
                     This function webscrapes monthly and daily precipitation collecting data.
                     level: Used to construct URL for monthly or daily stations as well as to identify the table in the HTML
@@ -128,14 +128,14 @@ class PrecipitationDataset(year_start, year_end, output_file_directory):
             return station_table
 
 
-    def save_precipitation_data(all_years_precipitation_station):
+    def save_precipitation_data(self, all_years_precipitation_station):
         """
                 This function saves the output dataset into file specified 
         """
         self.all_years_precipitation_station.to_csv(fr"{self.output_file_data}/precipitation_stations.csv", index=False)
 
 
-    def retrieve_merge_precipitation_stations(): 
+    def retrieve_merge_precipitation_stations(self): 
         """
             This function combines all precipitation data from statations, reported at monthly level and combines it with station location data
         """

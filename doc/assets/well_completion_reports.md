@@ -109,6 +109,8 @@ Stated Known issues:
 - Missing values (either missing on original Well Completion Report, or not key entered into database)
 - Incorrect values (e.g. incorrect Latitude, Longitude, Record Type, Planned Use, Total Completed Depth) 
 
+
+
 ### How did we remediate the issues?
 Data cleaning of the dataset involves the following:
 - If the missing values is a feature of interest, then the record is dropped. Hence we do not allow for missing latitude, longitude, completed well depth and date of completion.
@@ -117,3 +119,8 @@ Data cleaning of the dataset involves the following:
 - Remove erroneous entries such as well completion depth indicated to be less that 20 feet (see typical well depth above)
 - Remove erroneous entries where text is provided instead of a number for well completion depth
 - Filter to new well completion reports
+- California, so all of our latitudes and longitudes should fall within a bounding box:
+- -124.4096 < Longitude < -114.1308 
+-  32.5343 < Latitude < 42.0095
+-- Convert all positive longitudes to negative values and negative latitudes to positive values. The merge with PLSS will make sure we are within area of interest.
+-- Missing values were plotted ![plot_missing](../images/wellcompletion_missing_values.png)
