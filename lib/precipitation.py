@@ -19,13 +19,13 @@ class PrecipitationDataset:
 
         year_start : e.g. '2013'
         year_end : e.g. '2023' This is one year beyond the range
-        output_file_directory : directory to store both weekly and yearly granularity file e.g. = /work/milestone2_waterwells_deepnote/assets/inputs/precipitation
+        output_file_directory : directory to store both weekly and yearly granularity file e.g. = /work/milestone2_waterwells_deepnote/assets/outputs/precipitation
     
     """
     def __init__(self, year_start, year_end, output_file_directory):
             self.year_start = year_start
             self.year_end = year_end
-            self.output_file = output_file_directory
+            self.output_file_directory = output_file_directory
             
             
         
@@ -83,56 +83,56 @@ class PrecipitationDataset:
         return all_years_precipitation_data
 
 
-        def get_precipitation_station_data(self, level):
-            """
-                    This function webscrapes monthly and daily precipitation collecting data.
-                    level: Used to construct URL for monthly or daily stations as well as to identify the table in the HTML
-                    returns: station_data
-            """
-            
-            if level == 'daily':
-                url=f"https://cdec.water.ca.gov/reportapp/javareports?name=DailyStations"
-            else:
-                url=  "https://cdec.water.ca.gov/reportapp/javareports?name=MonthlyPrecip"
+    def get_precipitation_station_data(self, level):
+        """
+                This function webscrapes monthly and daily precipitation collecting data.
+                level: Used to construct URL for monthly or daily stations as well as to identify the table in the HTML
+                returns: station_data
+        """
+        
+        if level == 'daily':
+            url=f"https://cdec.water.ca.gov/reportapp/javareports?name=DailyStations"
+        else:
+            url=  "https://cdec.water.ca.gov/reportapp/javareports?name=MonthlyPrecip"
 
 
-            # Make a GET request to fetch the raw HTML content
-            html_content = requests.get(url).text
+        # Make a GET request to fetch the raw HTML content
+        html_content = requests.get(url).text
 
-            # Parse the html content
-            soup = BeautifulSoup(html_content, "lxml")
+        # Parse the html content
+        soup = BeautifulSoup(html_content, "lxml")
 
-            if level == 'daily':
-                    station_table = soup.find("table", attrs={"id":"DLY_STNLIST", "class": "data"})
-            else:
-                    station_table = soup.find("table", attrs={"id":"REALPRECIP_LIST", "class": "data"})
+        if level == 'daily':
+                station_table = soup.find("table", attrs={"id":"DLY_STNLIST", "class": "data"})
+        else:
+                station_table = soup.find("table", attrs={"id":"REALPRECIP_LIST", "class": "data"})
 
-            all_rows_list = []
-            for eachRow in station_table.find_all("tr"):
-                this_row = []
-                for  td in eachRow.find_all("td"):
-                    this_row.append(td.text.strip())
+        all_rows_list = []
+        for eachRow in station_table.find_all("tr"):
+            this_row = []
+            for  td in eachRow.find_all("td"):
+                this_row.append(td.text.strip())
 
-                if this_row and len(this_row) > 1:
-                    all_rows_list.append(this_row)
-            station_table = pd.DataFrame(all_rows_list )
-            station_table.columns = station_table.iloc[0,:]
-            station_table =  station_table.iloc[2:,:].copy()
-            station_table.rename(columns={'ID':'STATION_ID'}, inplace=True)
-            station_table.drop(columns=['ELEV(FEET)'], inplace = True)
+            if this_row and len(this_row) > 1:
+                all_rows_list.append(this_row)
+        station_table = pd.DataFrame(all_rows_list )
+        station_table.columns = station_table.iloc[0,:]
+        station_table =  station_table.iloc[2:,:].copy()
+        station_table.rename(columns={'ID':'STATION_ID'}, inplace=True)
+        station_table.drop(columns=['ELEV(FEET)'], inplace = True)
 
-            if level == 'daily':
-                self.daily_station_table = station_table
-            else:
-                self.monthly_station_table = station_table
-            return station_table
+        if level == 'daily':
+            self.daily_station_table = station_table
+        else:
+            self.monthly_station_table = station_table
+        return station_table
 
 
     def save_precipitation_data(self, all_years_precipitation_station):
         """
                 This function saves the output dataset into file specified 
         """
-        self.all_years_precipitation_station.to_csv(fr"{self.output_file_data}/precipitation_stations.csv", index=False)
+        self.all_years_precipitation_station.to_csv(fr"{self.output_file_directory}/precipitation_stations.csv", index=False)
 
 
     def retrieve_merge_precipitation_stations(self): 
@@ -150,7 +150,8 @@ class PrecipitationDataset:
         group_full_station_count_df.drop(columns=['count_latitude'], inplace=True)
 
         all_years_precipitation_station = all_years_precipitation_data.merge(group_full_station_count_df, how='inner', left_on='STATION_ID', right_on='STATION_ID')
-        all_years_precipitation_station.drop(columns=[ 'STATION'], inplace=True)
+        all_years_precipitation_station.drop(columns=['STATION'], inplace=True)
+        self.all_years_precipitation_station = all_years_precipitation_station
 
         self.save_precipitation_data(all_years_precipitation_station)
 

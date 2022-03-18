@@ -24,10 +24,10 @@ class ReservoirDataset:
         output_file_directory : directory to store both weekly and yearly granularity file e.g. = /work/milestone2_waterwells_deepnote/assets/inputs/reservoir
 
     """
-    def __init__(self, year_start, year_end, output_file_directory)):
+    def __init__(self, year_start, year_end, output_file_directory):
         self.year_start = year_start
         self.year_end = year_end
-        self.output_file = output_file_directory
+        self.output_file_directory = output_file_directory
             
             
     def scrape_weekly_reservoir_data(self):
@@ -36,12 +36,13 @@ class ReservoirDataset:
             It creates URLS at weekly intervals for reservoir data
             It creates one dataframe containing reservoir data at weekly level for years for which we have data
         """
-
-        period = pd.to_datetime(self.year_end).year - pd.to_datetime(self.year_start).year
-        year_list = pd.date_range(self.year_start, periods = period , freq='YS')
+        #period = pd.to_datetime(self.year_end).year - pd.to_datetime(self.year_start).year
+        #year_list = pd.date_range(self.year_start, periods = period , freq='YS')
+        #for year_start_date in year_list:
 
         all_years_reservoir_data = pd.DataFrame()
-        for year_start_date in year_list:
+        
+        for year_start_date in [ "2013-01-01",  "2014-01-01", "2015-01-01", "2016-01-01", "2017-01-01", "2018-01-01", "2019-01-01", "2020-01-01", "2021-01-01", "2022-01-01"]:
 
             #inclusive controls whether to include start and end that are on the boundary. The default, “both”, includes boundary points on either end.
             date_list = pd.date_range(year_start_date, periods=53, freq='W')
@@ -104,8 +105,9 @@ class ReservoirDataset:
         all_years_reservoir_data.rename(columns={'StaID': 'STATION_ID'}, inplace=True)
 
         self.all_years_reservoir_data = all_years_reservoir_data
-
         return all_years_reservoir_data
+
+
 
     def get_reservoir_station_data(self):
         """
@@ -141,36 +143,37 @@ class ReservoirDataset:
         return station_table
 
         
-def save_precipitation_data(self, reservoir_station_df, granularity):
-    """
-        This function saves weekly and yearly level reservoir data in separate CSV files
-    """
-    if granularity == 'weekly':
-        reservoir_station_df.to_csv(fr"{self.output_file_directory}/weekly_reservoir_station_data.csv", index=False)
-    else:
-        reservoir_station_df.to_csv(fr"{self.output_file_directory}/reservoir_station_data.csv", index=False)
+    def save_precipitation_data(self, reservoir_station_df, granularity):
+        """
+            This function saves weekly and yearly level reservoir data in separate CSV files
+        """
+        if granularity == 'weekly':
+            reservoir_station_df.to_csv(fr"{self.output_file_directory}/weekly_reservoir_station_data.csv", index=False)
+        else:
+            reservoir_station_df.to_csv(fr"{self.output_file_directory}/reservoir_station_data.csv", index=False)
 
- def retrieve_merge_precipitation_stations(self):
-    """
-        This function calls web scraping functions for weekly reservoir data and the stattion and merges the two
-        It saves off the weekly data in a file
-        It then merges the two dataframe to link stations to their locations
-        It averages the reservoir percent of capacity storage to the yearly level
-        It stores the file 
-    """
-    all_years_reservoir_data = self.all_years_reservoir_data #Note this take about 10 mins to run
+    def retrieve_merge_reservoir_stations(self):
+        """
+            This function calls web scraping functions for weekly reservoir data and the stattion and merges the two
+            It saves off the weekly data in a file
+            It then merges the two dataframe to link stations to their locations
+            It averages the reservoir percent of capacity storage to the yearly level
+            It stores the file 
+        """
+        all_years_reservoir_data = self.all_years_reservoir_data 
 
-    #Save off the weekly data as a check
-    self.save_precipitation_data(all_years_reservoir_data, 'weekly')
+        #Save off the weekly data as a check
+        self.save_precipitation_data(all_years_reservoir_data, 'weekly')
+        
+        station_table = self.station_table
+
+        reservoir_station_df = all_years_reservoir_data.merge(station_table, how='inner', on='STATION_ID')
+        reservoir_station_df['PCT_OF_CAPACITY'] = pd.to_numeric(reservoir_station_df['PCT_OF_CAPACITY'], errors='coerce')
     
-    station_table = self.station_table
-
-    reservoir_station_df = all_years_reservoir_data.merge(station_table, how='inner', on='STATION_ID')
-    reservoir_station_df['PCT_OF_CAPACITY'] = pd.to_numeric(reservoir_station_df['PCT_OF_CAPACITY'], errors='coerce')
-  
-    reservoir_station_df = reservoir_station_df.groupby(['STATION_ID', 'YEAR', 'LATITUDE' , 'LONGITUDE', 'COUNTY']).agg(PCT_OF_CAPACITY=('PCT_OF_CAPACITY', 'mean')).reset_index()
-    
-    reservoir_station_df = reservoir_station_df[['STATION_ID','PCT_OF_CAPACITY', 'YEAR', 'LATITUDE' , 'LONGITUDE', 'COUNTY'] ].copy()
-    self.save_precipitation_data(reservoir_station_df, 'yearly')
-    return reservoir_station_df   
+        reservoir_station_df = reservoir_station_df.groupby(['STATION_ID', 'YEAR', 'LATITUDE' , 'LONGITUDE', 'COUNTY']).agg(PCT_OF_CAPACITY=('PCT_OF_CAPACITY', 'mean')).reset_index()
+        
+        reservoir_station_df = reservoir_station_df[['STATION_ID','PCT_OF_CAPACITY', 'YEAR', 'LATITUDE' , 'LONGITUDE', 'COUNTY'] ].copy()
+        self.reservoir_station_df = reservoir_station_df
+        self.save_precipitation_data(reservoir_station_df, 'yearly')
+        return reservoir_station_df   
     

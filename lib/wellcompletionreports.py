@@ -1,15 +1,20 @@
 import json
+import pygeos
+import numpy as np
 import pandas as pd
+import altair as alt
 import geopandas as gpd
 
+from datetime import datetime
+
 from typing import List, Tuple, Dict
-from wsdatasets import WsGeoDataset
+from lib.wsdatasets import WsGeoDataset
 
 class WellCompletionReportsDataset(WsGeoDataset):
     """This class loads, processes and exports the Well Completion Reports dataset"""
     def __init__(self,
-                 input_geofiles: List[str] = ["../assets/inputs/common/plss_subbasin.geojson"],
-                 input_datafile: str = "../assets/inputs/wellcompletion/wellcompletion.csv",
+                 input_geofiles: List[str] = ["/work/milestone2_waterwells_deepnote/assets/inputs/common/plss_subbasin.geojson"],
+                 input_datafile: str = "/work/milestone2_waterwells_deepnote/assets/inputs/wellcompletion/wellcompletion.csv",
                  ):
         WsGeoDataset.__init__(self, input_geofiles=input_geofiles, input_datafile=input_datafile)
                               
@@ -135,43 +140,43 @@ class WellCompletionReportsDataset(WsGeoDataset):
         # drop the ones that aren't in the san joaquin valley basin
         wellcompletion_subset_plss = wellcompletion_subset_plss.dropna(subset=['MTRS'])
         
-        self.wellcompletion_subset_plss(self, "/assets/outputs/well_completion_clean.csv", index=False)
-        self.wellcompletion_subset_plss = self.wellcompletion_subset_plss
+        self.wellcompletion_subset_plss = wellcompletion_subset_plss
+        wellcompletion_subset_plss.to_csv("../assets/outputs/well_completion_clean.csv", index=False)
         return wellcompletion_subset_plss 
 
 
-        def draw_mising_data_chart(self):
-            """
-                This function charts the percentage missing data in the data file read in
+    def draw_mising_data_chart(self):
+        """
+            This function charts the percentage missing data in the data file read in
 
-                 MOVE TO BASE CLASS?
-            """
+                MOVE TO BASE CLASS?
+        """
 
-            df = self.data_df
-            percent_missing = df.isnull().sum() / len(wellcompletion_df)
-            missing_value_df = pd.DataFrame({'column_name': df.columns,
-                                            'percent_missing': percent_missing})
-            missing_value_df.sort_values('percent_missing', ascending = False, inplace=True)
+        df = self.wellcompletion_subset_df
+        percent_missing = df.isnull().sum() / len(df)
+        missing_value_df = pd.DataFrame({'column_name': df.columns,
+                                        'percent_missing': percent_missing})
+        missing_value_df.sort_values('percent_missing', ascending = False, inplace=True)
 
-            sort_list = list(missing_value_df['column_name'])
-            chart = alt.Chart(missing_value_df
-                            ).mark_bar(
-                                ).encode(
-                            y =alt.Y("sum(percent_missing)", stack="normalize", axis=alt.Axis(format='%')),
-                            x = alt.X('column_name:N', sort=sort_list),
-                            color=alt.value("orange"),
-                            tooltip = ['column_name', 'percent_missing']
-                            )
-            
-            
-            text = chart.transform_calculate(
-                position = 'datum.percent_missing + 0.05 * datum.percent_missing / abs(datum.percent_missing)'
-            ).mark_text(
-                align='center', 
-                fontSize=10,
-                color='black'
-            ).encode(
-                y='position:Q',
-                text=alt.Text('percent_missing:Q', format='.0%'),
-            )
-            return chart + text 
+        sort_list = list(missing_value_df['column_name'])
+        chart = alt.Chart(missing_value_df
+                        ).mark_bar(
+                            ).encode(
+                        y =alt.Y("sum(percent_missing)", stack="normalize", axis=alt.Axis(format='%')),
+                        x = alt.X('column_name:N', sort=sort_list),
+                        color=alt.value("orange"),
+                        tooltip = ['column_name', 'percent_missing']
+                        )
+        
+        
+        text = chart.transform_calculate(
+            position = 'datum.percent_missing + 0.05 * datum.percent_missing / abs(datum.percent_missing)'
+        ).mark_text(
+            align='center', 
+            fontSize=10,
+            color='black'
+        ).encode(
+            y='position:Q',
+            text=alt.Text('percent_missing:Q', format='.0%'),
+        )
+        return chart + text 
