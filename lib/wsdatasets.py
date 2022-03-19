@@ -189,7 +189,7 @@ class WsGeoDataset(BaseWsDataset):
             apply(lambda x:x/x.sum())
         self.map_df.drop(columns=["AREA"], inplace=True)
 
-    def compute_feature_at_township_level(self, feature_name: str):
+    def compute_feature_at_township_level(self, feature_name: str, feature_prefix: str = ""):
         """This function essentially pivots the geospatial dataframe, using the values in the feature_name parameter as
         the new feature columns and the land surface percentage the feature occupies in the townships as the cell
         values. E.g. if a township for a specific year, has 2 land areas, one classified as 'A' covering 75% of the
@@ -198,13 +198,18 @@ class WsGeoDataset(BaseWsDataset):
         in the self.output_df variable.
 
         :param feature_name: the name of the original feature to use to compute the values for each new features
+        :param feature_prefix: the prefix to add to feature names (e.g. "CROPS" for the Crops dataset features)
         """
         self._compute_areas(feature_name)
         # Get the land surface used for each feature class
         township_features_df = pd.pivot_table(self.map_df[["TOWNSHIP", "YEAR", "AREA_PCT", feature_name]],
                                               index=["TOWNSHIP", "YEAR"], columns=[feature_name],
                                               values="AREA_PCT").fillna(0)
-        township_features_df.columns = [c.upper().replace(" ", "_") for c in township_features_df.columns]
+        # Rename columns (except "TOWNSHIP" and "YEAR") by adding the feature_prefix, replacing spaces by underscores
+        # and transform to uppercase
+        township_features_df.columns = [
+            f"{feature_prefix.replace(' ', '_').strip('_').upper()}_{c.upper().replace(' ', '_')}"
+            if c not in {"TOWNSHIP", "YEAR"} else c for c in township_features_df.columns]
         township_features_df.reset_index(inplace=True)
         # Merge the townships with their new features
         self.output_df = self.sjv_township_range_df.dissolve(by='TOWNSHIP').reset_index().\
