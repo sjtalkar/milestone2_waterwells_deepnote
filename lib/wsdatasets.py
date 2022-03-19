@@ -45,7 +45,7 @@ class WsGeoDataset(BaseWsDataset):
             self.map_df = self._read_geospatial_file(input_geofiles[0])
             if len(input_geofiles) > 1:
                 for input_shapefile in input_geofiles[1:]:
-                    self.map_df = self.map_df.concat(self._read_geospatial_file(input_shapefile), axis=0)
+                    self.map_df = pd.concat([self.map_df, self._read_geospatial_file(input_shapefile)], axis=0)
                 self.map_df.reset_index(inplace=True, drop=True)
 
         if input_datafile:
