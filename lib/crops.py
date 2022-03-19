@@ -1,6 +1,5 @@
 import json
 import pandas as pd
-import geopandas as gpd
 
 from typing import List, Tuple, Dict
 from lib.wsdatasets import WsGeoDataset
