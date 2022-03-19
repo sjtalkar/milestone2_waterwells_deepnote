@@ -6,7 +6,7 @@ of sparse features.
 For the San Joaquin Valley, there are for example:
 * 22 soil types defined by their soil taxonomy order and hydrologic group
 * 8 crops classes and 95 crop types + 5 land use classes (idle, urban, not classified...) 
-* XXXXXXXXXXXXXXXXXXXX vegetation types
+* 15 existing vegetation tree types
 
 when all these soils, crops and vegetation types are used to generate Township features, it creates a lot of sparse
 features as for example out of the 22 soil types, a specific Township will have on average just 2~4 different type of
@@ -77,9 +77,10 @@ only the feature `A` would also be dropped, resulting in the below dataframe:
 
 ## What is the effect in practice?
 In practice dropping features covering less than 5% of the land surface of every Townships for every year result in very
-few features being dropped
+few features being dropped in most datasets:
 * For the Soils dataset, only 1 of the 22 `DOMINANT_SOIL_TYPE` gets dropped.
 * For the Crops dataset, only 1 of the 13 classes gets dropped (the "idle" class).
+* For the Vegetation dataset, 4 of the 13 tree types get dropped.
 
 It should be noted that by dropping features this way, the total land surface of the impacted Townships do not sum up to
 100% anymore.
