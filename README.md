@@ -20,7 +20,7 @@ This repository is organized following the below folder structure:
   * The Population Datasets
   * [The Crops Dataset](doc/assets/crops.md)
   * [The Soils Datasets](doc/assets/soils.md)
-  * The Vegetation Datasets
+  * [The Vegetation Datasets](doc/assets/vegetation.md)
 * Output Dataset
 * Custom Libraries
 * ETL operations
