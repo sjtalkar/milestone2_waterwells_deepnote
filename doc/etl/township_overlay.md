@@ -65,7 +65,7 @@ boundaries as follow:
 Here is an example of the result when applied to the 2018 Crops dataset (here we zoomed in on a section of the map for
 clarity)
 
-!["A Zoom-in when Overlaying the Township Boundaries on the Crops Dataset"](doc/images/township_overlay_sample.png)
+!["A Zoom-in when Overlaying the Township Boundaries on the Crops Dataset"](../images/township_overlay_sample.png)
 
 Based on the polygon surface, it is then possible to compute which surface percentage of a township a crop is taking
 which would result in the following dataset

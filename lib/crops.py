@@ -1,6 +1,4 @@
-import os
 import json
-import numpy as np
 import pandas as pd
 import geopandas as gpd
 
@@ -25,9 +23,9 @@ class CropsDataset(WsGeoDataset):
             raise KeyError(
                 "The input_geofiles dictionnary must at least contain the data files for the years 2014, 2016 and 2018")
         WsGeoDataset.__init__(self, [])
-        self.map_2014_df = gpd.read_file(input_geofiles.get("2014")).to_crs(epsg=4326)
-        self.map_2016_df = gpd.read_file(input_geofiles.get("2016")).to_crs(epsg=4326)
-        self.map_2018_df = gpd.read_file(input_geofiles.get("2018")).to_crs(epsg=4326)
+        self.map_2014_df = self._read_geospatial_file(input_geofiles.get("2014"))
+        self.map_2016_df = self._read_geospatial_file(input_geofiles.get("2016"))
+        self.map_2018_df = self._read_geospatial_file(input_geofiles.get("2018"))
         with open(crop_name_to_type_file) as f:
             self.crop_name_to_type_mapping = json.load(f)
 
@@ -62,7 +60,7 @@ class CropsDataset(WsGeoDataset):
             lambda x: x[0] if not get_crops_details else self.crop_name_to_type_mapping.get(x[0].split("|")[1], "X"))
         self.map_2014_df = self.map_2014_df[features_to_keep]
         # Merge contiguous land areas of the same crop class together
-        self.map_2014_df = self.map_2014_df.dissolve(by=["YEAR", "CROP_TYPE"]).reset_index()\
+        #self.map_2014_df = self.map_2014_df.dissolve(by=["YEAR", "CROP_TYPE"]).reset_index()\
             #.explode(ignore_index=True)
 
         # Transform the 2016 dataset
@@ -71,7 +69,7 @@ class CropsDataset(WsGeoDataset):
         self.map_2016_df.rename(columns={crop_type_mapping["2016"]: "CROP_TYPE"}, inplace=True)
         self.map_2016_df = self.map_2016_df[features_to_keep]
         # Merge contiguous land areas of the same crop class together
-        self.map_2016_df = self.map_2016_df.dissolve(by=["YEAR", "CROP_TYPE"]).reset_index()
+        #self.map_2016_df = self.map_2016_df.dissolve(by=["YEAR", "CROP_TYPE"]).reset_index()
 
         # Transform the 2018 dataset
         self.map_2018_df["YEAR"] = "2018"
@@ -79,7 +77,7 @@ class CropsDataset(WsGeoDataset):
         self.map_2018_df.rename(columns={crop_type_mapping["2018"]: "CROP_TYPE"}, inplace=True)
         self.map_2018_df = self.map_2018_df[features_to_keep]
         # Merge contiguous land areas of the same crop class together
-        self.map_2018_df = self.map_2018_df.dissolve(by=["YEAR", "CROP_TYPE"]).reset_index()
+        #self.map_2018_df = self.map_2018_df.dissolve(by=["YEAR", "CROP_TYPE"]).reset_index()
 
         # Concatenate the 2016 and 2018 datasets vertically.
         # The 2014 dataset is not included in the map dataset as for this analysis
@@ -92,15 +90,13 @@ class CropsDataset(WsGeoDataset):
         these townships for all the years where they have no data"""
         all_townships = set(self.sjv_township_range_df["TOWNSHIP"].unique())
         for year in self.map_df["YEAR"].unique():
-            year_df = self.map_df[self.map_df["YEAR"]==year]
+            year_df = self.map_df[self.map_df["YEAR"] == year]
             missing_townships = all_townships - set(year_df["TOWNSHIP"].unique())
-            nb_missing_townships = len(missing_townships)
-            missing_data = {
-                "TOWNSHIP": list(missing_townships),
-                "YEAR": [year] * nb_missing_townships,
-                "CROP_TYPE": ["X"] * nb_missing_townships
-            }
-            self.map_df = pd.concat([self.map_df, pd.DataFrame(missing_data)], axis=0)
+            missing_townships_df = self.sjv_township_range_df[self.sjv_township_range_df["TOWNSHIP"].isin(
+                missing_townships)].copy()
+            missing_townships_df["YEAR"] = year
+            missing_townships_df["CROP_TYPE"] = "X"
+            self.map_df = pd.concat([self.map_df, missing_townships_df], axis=0)
 
 
     def fill_missing_years(self):
@@ -110,7 +106,7 @@ class CropsDataset(WsGeoDataset):
         :return: the function updates the self.map_df dataframe
         """
         # Use the 2014 data for 2015
-        map_2015_df = self.map_df[self.map_df["YEAR"] == "2014"].copy()
+        map_2015_df = self.map_2014_df.copy()
         map_2015_df["YEAR"] = "2015"
         # Use the 2016 data for 2017
         map_2017_df = self.map_df[self.map_df["YEAR"] == "2016"].copy()

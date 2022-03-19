@@ -1,5 +1,4 @@
 import os
-import logging
 import numpy as np
 import pandas as pd
 
@@ -14,6 +13,15 @@ class SoilsDataset(WsGeoDataset):
                  merging_keys: List[str] = ["MUKEY", "mukey"]):
         WsGeoDataset.__init__(self, input_geofiles=input_geofiles, input_datafile=input_datafile,
                               merging_keys=merging_keys)
+
+    def _read_input_datafile(self, input_datafile: str, input_datafile_format: str = "csv") -> pd.DataFrame:
+        """This functions loads additional data not provided together with the map data.
+
+        :param input_datafile: the path to the file containing the additional data dataset
+        :param input_datafile_format: the format of the input_datafile (e.g. "csv", "xlsx", etc.)
+        :return: the pandas DataFrame containing the additional data to be merged with the map data
+        """
+        return pd.read_csv(input_datafile, delimiter=";")
 
     def preprocess_map_df(self, features_to_keep: List[str] = ["MUKEY", "geometry"]):
         """This function preprocesses the Soil map dataset by: 1) extracting only the columns: "MUKEY", "geometry". 2)
