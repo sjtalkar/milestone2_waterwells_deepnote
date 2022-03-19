@@ -16,6 +16,36 @@ outside the scope of this analysis.
 The datasets are provided by the [__California Natural Resources Agency__](https://resources.ca.gov/) and were 
 _'originally prepared by Land IQ, LLC and provided to the California Department of Water Resources (DWR) and other 
 resource agencies involved in work and planning efforts across the state for current land use information.'_
+
+2014 dataset information:
+* Originator: Joel Kimmelshue, Land IQ, LLC, Owner
+* Publication Date: 08-05-2017
+* Title: i15_Crop_Mapping_2014
+* Edition: 2017.05.08
+* Geospatial Data Presentation Form: vector digital data
+* Other Citation Details: CDWR (2017). 2014 California Statewide Agricultural Land Use , California Department of Water 
+* Resources, website: [https://gis.water.ca.gov/app/CADWRLandUseViewer/](https://gis.water.ca.gov/app/CADWRLandUseViewer/)
+
+2016 dataset information:
+* Originator: Joel Kimmelshue, Land IQ, LLC, Owner (Originator), Land IQ, LLC, Owner (Originator), Owner
+* Publication Date: 22-11-2019
+* Title: i15_Crop_Mapping_2016
+* Edition: 2019.11.22
+* Geospatial Data Presentation Form: vector digital data
+* Other Citation Details: CDWR (2019). 2016 California Statewide Agricultural Land Use , California Department of Water 
+* Resources, website: [https://gis.water.ca.gov/app/CADWRLandUseViewer/](https://gis.water.ca.gov/app/CADWRLandUseViewer/)
+
+2018 dataset information:
+* Organization's name: Joel Kimmelshue, Land IQ, LLC, Owner (Originator), Land IQ, LLC, Owner (Originator), Owner
+* Publication Date: 08-02-2021
+* Title: i15_Crop_Mapping_2018
+* Edition: 2021.02.08
+* Presentation Formats: digital map
+* FGDC Geospatial Presentation Format: vector digital data
+* Other Citation Details: 
+  * CDWR Land Use Viewer: [https://gis.water.ca.gov/app/CADWRLandUseViewer/](https://gis.water.ca.gov/app/CADWRLandUseViewer/) 
+  * Statewide Crop Mapping on California Natural Resources Agency (CRNA) Open Data Portal: [https://data.cnra.ca.gov/dataset/statewide-crop-mapping](https://data.cnra.ca.gov/dataset/statewide-crop-mapping). 
+  * SGMA Data Viewer: [https://sgma.water.ca.gov/webgis/?appid=SGMADataViewer#waterbudget](https://sgma.water.ca.gov/webgis/?appid=SGMADataViewer#waterbudget)
 ## How to download ?
 The datasets used for this analysis are the _Statewide Crop Mapping GIS Shapefiles_ datasets for the years 2014, 2016,
 2018.

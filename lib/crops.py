@@ -1,6 +1,5 @@
 import json
 import pandas as pd
-import geopandas as gpd
 
 from typing import List, Tuple, Dict
 from lib.wsdatasets import WsGeoDataset
@@ -46,7 +45,7 @@ class CropsDataset(WsGeoDataset):
         }
         if get_crops_details:
             crop_type_mapping = {
-                "2014": "DWR_Standa",
+                "2014": "Crop2014",
                 "2016": "CROPTYP2",
                 "2018": "CROPTYP2",
             }
@@ -57,47 +56,27 @@ class CropsDataset(WsGeoDataset):
         # and get the corresponding crop type as definined in the CROPTYP1 (combination of crop CLASS and SUBCLASS) in
         # the 2016 and 2018 datasets
         self.map_2014_df["CROP_TYPE"] = self.map_2014_df[crop_type_mapping["2014"]].apply(
-            lambda x: x[0] if not get_crops_details else self.crop_name_to_type_mapping.get(x[0].split("|")[1], "X"))
+            lambda x: x[0] if not get_crops_details
+            else self.crop_name_to_type_mapping.get(x.lower(), "X"))
         self.map_2014_df = self.map_2014_df[features_to_keep]
-        # Merge contiguous land areas of the same crop class together
-        #self.map_2014_df = self.map_2014_df.dissolve(by=["YEAR", "CROP_TYPE"]).reset_index()\
-            #.explode(ignore_index=True)
 
         # Transform the 2016 dataset
         self.map_2016_df["YEAR"] = "2016"
         # self.map_2016_df["IRRIGATED"] = self.map_2016_df["IRR_TYP1PA"].apply(lambda x: irrigated_mapping.get(x, 0))
         self.map_2016_df.rename(columns={crop_type_mapping["2016"]: "CROP_TYPE"}, inplace=True)
         self.map_2016_df = self.map_2016_df[features_to_keep]
-        # Merge contiguous land areas of the same crop class together
-        #self.map_2016_df = self.map_2016_df.dissolve(by=["YEAR", "CROP_TYPE"]).reset_index()
 
         # Transform the 2018 dataset
         self.map_2018_df["YEAR"] = "2018"
         # self.map_2018_df["IRRIGATED"] = self.map_2018_df["IRR_TYP1PA"].apply(lambda x: irrigated_mapping.get(x, 0))
         self.map_2018_df.rename(columns={crop_type_mapping["2018"]: "CROP_TYPE"}, inplace=True)
         self.map_2018_df = self.map_2018_df[features_to_keep]
-        # Merge contiguous land areas of the same crop class together
-        #self.map_2018_df = self.map_2018_df.dissolve(by=["YEAR", "CROP_TYPE"]).reset_index()
 
         # Concatenate the 2016 and 2018 datasets vertically.
         # The 2014 dataset is not included in the map dataset as for this analysis
         # We use data from 2015
         self.map_df = pd.concat([self.map_2016_df, self.map_2018_df], axis=0)
         self.map_df.reset_index(inplace=True, drop=True)
-
-    def fill_townships_with_no_data(self):
-        """Some townships have no Crops data. This function assigns the "X - Unclassified" Crop class to
-        these townships for all the years where they have no data"""
-        all_townships = set(self.sjv_township_range_df["TOWNSHIP"].unique())
-        for year in self.map_df["YEAR"].unique():
-            year_df = self.map_df[self.map_df["YEAR"] == year]
-            missing_townships = all_townships - set(year_df["TOWNSHIP"].unique())
-            missing_townships_df = self.sjv_township_range_df[self.sjv_township_range_df["TOWNSHIP"].isin(
-                missing_townships)].copy()
-            missing_townships_df["YEAR"] = year
-            missing_townships_df["CROP_TYPE"] = "X"
-            self.map_df = pd.concat([self.map_df, missing_townships_df], axis=0)
-
 
     def fill_missing_years(self):
         """The Crops datasets contain data for the years 2014, 2016 and 2018. This function uses the 2014 data to fill

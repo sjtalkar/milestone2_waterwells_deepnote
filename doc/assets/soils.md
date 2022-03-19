@@ -4,6 +4,16 @@ This dataset contains the data for the state of California from the broad-based 
 the United States called [Digital General Soil Map of the United States (STATSGO2) Database](https://www.nrcs.usda.gov/wps/portal/nrcs/detail/soils/survey/geo/?cid=nrcs142p2_053629).
 ## Source
 This dataset is provided by the U.S. Department of Agriculture, Natural Resources Conservation.
+
+Information:
+* Originator: U.S. Department of Agriculture, Natural Resources Conservation Service
+* Publication Date: 04-10-2016
+* Title: Digital General Soil Map of U.S.
+* Geospatial Data Presentation Form: Tabular digital data and vector digital data
+  * Publication Information:
+    * Publication Place: Fort Worth, Texas
+    * Publisher: U.S. Department of Agriculture, Natural Resources Conservation Service
+  * Online_Linkage: [https://websoilsurvey-dev.dev.sc.egov.usda.gov/](https://websoilsurvey-dev.dev.sc.egov.usda.gov/)
 ## How to download ?
 The raw dataset file __wss_gsmsoil_CA_\[2016-10-13\].zip__ can be downloaded from 
 [the U.S. General Soil Map (STATSGO2) by state](https://nrcs.app.box.com/v/soils).
