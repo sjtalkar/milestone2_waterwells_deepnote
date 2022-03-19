@@ -153,6 +153,22 @@ class WsGeoDataset(BaseWsDataset):
                                             right_on=self.__merging_keys[1])
             self.map_df.drop(self.__merging_keys, axis=1, inplace=True)
 
+    def fill_townships_with_no_data(self, feature_to_fill: str):
+        """Some townships in some datasets have no data. This function assigns the "X" "Unclassified" value to
+        these townships for all the years where they have no data
+
+        :param feature_to_fill: the feature name resulting from ETL, which must be filled with missing data (e.g.
+        "CROP_TYPE")."""
+        all_townships = set(self.sjv_township_range_df["TOWNSHIP"].unique())
+        for year in self.map_df["YEAR"].unique():
+            year_df = self.map_df[self.map_df["YEAR"] == year]
+            missing_townships = all_townships - set(year_df["TOWNSHIP"].unique())
+            missing_townships_df = self.sjv_township_range_df[self.sjv_township_range_df["TOWNSHIP"].isin(
+                missing_townships)].copy()
+            missing_townships_df["YEAR"] = year
+            missing_townships_df[feature_to_fill] = "X"
+            self.map_df = pd.concat([self.map_df, missing_townships_df], axis=0)
+
     def overlay_township_boundries(self):
         """This function keeps only the map data for the San Joaquin Valley and cut the map units by township.
         Refer to the provided documentation "Overlaying San Joaquin Valley township Boundaries"
