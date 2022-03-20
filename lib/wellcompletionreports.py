@@ -1,3 +1,4 @@
+import os
 import json
 import pygeos
 import numpy as np
@@ -129,6 +130,8 @@ class WellCompletionReportsDataset(WsGeoDataset):
         """
 
         df = self.wellcompletion_subset_df
+        df = self.get_missing_elevation(df)
+
         # create wells geodataframe
         wellcompletion_subset_gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.LONGITUDE, df.LATITUDE))
         #Set the coordinate reference system (the projection that denote the axis for the points)
@@ -145,14 +148,31 @@ class WellCompletionReportsDataset(WsGeoDataset):
         return wellcompletion_subset_plss 
 
 
-    def draw_mising_data_chart(self):
+    def get_missing_elevation(self, wellcompletion_subset_df):
+       
+        elev_file_list = os.listdir("../assets/outputs/elevation_api_results/")
+        final_df = pd.DataFrame()
+        for file_name in elev_file_list:
+            lat_long_elev_df = pd.read_csv(f"../assets/outputs/elevation_api_results/{file_name}", usecols = ['LATITUDE', 'LONGITUDE', 'elev_meters'])
+            if final_df.shape[0] == 0:
+                final_df = lat_long_elev_df 
+            else :
+                final_df = final_df.append(lat_long_elev_df)
+        
+        wellcompletion_merge_df = wellcompletion_subset_df.merge(final_df, how='left', left_on=['LATITUDE', 'LONGITUDE'], right_on= ['LATITUDE', 'LONGITUDE'])
+        wellcompletion_merge_df.drop (columns=['GROUNDSURFACEELEVATION'], inplace=True)
+
+        wellcompletion_merge_df.rename (columns={'elev_meters': "GROUNDSURFACEELEVATION"}, inplace=True)
+        return wellcompletion_merge_df
+
+
+    def draw_mising_data_chart(self, df):
         """
             This function charts the percentage missing data in the data file read in
 
                 MOVE TO BASE CLASS?
         """
 
-        df = self.wellcompletion_subset_df
         percent_missing = df.isnull().sum() / len(df)
         missing_value_df = pd.DataFrame({'column_name': df.columns,
                                         'percent_missing': percent_missing})
