@@ -93,9 +93,10 @@ class GroundwaterDataset(WsGeoDataset):
         # drop the ones that aren't in a subbasin trs
         spring_groundwater_plss = spring_groundwater_plss.dropna(subset=['MTRS'])
 
-        # Group wells that had multiple spring measurements in some years and get the average
-        spring_groundwater_group = spring_groundwater_plss.groupby(['SITE_CODE','MTRS','TownshipRange','COUNTY_NAME','YEAR']).agg({'GSE_GWE': ['mean'],}).reset_index()
-        
+        # Group wells that had multiple spring measurements in some years and get the average of  'GSE_GWE'
+        spring_groundwater_group = (spring_groundwater_plss[['SITE_CODE', 'LATITUDE', 'LONGITUDE', 'geometry', 'TownshipRange','COUNTY_NAME','YEAR', 'GSE_GWE']]
+                                    .dissolve(by=['SITE_CODE', 'LATITUDE', 'LONGITUDE','TownshipRange','COUNTY_NAME','YEAR'], aggfunc='mean').reset_index()
+        )
         self.spring_groundwater_plss = spring_groundwater_group
         spring_groundwater_group.to_csv("../assets/outputs/spring_groundwater_levels_clean.csv", index=False)
         return spring_groundwater_group 

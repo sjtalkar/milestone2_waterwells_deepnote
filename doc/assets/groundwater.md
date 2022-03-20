@@ -113,6 +113,8 @@ Springtime measurements also indicate the extent that the storage in the aquifer
 
 Hence, we filter for spring measurements of groundwater.
 
+`GSE_GWE:`	Ground Surface Elevation to Groundwater Elevation -	 Depth to groundwater elevation in feet below ground surface.
+
 ## Mapping at the TRS level
 Once we have a GeoDataframe with the points in the coordinate reference system, we spatially join to the California PLSS GeoJSON to map to the closest TownshipRange using sjoin method in geopandas.
 
