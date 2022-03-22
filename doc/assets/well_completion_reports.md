@@ -90,6 +90,7 @@ The columns specified here are as per original dataset name:
 | TOTALDRAWDOWN             	| See definition above                                                                                                                                  	|
 | WELLYIELD                 	| Amount of water yielded (See definition above)                                                                                                            |
 | WELLYIELDUNITOFMEASURE       	| Yield unit of measure (See definition above)                                                                                                              |
+| GSE_GWE                      	| Depth to groundwater elevation in feet below ground surface.                                                                                              |
 
 
 ## Mapping at the TRS level
@@ -113,6 +114,9 @@ Stated Known issues:
 
 ### How did we remediate the issues?
 Data cleaning of the dataset involves the following:
+- One of the biggest concerns was that over 96% of the records did not contain a GROUNDSURFACEELEVATION  of the location of the well itself. We do however have only 1% records missing the latitude and longitude.
+- USGS provides an API call that returns the elevation of a location identified by latitude and longitude. The latitude and longitudes were de-duped and for each unique combination we make an API call. 
+- The calls were limited to 3000 calls with 15 mins of break in between so as not to overwhelm the server. The program retrieving this data can be found [here](../lib/get_elevation.py).  
 - If the missing values is a feature of interest, then the record is dropped. Hence we do not allow for missing latitude, longitude, completed well depth and date of completion.
 - Latitude and Longitude records in some cases contain "/". These records do not yield the right location and hence dropped.
 - Extract domain of usage such as agriculture, domestic and industrail from descriptive description of usage.
