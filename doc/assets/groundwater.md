@@ -5,10 +5,10 @@
 
 
 Groundwater, which is found in aquifers below the surface of the earth, is one of our most important natural resources. 
-Groundwater provides drinking water for a large portion of Califoria, nay, the nation's population. It also supplies business and industries, and is used **extensively 
-for irrigation**. California depends on groundwater for a major portion of its annual water supply, particularly during times of drought.
+Groundwater provides drinking water for a large portion of Califoria, nay, the nation's population. It also supplies business and industries, and is used extensively 
+for irrigation. California depends on groundwater for a major portion of its annual water supply, particularly during times of drought.
 This reliance on groundwater has resulted in overdraft and unsustainable groundwater usage in many of California’s basins, 
-particularly so in the San Joaquin River basin which is our area of interest.
+particularly so in the San Joaquin River basin.
 
 ## So what is groundwater?
 Groundwater is water that exists underground in saturated zones beneath the land surface. The upper
@@ -24,8 +24,8 @@ The water level in an aquifer that supplies water to a well does not always rema
  3. Reservoir levels
  4. Pumping for human needs such as domestic, agriculture and industrial
  
-If a water is pumped at a faster rate than an aquifer is recharged by precipitation or other sources
-of recharge, water levels can drop. This can happen during drought, due to the extreme deficit of rain.
+If water is pumped at a faster rate than an aquifer is recharged by precipitation or other sources
+of recharge, water levels drop. This can happen during drought, due to the extreme deficit of rain.
 
 **Long-term water-level data** are fundamental to the resolution of many of the most complex problems dealing with groundwater availability and sustainability. 
 Significant periods of time - years to decades - typically are required to collect water-level data needed to assess the effects of climate variability, 
