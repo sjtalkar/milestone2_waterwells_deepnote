@@ -169,18 +169,26 @@ class WsGeoDataset(BaseWsDataset):
             missing_townships_df[feature_to_fill] = "X"
             self.map_df = pd.concat([self.map_df, missing_townships_df], axis=0)
 
+    def keep_only_sjv_data(self):
+        """This function keeps only the map data for the San Joaquin Valley and cut the map units by township.
+        Refer to the provided documentation "Overlaying San Joaquin Valley township Boundaries"
+        in ../doc/etl/township_overlay.md. The operation is done independently for every year in the dataset. The result
+        is saved in the self.map_df variable.
+        """
+        self.map_df = gpd.clip(self.map_df, self.sjv_boundaries)
+        self.map_df.reset_index(inplace=True, drop=True)
+
     def overlay_township_boundries(self):
         """This function keeps only the map data for the San Joaquin Valley and cut the map units by township.
         Refer to the provided documentation "Overlaying San Joaquin Valley township Boundaries"
         in ../doc/etl/township_overlay.md. The operation is done independently for every year in the dataset. The result
         is saved in the self.map_df variable.
         """
+        self.keep_only_sjv_data()
         for i, year in enumerate(self.map_df["YEAR"].unique()):
-            # First keep only the data points in the San Joaquin Valley by clipping the map data to
-            # the San Joaquin Valley boundaries. Doing this first reduces the computation complexity of the overlay
-            clipped_map_df = gpd.clip(self.map_df[self.map_df["YEAR"] == year], self.sjv_boundaries)
+            yearly_map_df = self.map_df[self.map_df["YEAR"] == year]
             # Overlay the townships boundaries on the map data units to cut and explode them based on the townships
-            map_data_by_township_df = gpd.overlay(clipped_map_df, self.sjv_township_range_df, how='identity',
+            map_data_by_township_df = gpd.overlay(yearly_map_df, self.sjv_township_range_df, how='identity',
                                                   keep_geom_type=True)
             if i == 0:
                 new_map_df = map_data_by_township_df
@@ -204,6 +212,19 @@ class WsGeoDataset(BaseWsDataset):
         self.map_df["AREA_PCT"] = self.map_df[["TOWNSHIP", "YEAR", "AREA"]].groupby(["TOWNSHIP", "YEAR"])["AREA"].\
             apply(lambda x:x/x.sum())
         self.map_df.drop(columns=["AREA"], inplace=True)
+
+    def aggregate_points_by_townships(self, feature_name: str, aggfunc: str ="mean"):
+        """This function merges the points identified by their latitude and longitude into theit township, and use the
+        aggfunc on the feature_name to compute the value for the Township
+
+        :param feature_name: the name of the feature to use to compute the values for each township
+        :param aggfunc: the function to use to aggregate the values per township"""
+        # group datapoints by Townships based on longitude/latitude
+        self.output_df = self.map_df.sjoin(self.sjv_township_range_df)
+        dissolve_by_columns = list(set(self.output_df.columns) - {feature_name, "geometry"})
+        # Group data points with multiple measurements in some years and get the average of feature_name
+        self.output_df = self.output_df.dissolve(by=dissolve_by_columns, aggfunc=aggfunc).reset_index()
+        self.output_df.drop(columns=["geometry", "index_right"], inplace=True)
 
     def compute_feature_at_township_level(self, feature_name: str, feature_prefix: str = ""):
         """This function essentially pivots the geospatial dataframe, using the values in the feature_name parameter as
