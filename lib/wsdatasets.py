@@ -277,4 +277,4 @@ class WsGeoDataset(BaseWsDataset):
         :param output_filename: the name of the file with the relative path
         """
         if not self.output_df.empty:
-            self.output_df.to_csv(output_filename)
+            self.output_df.to_csv(output_filename, index = False)
