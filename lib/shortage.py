@@ -43,6 +43,10 @@ class ShortageDataset(WsGeoDataset):
         #convert case to upper case
         shortage_df.columns  = [col.upper().replace(' ', '_') for col in shortage_df] 
 
+        # create simple year and month columns
+        shortage_df['YEAR'] = pd.DatetimeIndex(shortage_df['REPORT_DATE']).year
+        shortage_df['MONTH'] = pd.DatetimeIndex(shortage_df['REPORT_DATE']).month
+
         self.shortage_df = shortage_df
         return shortage_df
       
