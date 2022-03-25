@@ -170,7 +170,7 @@ class WsGeoDataset(BaseWsDataset):
             self.map_df = pd.concat([self.map_df, missing_townships_df], axis=0)
 
     def keep_only_sjv_data(self):
-        """This function keeps only the map data for the San Joaquin Valley and cut the map units by township.
+        """This function keeps only the map_df data for the San Joaquin Valley and cut the map units by township.
         Refer to the provided documentation "Overlaying San Joaquin Valley township Boundaries"
         in ../doc/etl/township_overlay.md. The operation is done independently for every year in the dataset. The result
         is saved in the self.map_df variable.
@@ -213,12 +213,14 @@ class WsGeoDataset(BaseWsDataset):
             apply(lambda x:x/x.sum())
         self.map_df.drop(columns=["AREA"], inplace=True)
 
-    def aggregate_points_by_townships(self, feature_name: str, aggfunc: str ="mean"):
-        """This function merges the points identified by their latitude and longitude into theit township, and use the
-        aggfunc on the feature_name to compute the value for the Township
+    def aggregate_points_by_township(self, feature_name: str, aggfunc: str ="mean"):
+        """This function keeps only the map_df data for the San Joaquin Valley and merges the points identified by
+        their latitude and longitude into theit township, and use the aggfunc on the feature_name to compute the value
+        for the Township.
 
         :param feature_name: the name of the feature to use to compute the values for each township
         :param aggfunc: the function to use to aggregate the values per township"""
+        self.keep_only_sjv_data()
         # group datapoints by Townships based on longitude/latitude
         self.output_df = self.map_df.sjoin(self.sjv_township_range_df)
         dissolve_by_columns = list(set(self.output_df.columns) - {feature_name, "geometry"})
