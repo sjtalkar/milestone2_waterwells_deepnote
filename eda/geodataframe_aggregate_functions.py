@@ -15,7 +15,8 @@ def get_yearly_data(    input_file: str,
                         year_avg_column_name:str,
                         col_to_aggr :str,
                         agg_func:str,
-                        time_value:str):
+                        time_value:str,
+                        drop_nulls=False):
     """
         Dataframe must have a column = geometry
 
@@ -33,21 +34,29 @@ def get_yearly_data(    input_file: str,
     #Read the file as a simple Pandas dataframe and perform pandas operations such as transform
     df = gpd.read_file(input_file, ignore_geometry=True)
 
-    df = df[df[time_aggregate_column] > time_value]
+   
+    df = df[df[time_aggregate_column] >= time_value]
     df[time_aggregate_column] = df[time_aggregate_column].astype(float).astype(int)
 
     # If the aggregation is on a categorical column, we do not need it to be a number
     if  agg_func != 'count': 
+     if drop_nulls:
+        df.dropna(subset=[col_to_aggr], inplace=True)
+        df = df[df[col_to_aggr] != ''].copy()
      df[col_to_aggr] = df[col_to_aggr].astype('float')
 
     #Find the  average `depth to groundwater elevation in feet below ground surface`. Normalize it for charting, across year and township range
     df[year_avg_column_name] = df.groupby([time_aggregate_column])[col_to_aggr].transform(agg_func)
 
+
     #After performing Pandas operations, convert into a gdf using stored geometry column
+  
+
     df['geometry'] = df['geometry'].apply(wkt.loads)
     df = gpd.GeoDataFrame(df, crs='epsg:4326')
 
     return df
+
 
 def get_dissolved_data (gdf,
                         dissolve_by_list: list,
@@ -194,3 +203,34 @@ def convert_point_polygons(gdf, dissolve_by_geometry :list ):
 
     return df_poly
 
+
+def merge_data_plss( input_file_name, output_file_name):
+    """  
+        - This function reads a input file, creates a dataframe that will have latitude and longitude 
+        - It was created for precipitation and reservoir datasets that did not get merged with PLSS and so do not 
+        - have a geometry column stored in the output.
+        - For these dataframes, we end up with very few rows when joining with plss
+        - Create a GeoDataFrame when starting from a regular DataFrame that has latitudinal and longitudinal coordinates. In the well completion reports, we have columns for latitude and longitude.
+        - A GeoDataFrame needs a shapely object.
+        - We use geopandas points_from_xy() to transform Longitude and Latitude into a list of shapely.Point objects and set it as a geometry while creating the GeoDataFrame.
+        - Once we have a GeoDataframe with the points in the coordinate reference system, we spatially join to the California PLSS GeoJSON to map to the closest TownshipRange using sjoin method in geopandas.
+    
+    """
+    df = pd.read_csv(input_file_name)
+
+    plss_gdf = gpd.read_file('../assets/plss_subbasin.geojson')
+    plss_range = plss_gdf.dissolve(by='TownshipRange').reset_index()
+    
+    # create wells geodataframe
+    df_gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.LONGITUDE, df.LATITUDE))
+    #Set the coordinate reference system (the projection that denote the axis for the points)
+    df_gdf = df_gdf.set_crs('epsg:4326')
+
+    # spatial join based on geometry
+    df_plss = df_gdf.sjoin(plss_range, how="left")
+
+    # drop the ones that aren't in the san joaquin valley basin
+    df_plss = df_plss.dropna(subset=['MTRS'])
+    
+    df_plss.to_csv(output_file_name, index=False)
+    return df_plss    

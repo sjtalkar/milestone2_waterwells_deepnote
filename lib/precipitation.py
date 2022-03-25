@@ -156,5 +156,3 @@ class PrecipitationDataset:
         self.save_precipitation_data(all_years_precipitation_station)
 
         return all_years_precipitation_station
-
-
