@@ -75,7 +75,7 @@ class CropsDataset(WsGeoDataset):
         # Concatenate the 2016 and 2018 datasets vertically.
         # The 2014 dataset is not included in the map dataset as for this analysis
         # We use data from 2015
-        self.map_df = pd.concat([self.map_2016_df, self.map_2018_df], axis=0)
+        self.map_df = pd.concat([self.map_2014_df, self.map_2016_df, self.map_2018_df], axis=0)
         self.map_df.reset_index(inplace=True, drop=True)
 
     def fill_missing_years(self):

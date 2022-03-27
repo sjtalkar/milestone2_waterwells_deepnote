@@ -5,6 +5,7 @@ import geopandas as gpd
 
 from typing import List, Tuple
 from shapely.geometry import Polygon, MultiPolygon, MultiPoint
+from shapely.ops import voronoi_diagram
 
 
 class BaseWsDataset(abc.ABC):
@@ -18,7 +19,8 @@ class WsGeoDataset(BaseWsDataset):
 
     """
     def __init__(self, input_geofiles: List[str], input_datafile: str = None, input_datafile_format: str = "csv",
-                 merging_keys: List[str] = None, sjv_shapefile: str = "../assets/inputs/common/plss_subbasin.geojson"):
+                 merging_keys: List[str] = None, sjv_shapefile: str = "../assets/inputs/common/plss_subbasin.geojson",
+                 ca_shapefile= "../assets/inputs/common/ca_county_boundaries/CA_Counties_TIGER2016.shp"):
         """Initialization of the dataset class.
 
         :param input_geofiles: list of of geospatial files to vertically concatenate. The geospatial datasets must
@@ -33,13 +35,13 @@ class WsGeoDataset(BaseWsDataset):
         """
         # map_df is a GeoPandas dataframe containing geospatial land areas together with the data.
         # This dataframe can be use to display features of land areas
-        self.map_df = pd.DataFrame()
+        self.map_df = gpd.GeoDataFrame()
         # data_df is an optional Pandas dataframe containing additional data describing the land areas in map_df
         self.data_df = pd.DataFrame()
         # output_df is the Pandas dataframe containing the processed data by township and year and without the
         # geospatial data. It is meant to be exported in a file for the downstream analysis.
         self.output_df = pd.DataFrame()
-        self.__merging_keys = None
+        self.__merging_keys = merging_keys
 
         if input_geofiles:
             self.map_df = self._read_geospatial_file(input_geofiles[0])
@@ -50,9 +52,9 @@ class WsGeoDataset(BaseWsDataset):
 
         if input_datafile:
             self.data_df = self._read_input_datafile(input_datafile, input_datafile_format)
-            self.__merging_keys = merging_keys
 
         self.sjv_township_range_df, self.sjv_boundaries = self._preprocess_sjv_shapefile(sjv_shapefile)
+        self.ca_boundaries = self._preprocess_ca_shapefile(ca_shapefile)
 
     def _read_geospatial_file(self, filename: str):
         """Read a Geospatial dataframe and set the projection as WGS84 Latitude/Longitude ("EPSG:4326").
@@ -134,8 +136,20 @@ class WsGeoDataset(BaseWsDataset):
         # polygon over a dataset containing data for the entire state of California. Otherwise it would also clip
         # out data within those holes
         sjv_polygon.geometry = sjv_polygon.geometry.apply(lambda p: self._close_holes(p))
-        sjv_boundaries = sjv_polygon.geometry[0]
-        return sjv_township_range_df, sjv_boundaries
+        return sjv_township_range_df, sjv_polygon
+
+    def _preprocess_ca_shapefile(self, ca_shapefile: str) -> gpd.GeoDataFrame:
+        """This function loads the geojson file of California counties and returns a geometry of the California state
+        boundaries.
+
+        :param ca_shapefile: the path to the shapefile containing the California counties polygons
+        :return: A Sahpely Polygon of the California boundaries
+        """
+        ca_geodf = gpd.read_file(ca_shapefile).to_crs(epsg=4326)
+        # Create an artificial column with a unique value to merge all the Polygons together
+        ca_geodf["merge"] = 0
+        ca_boundaries = ca_geodf.dissolve(by="merge")
+        return ca_boundaries
 
     def preprocess_map_df(self, features_to_keep: List[str]):
         """This function should be used in child classes to perform dataset specific pre-processing of the map dataset.
@@ -144,12 +158,14 @@ class WsGeoDataset(BaseWsDataset):
         """
         pass
 
-    def merge_map_with_data(self):
+    def merge_map_with_data(self, how: str = "left"):
         """This function merges the data dataset into the map dataframe, updates the class' map_df GeoDataFrame and
         drops the map and data keys from the final map dataset.The result is saved in the self.map_df variable.
+
+        :param how: how to merge the data (e.g. "left", "right", "inner").
         """
         if self.data_df is not None:
-            self.map_df = self.map_df.merge(self.data_df, how="left", left_on=self.__merging_keys[0],
+            self.map_df = self.map_df.merge(self.data_df, how=how, left_on=self.__merging_keys[0],
                                             right_on=self.__merging_keys[1])
             self.map_df.drop(self.__merging_keys, axis=1, inplace=True)
 
@@ -169,18 +185,26 @@ class WsGeoDataset(BaseWsDataset):
             missing_townships_df[feature_to_fill] = "X"
             self.map_df = pd.concat([self.map_df, missing_townships_df], axis=0)
 
+    def keep_only_sjv_data(self):
+        """This function keeps only the map_df data for the San Joaquin Valley and cut the map units by township.
+        Refer to the provided documentation "Overlaying San Joaquin Valley township Boundaries"
+        in ../doc/etl/township_overlay.md. The operation is done independently for every year in the dataset. The result
+        is saved in the self.map_df variable.
+        """
+        self.map_df = gpd.clip(self.map_df, self.sjv_boundaries.geometry[0])
+        self.map_df.reset_index(inplace=True, drop=True)
+
     def overlay_township_boundries(self):
         """This function keeps only the map data for the San Joaquin Valley and cut the map units by township.
         Refer to the provided documentation "Overlaying San Joaquin Valley township Boundaries"
         in ../doc/etl/township_overlay.md. The operation is done independently for every year in the dataset. The result
         is saved in the self.map_df variable.
         """
+        self.keep_only_sjv_data()
         for i, year in enumerate(self.map_df["YEAR"].unique()):
-            # First keep only the data points in the San Joaquin Valley by clipping the map data to
-            # the San Joaquin Valley boundaries. Doing this first reduces the computation complexity of the overlay
-            clipped_map_df = gpd.clip(self.map_df[self.map_df["YEAR"] == year], self.sjv_boundaries)
+            yearly_map_df = self.map_df[self.map_df["YEAR"] == year]
             # Overlay the townships boundaries on the map data units to cut and explode them based on the townships
-            map_data_by_township_df = gpd.overlay(clipped_map_df, self.sjv_township_range_df, how='identity',
+            map_data_by_township_df = gpd.overlay(yearly_map_df, self.sjv_township_range_df, how='identity',
                                                   keep_geom_type=True)
             if i == 0:
                 new_map_df = map_data_by_township_df
@@ -204,6 +228,46 @@ class WsGeoDataset(BaseWsDataset):
         self.map_df["AREA_PCT"] = self.map_df[["TOWNSHIP", "YEAR", "AREA"]].groupby(["TOWNSHIP", "YEAR"])["AREA"].\
             apply(lambda x:x/x.sum())
         self.map_df.drop(columns=["AREA"], inplace=True)
+
+    def compute_areas_from_points(self):
+        """This function takes geospatial points data (e.g. precipitation recorded in one location), and computes year
+        by year a Voronoi Diagram of the the Thiessen Polygons to construct the geospatial area data from the points.
+        The transformation is done year by year as measurements might not be performed at the exact same location from
+        year to year."""
+        new_map_df = gpd.GeoDataFrame()
+        for year in self.map_df["YEAR"].unique():
+            year_df = self.map_df[self.map_df["YEAR"] == year].copy()
+            # Keep the original points for display
+            year_df["points"] = year_df["geometry"].copy()
+            # Computes the Thiessen Polygon for each point
+            voronoi_regions = voronoi_diagram(MultiPoint(list(year_df.geometry)),
+                                              envelope=self.ca_boundaries.geometry[0])
+            voronoi_regions_df = gpd.GeoDataFrame(geometry=list(voronoi_regions.geoms), crs="epsg:4326")
+            # The Thiessen Polygon are not returned in a list in the same order than the points
+            # So we use SJOIN the merge the Voronoi shapes with the corresponding points and data in order for the
+            # shape to match the data
+            voronoi_regions_df = voronoi_regions_df.sjoin(year_df)
+            # Clip the shapes within the California boundaries
+            voronoi_regions_df = gpd.clip(voronoi_regions_df, self.ca_boundaries.geometry[0])
+            new_map_df = pd.concat([new_map_df, voronoi_regions_df], axis=0)
+        self.map_df = new_map_df
+        if "index_right" in list(self.map_df.columns):
+            self.map_df.drop(columns=["index_right"], inplace=True)
+
+    def aggregate_points_by_township(self, feature_name: str, aggfunc: str = "mean"):
+        """This function keeps only the map_df data for the San Joaquin Valley and merges the points identified by
+        their latitude and longitude into their township, and use the aggfunc on the feature_name to compute the value
+        for the Township.
+
+        :param feature_name: the name of the feature to use to compute the values for each township
+        :param aggfunc: the function to use to aggregate the values per township"""
+        self.keep_only_sjv_data()
+        # group datapoints by Townships based on longitude/latitude
+        self.output_df = self.map_df.sjoin(self.sjv_township_range_df)
+        dissolve_by_columns = list(set(self.output_df.columns) - {feature_name, "geometry"})
+        # Group data points with multiple measurements in some years and get the average of feature_name
+        self.output_df = self.output_df.dissolve(by=dissolve_by_columns, aggfunc=aggfunc).reset_index()
+        self.output_df.drop(columns=["geometry", "index_right"], inplace=True)
 
     def compute_feature_at_township_level(self, feature_name: str, feature_prefix: str = ""):
         """This function essentially pivots the geospatial dataframe, using the values in the feature_name parameter as
@@ -230,6 +294,25 @@ class WsGeoDataset(BaseWsDataset):
         # Merge the townships with their new features
         self.output_df = self.sjv_township_range_df.dissolve(by='TOWNSHIP').reset_index().\
             merge(township_features_df, how="right", left_on="TOWNSHIP", right_on="TOWNSHIP")
+
+    def aggregate_feature_at_township_level(self, group_by_features: List[str], feature_to_aggregate_on: str,
+                                          aggfunc: str = "mean"):
+        """This function essentially computes the mean of all values in a Township for each year
+
+        :param feature_name: the name of the original feature to use to compute the values for each new features
+        :param feature_prefix: the prefix to add to feature names (e.g. "CROPS" for the Crops dataset features)
+        """
+        features_to_keep = group_by_features.copy()
+        features_to_keep.append(feature_to_aggregate_on)
+        if "geometry" not in group_by_features:
+            features_to_keep.append("geometry")
+        new_output_df = pd.DataFrame()
+        for year in self.map_df["YEAR"].unique():
+            year_df = self.map_df[self.map_df["YEAR"] == year].copy()
+            year_df = year_df[features_to_keep].dissolve(by=group_by_features, aggfunc=aggfunc).reset_index()
+            year_df.drop(columns=["geometry"], inplace=True)
+            new_output_df = pd.concat([new_output_df, year_df], axis=0)
+        self.output_df = new_output_df
 
     def drop_features(self, drop_rate: float = 0.0, unwanted_features: List[str] = []):
         """This function removes features (columns) from the self.output_df dataset in two ways. 1) it drops the

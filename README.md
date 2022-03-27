@@ -27,3 +27,4 @@ This repository is organized following the below folder structure:
   * [Overlaying San Joaquin Valley Township-Range Boundaries](doc/etl/township_overlay.md)
   * [Squaring San Joaquin Valley Township-Ranges](doc/etl/squaring_townships.md)
   * [Dropping Rare Township Features](doc/etl/drop_rare_features.md)
+  * [Transforming Point Values into Township Values](doc/etl/from_point_to_region_values.md)
