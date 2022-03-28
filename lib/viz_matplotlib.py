@@ -13,7 +13,7 @@ def plot_townships_feature_per_year(df, feature_name: str, cmap: str = None, col
     rows = int(np.ceil(len(df["YEAR"].unique()) / columns))
     fig, axs = plt.subplots(rows, columns, figsize=(30,30))
     fig.suptitle(f"San Joaquin Valley Townships {feature_name} per year", fontsize=20)
-    for i, year in enumerate(df["YEAR"].unique()):
+    for i, year in enumerate(sorted(df["YEAR"].unique())):
         ax = axs[int(i / columns), i % columns]
         df_year = df[df["YEAR"] == year]
         df_year.plot(ax=ax, column=feature_name, edgecolor="black", linewidth=1, cmap=cmap, legend=True)
