@@ -55,7 +55,7 @@ class SoilsDataset(WsGeoDataset):
         change from year to year, the 2016 data are copied to all the other years from 2015. The function updates the
         self.map_df dataframe.
         """
-        for year in ["2015", "2017", "2018", "2019", "2020", "2021"]:
+        for year in ["2014", "2015", "2017", "2018", "2019", "2020", "2021"]:
             map_other_year_df = self.map_df[self.map_df["YEAR"] == "2016"].copy()
             map_other_year_df["YEAR"] = year
             self.map_df = pd.concat([self.map_df, map_other_year_df], axis=0)
