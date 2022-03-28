@@ -224,7 +224,8 @@ class WsGeoDataset(BaseWsDataset):
         # Merge rows by TOWNSHIP , YEAR and feature_name
         self.map_df = self.map_df.dissolve(by=["TOWNSHIP", "YEAR", feature_name]).reset_index()
         # Compute the area percentage of the feature in each TOWNSHIP for each year
-        self.map_df["AREA"] = self.map_df.geometry.to_crs(epsg=4326).area
+        self.map_df.set_crs("epsg:4326")
+        self.map_df["AREA"] = self.map_df.geometry.area
         self.map_df["AREA_PCT"] = self.map_df[["TOWNSHIP", "YEAR", "AREA"]].groupby(["TOWNSHIP", "YEAR"])["AREA"].\
             apply(lambda x:x/x.sum())
         self.map_df.drop(columns=["AREA"], inplace=True)
@@ -276,7 +277,7 @@ class WsGeoDataset(BaseWsDataset):
 
     def aggregate_points_by_township(self, feature_name: str, aggfunc: str = "mean"):
         """This function keeps only the map_df data for the San Joaquin Valley and merges the points identified by
-        their latitude and longitude into their township, and use the aggfunc on the feature_name to compute the value
+        their latitude and longitude by TOWNSHIP and YEAR, and use the aggfunc on the feature_name to compute the value
         for the Township.
 
         :param feature_name: the name of the feature to use to compute the values for each township
@@ -286,9 +287,8 @@ class WsGeoDataset(BaseWsDataset):
         self.map_df = self.map_df.sjoin(self.sjv_township_range_df)
         if "COUNTY" in list(self.map_df.columns):
             self.map_df.drop(columns=["COUNTY"], inplace=True)
-        dissolve_by_columns = list(set(self.map_df.columns) - {feature_name, "geometry"})
         # Group data points with multiple measurements in some years and get the average of feature_name
-        self.map_df = self.map_df.dissolve(by=dissolve_by_columns, aggfunc=aggfunc).reset_index()
+        self.map_df = self.map_df.dissolve(by=["TOWNSHIP", "YEAR"], aggfunc=aggfunc).reset_index()
         self.map_df.drop(columns=["index_right"], inplace=True)
 
     def aggregate_feature_at_township_level(self, group_by_features: List[str], feature_to_aggregate_on: str,
