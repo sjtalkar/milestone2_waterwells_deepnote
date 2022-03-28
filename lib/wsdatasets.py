@@ -254,6 +254,26 @@ class WsGeoDataset(BaseWsDataset):
         if "index_right" in list(self.map_df.columns):
             self.map_df.drop(columns=["index_right"], inplace=True)
 
+    def return_yearly_normalized_township_feature(self, feature_name: str, normalize_method: str = "mean"):
+        """This function returns a dataframe with the feature values normalized by the "YEAR" column.
+
+        :param feature_name: the name of the feature to normalize
+        :return: a GeoDataFrame with an additional normalized feature column
+        """
+        normalized_df = gpd.GeoDataFrame()
+        for year in self.map_df["YEAR"].unique():
+            year_df = self.map_df[self.map_df["YEAR"] == year].copy()
+            if normalize_method == "minmax":
+                year_df[f"{feature_name}_NORMALIZED"] = (year_df[feature_name] - year_df[feature_name].mean()) / \
+                                                        (year_df[feature_name].max() - year_df[feature_name].min())
+            elif normalize_method == "std":
+                year_df[f"{feature_name}_NORMALIZED"] = (year_df[feature_name] - year_df[feature_name].min()) / \
+                                                        year_df[feature_name].std()
+            else:
+                year_df[f"{feature_name}_NORMALIZED"] = year_df[feature_name] / year_df[feature_name].mean()
+            normalized_df = pd.concat([normalized_df, year_df], axis=0)
+        return normalized_df
+
     def aggregate_points_by_township(self, feature_name: str, aggfunc: str = "mean"):
         """This function keeps only the map_df data for the San Joaquin Valley and merges the points identified by
         their latitude and longitude into their township, and use the aggfunc on the feature_name to compute the value
@@ -263,19 +283,50 @@ class WsGeoDataset(BaseWsDataset):
         :param aggfunc: the function to use to aggregate the values per township"""
         self.keep_only_sjv_data()
         # group datapoints by Townships based on longitude/latitude
-        self.output_df = self.map_df.sjoin(self.sjv_township_range_df)
-        dissolve_by_columns = list(set(self.output_df.columns) - {feature_name, "geometry"})
+        self.map_df = self.map_df.sjoin(self.sjv_township_range_df)
+        if "COUNTY" in list(self.map_df.columns):
+            self.map_df.drop(columns=["COUNTY"], inplace=True)
+        dissolve_by_columns = list(set(self.map_df.columns) - {feature_name, "geometry"})
         # Group data points with multiple measurements in some years and get the average of feature_name
-        self.output_df = self.output_df.dissolve(by=dissolve_by_columns, aggfunc=aggfunc).reset_index()
-        self.output_df.drop(columns=["geometry", "index_right"], inplace=True)
+        self.map_df = self.map_df.dissolve(by=dissolve_by_columns, aggfunc=aggfunc).reset_index()
+        self.map_df.drop(columns=["index_right"], inplace=True)
 
-    def pivot_township_categorical_feature(self, feature_name: str, feature_prefix: str = ""):
-        """This function essentially pivots the geospatial dataframe, using the values in the feature_name parameter as
-        the new feature columns and the land surface percentage the feature occupies in the townships as the cell
-        values. E.g. if a township for a specific year, has 2 land areas, one classified as 'A' covering 75% of the
-        township land and one classified as 'B' covering 25% of the township range, these two rows will transformed as
-        1 row for the township but with 2 features A with value 75% and feature B with value 25%. The result is saved
-        in the self.output_df variable.
+    def aggregate_feature_at_township_level(self, group_by_features: List[str], feature_to_aggregate_on: str,
+                                          aggfunc: str = "mean"):
+        """This function essentially computes the mean of all values in a Township for each year
+
+        :param feature_name: the name of the original feature to use to compute the values for each new features
+        :param feature_prefix: the prefix to add to feature names (e.g. "CROPS" for the Crops dataset features)
+        """
+        features_to_keep = group_by_features.copy()
+        features_to_keep.append(feature_to_aggregate_on)
+        if "geometry" not in group_by_features:
+            features_to_keep.append("geometry")
+        new_map_df = gpd.GeoDataFrame()
+        for year in self.map_df["YEAR"].unique():
+            year_df = self.map_df[self.map_df["YEAR"] == year].copy()
+            year_df = year_df[features_to_keep].dissolve(by=group_by_features, aggfunc=aggfunc).reset_index()
+            new_map_df = pd.concat([new_map_df, year_df], axis=0)
+        self.map_df = new_map_df
+
+    def prepare_output_from_map_df(self, unwanted_features: List[str] = []):
+        """This functions, prepares the map_df Geospastial Dataframe to be written in the output file.
+        At the minimum, it removes the geospatial "geometry feature".
+
+        :param unwanted_features: additional list of features to drop."""
+        self.output_df = self.map_df.copy()
+        if (not unwanted_features) or ("geometry" not in unwanted_features):
+            self.output_df.drop(columns=["geometry"], errors="ignore", inplace=True)
+        if unwanted_features:
+            self.output_df.drop(columns=unwanted_features, errors="ignore", inplace=True)
+
+    def pivot_township_categorical_feature_for_output(self, feature_name: str, feature_prefix: str = ""):
+        """This function prepares the output_df dataframe by pivoting the geospatial dataframe, using the values in the
+        feature_name parameter as the new feature columns and the land surface percentage the feature occupies in the
+        townships as the cell values. E.g. if a township for a specific year, has 2 land areas, one classified as 'A'
+        covering 75% of the township land and one classified as 'B' covering 25% of the township range, these two rows
+        will transformed as 1 row for the township but with 2 features A with value 75% and feature B with value 25%.
+        The result is saved in the self.output_df variable.
 
         :param feature_name: the name of the original feature to use to compute the values for each new features
         :param feature_prefix: the prefix to add to feature names (e.g. "CROPS" for the Crops dataset features)
@@ -295,25 +346,6 @@ class WsGeoDataset(BaseWsDataset):
         self.output_df = self.sjv_township_range_df.dissolve(by='TOWNSHIP').reset_index().\
             merge(township_features_df, how="right", left_on="TOWNSHIP", right_on="TOWNSHIP")
 
-    def aggregate_feature_at_township_level(self, group_by_features: List[str], feature_to_aggregate_on: str,
-                                          aggfunc: str = "mean"):
-        """This function essentially computes the mean of all values in a Township for each year
-
-        :param feature_name: the name of the original feature to use to compute the values for each new features
-        :param feature_prefix: the prefix to add to feature names (e.g. "CROPS" for the Crops dataset features)
-        """
-        features_to_keep = group_by_features.copy()
-        features_to_keep.append(feature_to_aggregate_on)
-        if "geometry" not in group_by_features:
-            features_to_keep.append("geometry")
-        new_output_df = pd.DataFrame()
-        for year in self.map_df["YEAR"].unique():
-            year_df = self.map_df[self.map_df["YEAR"] == year].copy()
-            year_df = year_df[features_to_keep].dissolve(by=group_by_features, aggfunc=aggfunc).reset_index()
-            year_df.drop(columns=["geometry"], inplace=True)
-            new_output_df = pd.concat([new_output_df, year_df], axis=0)
-        self.output_df = new_output_df
-
     def drop_features(self, drop_rate: float = 0.0, unwanted_features: List[str] = []):
         """This function removes features (columns) from the self.output_df dataset in two ways. 1) it drops the
         features which cover a smaller land surface percentage of every township for any given year. 2) it drops
@@ -323,7 +355,7 @@ class WsGeoDataset(BaseWsDataset):
         year will be dropped. This is used to drop features which cover a very small amount of land surface in all the
         townships. Warning: by dropping feature columns, the sum of the feature percentage in impacted townships will
         not sum to 100%.
-        :param unwanted_features: the list of crop types to drop.
+        :param unwanted_features: the list of features to drop.
         """
         self.output_df.drop(columns=["geometry"], errors="ignore", inplace=True)
         # Drop features which cover a very small amount of land surface.

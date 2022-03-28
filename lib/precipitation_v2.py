@@ -68,7 +68,7 @@ class PrecipitationDataset(WsGeoDataset):
                 data_table[col] = pd.to_numeric(data_table[col], errors='coerce')
             data_table['AVERAGE_YEARLY_PRECIPITATION'] = data_table[months].mean(axis='columns')
             data_table['YEAR'] = curr_year
-            data_table.rename(columns = {'STATION ID':'STATION_ID'}, inplace=True)
+            data_table.rename(columns = {"STATION ID": "STATION_ID", "STATION NAME": "STATION_NAME"}, inplace=True)
             data_table.drop(columns=months, inplace=True)
         
             if all_years_precipitation_data.empty:
