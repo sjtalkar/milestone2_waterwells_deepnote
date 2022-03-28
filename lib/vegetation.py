@@ -33,7 +33,7 @@ class VegetationDataset(WsGeoDataset):
         """The Vegetation dataset only contains data updated up to 2019. These data are used to fill-in all the other
         years from 2015 to 2021. The function updates the self.map_df dataframe.
         """
-        for year in range(2015, 2022):
+        for year in range(2014, 2022):
             if year != 2019:
                 map_other_year_df = self.map_df[self.map_df["YEAR"] == "2019"].copy()
                 map_other_year_df["YEAR"] = str(year)

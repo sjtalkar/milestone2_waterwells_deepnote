@@ -269,7 +269,7 @@ class WsGeoDataset(BaseWsDataset):
         self.output_df = self.output_df.dissolve(by=dissolve_by_columns, aggfunc=aggfunc).reset_index()
         self.output_df.drop(columns=["geometry", "index_right"], inplace=True)
 
-    def compute_feature_at_township_level(self, feature_name: str, feature_prefix: str = ""):
+    def pivot_township_categorical_feature(self, feature_name: str, feature_prefix: str = ""):
         """This function essentially pivots the geospatial dataframe, using the values in the feature_name parameter as
         the new feature columns and the land surface percentage the feature occupies in the townships as the cell
         values. E.g. if a township for a specific year, has 2 land areas, one classified as 'A' covering 75% of the
