@@ -12,11 +12,17 @@ How do we fill in the data for the townships without weather stations ?
 
 ## Solution applied
 
-According to this documentation on [precipitation measurements](https://www.weather.gov/abrfc/map) from the U.S. 
-National Weather Service, there are several methods which can be used to estimate areal precipitations from point
-measurements. We decided to use the _Thiessen polygon_ method. Python's `shapely` library has a built-in
-`voronoid_diagram()` function making it easy, given any weather station to build the _Thiessen polygon_ for that 
-station.
+According to these documentations
+* [Science Direct - Voronoi Diagram](https://www.sciencedirect.com/topics/earth-and-planetary-sciences/voronoi-diagram)
+* [precipitation measurements](https://www.weather.gov/abrfc/map) from the U.S. National Weather Service, 
+
+the _Thiessen polygon_ map or _Voronoi diagram_ method _"are employed by many disciplines including weather forecasters,
+hydrologists and geographers, and by geologists in the mining sector, who use them to estimate resource volumes from 
+exploratory boreholes"_. We decided to use this method to perform such estimates of area measurements from point
+measurements.
+
+Python's `shapely` library has a built-in `voronoid_diagram()` function making it easy, given any station measurement to 
+build the _Thiessen polygons_ for the Voronoi Diagram.
 
 ## How does it work?
 Taking a set of point measurements, a _[Voronoi diagram](https://en.wikipedia.org/wiki/Voronoi_diagram)_ is computed. 

@@ -1,3 +1,4 @@
+import datetime
 import pandas as pd
 import geopandas as gpd
 
@@ -23,10 +24,11 @@ class GroundwaterDataset(WsGeoDataset):
         #Set the coordinate reference system so that we now have the projection axis
         self.map_df = self.map_df.set_crs("epsg:4326")
 
-    def preprocess_data_df(self, features_to_keep: List[str] = ["SITE_CODE", "GSE_GWE", "YEAR"]):
+    def preprocess_data_df(self, features_to_keep: List[str] = ["SITE_CODE", "GSE_GWE", "YEAR"], min_year: int = 2014):
         """This function keeps the GSE_GWE feature for the spring months.
 
         :param features_to_keep: the list of features (columns) to keep.
+        :param min_year: the minimum year to keep.
         """
         # create simple year and month columns
         self.data_df["MSMT_DATE"] = pd.to_datetime(self.data_df.MSMT_DATE)
@@ -41,6 +43,9 @@ class GroundwaterDataset(WsGeoDataset):
         self.data_df = self.data_df[self.data_df["MONTH"].isin(spring_months)]
         # Keep only the necessary features
         self.data_df = self.data_df[features_to_keep]
+        # Keep only the data after min_year and before the current year
+        current_year = datetime.datetime.now().year
+        self.data_df = self.data_df[(self.data_df["YEAR"] >= min_year) & (self.data_df["YEAR"] < current_year)]
 
     def preprocess_map_df(self):
         """This function keeps only the SITE_CODE, COUNTY and geometry features in the original geospatial data."""

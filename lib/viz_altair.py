@@ -1,7 +1,7 @@
 import altair as alt
 import pandas as pd
 
-def draw_mising_data_chart(df: pd.DataFrame):
+def draw_missing_data_chart(df: pd.DataFrame):
     """This function charts the percentage missing data in the data file read in
 
     :param df: The Pandas DataFrame for which to draw missing data
@@ -109,9 +109,9 @@ def view_attribute_per_year(base_map, gdf, color_col, color_scheme='blues',  tim
                                                 )
 
     if draw_stations:
-        stations =  chart_stations(df)
-        return  base_map + area_slider_chart + stations 
+        stations = chart_stations(df)
+        return base_map + area_slider_chart + stations
     else:
-         return base_map + area_slider_chart
+        return base_map + area_slider_chart
 
 

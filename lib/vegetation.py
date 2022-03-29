@@ -27,7 +27,7 @@ class VegetationDataset(WsGeoDataset):
         # Replace forest type code by the forest type name (e.g.replaces "239" by "Pinyon - Juniper")
         self.map_df["VEGETATION_TYPE"] = self.map_df["VEGETATION_TYPE"].apply(
             lambda x: self.saf_cover_type_mapping.get(x, "Non Forest").replace(" - ", "-"))
-        self.map_df["YEAR"] = "2019"
+        self.map_df["YEAR"] = 2019
 
     def fill_missing_years(self):
         """The Vegetation dataset only contains data updated up to 2019. These data are used to fill-in all the other
@@ -35,7 +35,7 @@ class VegetationDataset(WsGeoDataset):
         """
         for year in range(2014, 2022):
             if year != 2019:
-                map_other_year_df = self.map_df[self.map_df["YEAR"] == "2019"].copy()
+                map_other_year_df = self.map_df[self.map_df["YEAR"] == 2019].copy()
                 map_other_year_df["YEAR"] = str(year)
                 self.map_df = pd.concat([self.map_df, map_other_year_df], axis=0)
         self.map_df.reset_index(inplace=True, drop=True)

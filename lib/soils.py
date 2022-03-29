@@ -31,7 +31,7 @@ class SoilsDataset(WsGeoDataset):
         """
         self.map_df = self.map_df[features_to_keep]
         self.map_df["MUKEY"] = self.map_df["MUKEY"].astype(np.int64)
-        self.map_df["YEAR"] = "2016"
+        self.map_df["YEAR"] = 2016
 
     def preprocess_data_df(self):
         """This function preprocesses the Soil data dataset by:
@@ -55,8 +55,8 @@ class SoilsDataset(WsGeoDataset):
         change from year to year, the 2016 data are copied to all the other years from 2015. The function updates the
         self.map_df dataframe.
         """
-        for year in ["2014", "2015", "2017", "2018", "2019", "2020", "2021"]:
-            map_other_year_df = self.map_df[self.map_df["YEAR"] == "2016"].copy()
+        for year in [2014, 2015, 2017, 2018, 2019, 2020, 2021]:
+            map_other_year_df = self.map_df[self.map_df["YEAR"] == 2016].copy()
             map_other_year_df["YEAR"] = year
             self.map_df = pd.concat([self.map_df, map_other_year_df], axis=0)
         self.map_df.reset_index(inplace=True, drop=True)

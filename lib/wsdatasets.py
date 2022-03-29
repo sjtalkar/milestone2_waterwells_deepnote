@@ -54,7 +54,7 @@ class WsGeoDataset(BaseWsDataset):
             self.data_df = self._read_input_datafile(input_datafile, input_datafile_format)
 
         self.sjv_township_range_df, self.sjv_boundaries = self._preprocess_sjv_shapefile(sjv_shapefile)
-        self.ca_boundaries = self._preprocess_ca_shapefile(ca_shapefile)
+        self.ca_counties, self.ca_boundaries = self._preprocess_ca_shapefile(ca_shapefile)
 
     def _read_geospatial_file(self, filename: str):
         """Read a Geospatial dataframe and set the projection as WGS84 Latitude/Longitude ("EPSG:4326").
@@ -146,10 +146,12 @@ class WsGeoDataset(BaseWsDataset):
         :return: A Sahpely Polygon of the California boundaries
         """
         ca_geodf = gpd.read_file(ca_shapefile).to_crs(epsg=4326)
+        ca_counties = ca_geodf[["NAME", "geometry"]].copy()
+        ca_counties.rename(columns={"NAME": "COUNTY"}, inplace=True)
         # Create an artificial column with a unique value to merge all the Polygons together
         ca_geodf["merge"] = 0
         ca_boundaries = ca_geodf.dissolve(by="merge")
-        return ca_boundaries
+        return ca_counties, ca_boundaries
 
     def preprocess_map_df(self, features_to_keep: List[str]):
         """This function should be used in child classes to perform dataset specific pre-processing of the map dataset.
@@ -233,26 +235,31 @@ class WsGeoDataset(BaseWsDataset):
             apply(lambda x:x/x.sum())
         self.map_df.drop(columns=["AREA"], inplace=True)
 
-    def compute_areas_from_points(self):
+    def compute_areas_from_points(self, boundary: str = "ca"):
         """This function takes geospatial points data (e.g. precipitation recorded in one location), and computes year
         by year a Voronoi Diagram of the the Thiessen Polygons to construct the geospatial area data from the points.
         The transformation is done year by year as measurements might not be performed at the exact same location from
-        year to year."""
+        year to year.
+
+        :param voronoi_envelope: the envelope or boundary to use to compute the Voronoi Diagram."""
         new_map_df = gpd.GeoDataFrame()
+        if boundary == "svj":
+            envelope = self.sjv_boundaries.geometry[0]
+        else:
+            envelope = self.ca_boundaries.geometry[0]
         for year in self.map_df["YEAR"].unique():
             year_df = self.map_df[self.map_df["YEAR"] == year].copy()
             # Keep the original points for display
             year_df["points"] = year_df["geometry"].copy()
             # Computes the Thiessen Polygon for each point
-            voronoi_regions = voronoi_diagram(MultiPoint(list(year_df.geometry)),
-                                              envelope=self.ca_boundaries.geometry[0])
+            voronoi_regions = voronoi_diagram(MultiPoint(list(year_df.geometry)), envelope=envelope)
             voronoi_regions_df = gpd.GeoDataFrame(geometry=list(voronoi_regions.geoms), crs="epsg:4326")
             # The Thiessen Polygon are not returned in a list in the same order than the points
             # So we use SJOIN the merge the Voronoi shapes with the corresponding points and data in order for the
             # shape to match the data
             voronoi_regions_df = voronoi_regions_df.sjoin(year_df)
-            # Clip the shapes within the California boundaries
-            voronoi_regions_df = gpd.clip(voronoi_regions_df, self.ca_boundaries.geometry[0])
+            # Clip the shapes within the boundaries
+            voronoi_regions_df = gpd.clip(voronoi_regions_df, envelope)
             new_map_df = pd.concat([new_map_df, voronoi_regions_df], axis=0)
         self.map_df = new_map_df
         if "index_right" in list(self.map_df.columns):
