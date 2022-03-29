@@ -11,7 +11,7 @@ def plot_townships_feature_per_year(df, feature_name: str, cmap: str = None, col
     :param columns: The number of columns to use
     """
     rows = int(np.ceil(len(df["YEAR"].unique()) / columns))
-    fig, axs = plt.subplots(rows, columns, figsize=(30,30))
+    fig, axs = plt.subplots(rows, columns, figsize=(15,15))
     fig.suptitle(f"San Joaquin Valley Townships {feature_name} per year", fontsize=20)
     for i, year in enumerate(sorted(df["YEAR"].unique())):
         ax = axs[int(i / columns), i % columns]
@@ -31,7 +31,7 @@ def plot_townships_features(df, feature_name: str, year: str, cmap: str = None, 
     :param columns: The number of columns to use
     """
     rows = int(np.ceil(len(df["YEAR"].unique()) / columns))
-    fig, axs = plt.subplots(rows, columns, figsize=(30, 30))
+    fig, axs = plt.subplots(rows, columns, figsize=(15, 15))
     fig.suptitle(f"San Joaquin Valley Townships {feature_name} in {year}", fontsize=20)
     df_year = df[df["YEAR"] == year]
     features = df_year.columns.columns.tolist() - ["YEAR", "TOWNSHIP", "geometry"]

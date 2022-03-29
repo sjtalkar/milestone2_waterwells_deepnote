@@ -50,7 +50,7 @@ class CropsDataset(WsGeoDataset):
                 "2018": "CROPTYP2",
             }
         # Transform the 2014 dataset
-        self.map_2014_df["YEAR"] = "2014"
+        self.map_2014_df["YEAR"] = 2014
         # If we just want the crop class (get_crops_details=False) we extract the first letter of the DWR_Standa
         # column. Otherwise we need to extract the crop name ( after the "|" character in the DWR_Standa column
         # and get the corresponding crop type as definined in the CROPTYP1 (combination of crop CLASS and SUBCLASS) in
@@ -61,13 +61,13 @@ class CropsDataset(WsGeoDataset):
         self.map_2014_df = self.map_2014_df[features_to_keep]
 
         # Transform the 2016 dataset
-        self.map_2016_df["YEAR"] = "2016"
+        self.map_2016_df["YEAR"] = 2016
         # self.map_2016_df["IRRIGATED"] = self.map_2016_df["IRR_TYP1PA"].apply(lambda x: irrigated_mapping.get(x, 0))
         self.map_2016_df.rename(columns={crop_type_mapping["2016"]: "CROP_TYPE"}, inplace=True)
         self.map_2016_df = self.map_2016_df[features_to_keep]
 
         # Transform the 2018 dataset
-        self.map_2018_df["YEAR"] = "2018"
+        self.map_2018_df["YEAR"] = 2018
         # self.map_2018_df["IRRIGATED"] = self.map_2018_df["IRR_TYP1PA"].apply(lambda x: irrigated_mapping.get(x, 0))
         self.map_2018_df.rename(columns={crop_type_mapping["2018"]: "CROP_TYPE"}, inplace=True)
         self.map_2018_df = self.map_2018_df[features_to_keep]
@@ -86,14 +86,14 @@ class CropsDataset(WsGeoDataset):
         """
         # Use the 2014 data for 2015
         map_2015_df = self.map_2014_df.copy()
-        map_2015_df["YEAR"] = "2015"
+        map_2015_df["YEAR"] = 2015
         # Use the 2016 data for 2017
-        map_2017_df = self.map_df[self.map_df["YEAR"] == "2016"].copy()
-        map_2017_df["YEAR"] = "2017"
+        map_2017_df = self.map_df[self.map_df["YEAR"] == 2016].copy()
+        map_2017_df["YEAR"] = 2017
         self.map_df = pd.concat([self.map_df, map_2015_df, map_2017_df], axis=0)
         # For years post 2018, use the 2018 data
-        for year in ["2019", "2020", "2021"]:
-            map_post_2018_df = self.map_df[self.map_df["YEAR"] == "2018"].copy()
+        for year in [2019, 2020, 2021]:
+            map_post_2018_df = self.map_df[self.map_df["YEAR"] == 2018].copy()
             map_post_2018_df["YEAR"] = year
             self.map_df = pd.concat([self.map_df, map_post_2018_df], axis=0)
         self.map_df.reset_index(inplace=True, drop=True)
