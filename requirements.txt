@@ -11,3 +11,4 @@ pyspark==3.2.1
 matplotlib==3.5.1
 requests==2.27.1
 altair==4.2.0
+mapclassify==2.4.3
