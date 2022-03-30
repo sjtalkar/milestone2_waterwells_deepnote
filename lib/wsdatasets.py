@@ -38,7 +38,7 @@ class WsGeoDataset(BaseWsDataset):
         self.map_df = gpd.GeoDataFrame()
         # data_df is an optional Pandas dataframe containing additional data describing the land areas in map_df
         self.data_df = pd.DataFrame()
-        # output_df is the Pandas dataframe containing the processed data by township and year and without the
+        # output_df is the Pandas dataframe containing the processed data by Township-Range and year and without the
         # geospatial data. It is meant to be exported in a file for the downstream analysis.
         self.output_df = pd.DataFrame()
         self.__merging_keys = merging_keys
@@ -112,11 +112,11 @@ class WsGeoDataset(BaseWsDataset):
         return bounding_polygon
 
     def _preprocess_sjv_shapefile(self, sjv_shapefile: str) -> Tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
-        """This function loads the geojson file containing the township Range Section land survey polygons
+        """This function loads the geojson file containing the Township-Range Range Section land survey polygons
         for the San Joaquin Valley.
 
         :param sjv_shapefile: the path to the shapefile containing the TRS data for the San Joaquin Valley
-        :return: a tuple containing the township polygons of the San Joaquin Valley and the boundary Polygon of the
+        :return: a tuple containing the Township-Range polygons of the San Joaquin Valley and the boundary Polygon of the
         San Joaquin Valley
         """
         sjv_plss_df = gpd.read_file(sjv_shapefile)
@@ -124,7 +124,7 @@ class WsGeoDataset(BaseWsDataset):
         sjv_township_range_df = sjv_plss_df.dissolve(by='TownshipRange').reset_index()
         # Keep only the 'TownshipRange' and 'geometry' columns
         sjv_township_range_df = sjv_township_range_df[["TownshipRange", "geometry"]]
-        sjv_township_range_df.rename(columns={"TownshipRange": "TOWNSHIP"}, inplace=True)
+        sjv_township_range_df.rename(columns={"TownshipRange": "TOWNSHIP_RANGE"}, inplace=True)
         # Simplify the Township shapes to squares
         sjv_township_range_df.geometry = sjv_township_range_df.geometry.apply(lambda p: self._square_township_shapes(p))
 
@@ -175,24 +175,24 @@ class WsGeoDataset(BaseWsDataset):
             self.map_df.dropna(inplace=True)
 
     def fill_townships_with_no_data(self, feature_to_fill: str):
-        """Some townships in some datasets have no data. This function assigns the "X" "Unclassified" value to
-        these townships for all the years where they have no data
+        """Some Township-Ranges in some datasets have no data. This function assigns the "X" "Unclassified" value to
+        these Township-Ranges for all the years where they have no data
 
         :param feature_to_fill: the feature name resulting from ETL, which must be filled with missing data (e.g.
         "CROP_TYPE")."""
-        all_townships = set(self.sjv_township_range_df["TOWNSHIP"].unique())
+        all_townships = set(self.sjv_township_range_df["TOWNSHIP_RANGE"].unique())
         for year in self.map_df["YEAR"].unique():
             year_df = self.map_df[self.map_df["YEAR"] == year]
-            missing_townships = all_townships - set(year_df["TOWNSHIP"].unique())
-            missing_townships_df = self.sjv_township_range_df[self.sjv_township_range_df["TOWNSHIP"].isin(
+            missing_townships = all_townships - set(year_df["TOWNSHIP_RANGE"].unique())
+            missing_townships_df = self.sjv_township_range_df[self.sjv_township_range_df["TOWNSHIP_RANGE"].isin(
                 missing_townships)].copy()
             missing_townships_df["YEAR"] = year
             missing_townships_df[feature_to_fill] = "X"
             self.map_df = pd.concat([self.map_df, missing_townships_df], axis=0)
 
     def keep_only_sjv_data(self):
-        """This function keeps only the map_df data for the San Joaquin Valley and cut the map units by township.
-        Refer to the provided documentation "Overlaying San Joaquin Valley township Boundaries"
+        """This function keeps only the map_df data for the San Joaquin Valley and cut the map units by Township-Range.
+        Refer to the provided documentation "Overlaying San Joaquin Valley Township-Range Boundaries"
         in ../doc/etl/township_overlay.md. The operation is done independently for every year in the dataset. The result
         is saved in the self.map_df variable.
         """
@@ -200,8 +200,8 @@ class WsGeoDataset(BaseWsDataset):
         self.map_df.reset_index(inplace=True, drop=True)
 
     def overlay_township_boundries(self):
-        """This function keeps only the map data for the San Joaquin Valley and cut the map units by township.
-        Refer to the provided documentation "Overlaying San Joaquin Valley township Boundaries"
+        """This function keeps only the map data for the San Joaquin Valley and cut the map units by Township-Range.
+        Refer to the provided documentation "Overlaying San Joaquin Valley Township-Range Boundaries"
         in ../doc/etl/township_overlay.md. The operation is done independently for every year in the dataset. The result
         is saved in the self.map_df variable.
         """
@@ -224,14 +224,14 @@ class WsGeoDataset(BaseWsDataset):
 
         :param feature_name: the name of the original feature to use to compute the values for each new features
         """
-        if "TOWNSHIP" not in self.map_df.columns:
+        if "TOWNSHIP_RANGE" not in self.map_df.columns:
             self.overlay_township_boundries()
         # Merge rows by TOWNSHIP , YEAR and feature_name
-        self.map_df = self.map_df.dissolve(by=["TOWNSHIP", "YEAR", feature_name]).reset_index()
+        self.map_df = self.map_df.dissolve(by=["TOWNSHIP_RANGE", "YEAR", feature_name]).reset_index()
         # Compute the area percentage of the feature in each TOWNSHIP for each year
         self.map_df.set_crs("epsg:4326")
         self.map_df["AREA"] = self.map_df.geometry.area
-        self.map_df["AREA_PCT"] = self.map_df[["TOWNSHIP", "YEAR", "AREA"]].groupby(["TOWNSHIP", "YEAR"])["AREA"].\
+        self.map_df["AREA_PCT"] = self.map_df[["TOWNSHIP_RANGE", "YEAR", "AREA"]].groupby(["TOWNSHIP_RANGE", "YEAR"])["AREA"].\
             apply(lambda x:x/x.sum())
         self.map_df.drop(columns=["AREA"], inplace=True)
 
@@ -290,15 +290,15 @@ class WsGeoDataset(BaseWsDataset):
         their latitude and longitude by TOWNSHIP and YEAR, and use the aggfunc on the feature_name to compute the value
         for the Township.
 
-        :param feature_name: the name of the feature to use to compute the values for each township
-        :param aggfunc: the function to use to aggregate the values per township"""
+        :param feature_name: the name of the feature to use to compute the values for each Township-Range
+        :param aggfunc: the function to use to aggregate the values per Township-Range"""
         self.keep_only_sjv_data()
         # group datapoints by Townships based on longitude/latitude
         self.map_df = self.map_df.sjoin(self.sjv_township_range_df)
         if "COUNTY" in list(self.map_df.columns):
             self.map_df.drop(columns=["COUNTY"], inplace=True)
         # Group data points with multiple measurements in some years and get the average of feature_name
-        self.map_df = self.map_df.dissolve(by=["TOWNSHIP", "YEAR"], aggfunc=aggfunc).reset_index()
+        self.map_df = self.map_df.dissolve(by=["TOWNSHIP_RANGE", "YEAR"], aggfunc=aggfunc).reset_index()
         self.map_df.drop(columns=["index_right"], inplace=True)
 
     def aggregate_feature_at_township_level(self, group_by_features: List[str], feature_to_aggregate_on: str,
@@ -333,44 +333,44 @@ class WsGeoDataset(BaseWsDataset):
     def pivot_township_categorical_feature_for_output(self, feature_name: str, feature_prefix: str = ""):
         """This function prepares the output_df dataframe by pivoting the geospatial dataframe, using the values in the
         feature_name parameter as the new feature columns and the land surface percentage the feature occupies in the
-        townships as the cell values. E.g. if a township for a specific year, has 2 land areas, one classified as 'A'
-        covering 75% of the township land and one classified as 'B' covering 25% of the township range, these two rows
-        will transformed as 1 row for the township but with 2 features A with value 75% and feature B with value 25%.
-        The result is saved in the self.output_df variable.
+        Township-Range as the cell values. E.g. if a Township-Range for a specific year, has 2 land areas, one
+        classified as 'A' covering 75% of the Township-Range land and one classified as 'B' covering 25% of the
+        Township-Range range, these two rows will transformed as 1 row for the Township-Range but with 2 features A
+        with value 75% and feature B with value 25%. The result is saved in the self.output_df variable.
 
         :param feature_name: the name of the original feature to use to compute the values for each new features
         :param feature_prefix: the prefix to add to feature names (e.g. "CROPS" for the Crops dataset features)
         """
         self._compute_areas(feature_name)
         # Get the land surface used for each feature class
-        township_features_df = pd.pivot_table(self.map_df[["TOWNSHIP", "YEAR", "AREA_PCT", feature_name]],
-                                              index=["TOWNSHIP", "YEAR"], columns=[feature_name],
+        township_features_df = pd.pivot_table(self.map_df[["TOWNSHIP_RANGE", "YEAR", "AREA_PCT", feature_name]],
+                                              index=["TOWNSHIP_RANGE", "YEAR"], columns=[feature_name],
                                               values="AREA_PCT").fillna(0)
-        # Rename columns (except "TOWNSHIP" and "YEAR") by adding the feature_prefix, replacing spaces by underscores
+        # Rename columns (except "TOWNSHIP_RANGE" and "YEAR") by adding the feature_prefix, replacing spaces by underscores
         # and transform to uppercase
         township_features_df.columns = [
             f"{feature_prefix.replace(' ', '_').strip('_').upper()}_{c.upper().replace(' ', '_')}"
-            if c not in {"TOWNSHIP", "YEAR"} else c for c in township_features_df.columns]
+            if c not in {"TOWNSHIP_RANGE", "YEAR"} else c for c in township_features_df.columns]
         township_features_df.reset_index(inplace=True)
         # Merge the townships with their new features
-        self.output_df = self.sjv_township_range_df.dissolve(by='TOWNSHIP').reset_index().\
-            merge(township_features_df, how="right", left_on="TOWNSHIP", right_on="TOWNSHIP")
+        self.output_df = self.sjv_township_range_df.dissolve(by="TOWNSHIP_RANGE").reset_index().\
+            merge(township_features_df, how="right", left_on="TOWNSHIP_RANGE", right_on="TOWNSHIP_RANGE")
 
     def drop_features(self, drop_rate: float = 0.0, unwanted_features: List[str] = []):
         """This function removes features (columns) from the self.output_df dataset in two ways. 1) it drops the
-        features which cover a smaller land surface percentage of every township for any given year. 2) it drops
+        features which cover a smaller land surface percentage of every Township-Range for any given year. 2) it drops
         unwanted features (e.g. the "Urban" class from the crops dataset).
 
-        :param drop_rate: any feature which does not appear more that the drop_rate in any of the townships for every
-        year will be dropped. This is used to drop features which cover a very small amount of land surface in all the
-        townships. Warning: by dropping feature columns, the sum of the feature percentage in impacted townships will
-        not sum to 100%.
+        :param drop_rate: any feature which does not appear more that the drop_rate in any of the Township-Range for
+        every year will be dropped. This is used to drop features which cover a very small amount of land surface in
+        all the Township-Range. Warning: by dropping feature columns, the sum of the feature percentage in impacted
+        Township-Range will not sum to 100%.
         :param unwanted_features: the list of features to drop.
         """
         self.output_df.drop(columns=["geometry"], errors="ignore", inplace=True)
         # Drop features which cover a very small amount of land surface.
         for feature in self.output_df.columns:
-            if feature not in {"TOWNSHIP", "YEAR"} and self.output_df[feature].max() < drop_rate:
+            if feature not in {"TOWNSHIP_RANGE", "YEAR"} and self.output_df[feature].max() < drop_rate:
                 self.output_df.drop(columns=[feature], inplace=True)
         if unwanted_features:
             self.output_df.drop(columns=unwanted_features, errors="ignore", inplace=True)
@@ -381,4 +381,4 @@ class WsGeoDataset(BaseWsDataset):
         :param output_filename: the name of the file with the relative path
         """
         if not self.output_df.empty:
-            self.output_df.to_csv(output_filename)
+            self.output_df.to_csv(output_filename, index=False)

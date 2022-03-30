@@ -1,4 +1,4 @@
-# Transforming Point Values into Township Values
+# Transforming Point Values into Township-Range Values
 ## What is the Problematic?
 Some of the data are collected and recorded in specific locations while we need them for all the townships of the San 
 Joaquin Valley. An example is precipitation which is collected in weather stations, but there is not one weather station
@@ -30,22 +30,22 @@ The Voronoi Diagram is made of _Thiessen polygons_ representing the regions clos
 
 !["Voronoi Diagram"](../images/voronoi_diagram.png)
 
-We then overlay the Township boundaries on top of the Voronoi diagram and calculate the mean of the polygon values
+We then overlay the Township-Range boundaries on top of the Voronoi diagram and calculate the mean of the polygon values
 within the townships. In the example below:
-* Township TR1, which includes the point measurement with value 1, would have a value of 1
+* Township-Range TR1, which includes the point measurement with value 1, would have a value of 1
 * Likewise township TR9 would have a value of 2
-* Township TR13, which includes no point measurement and is included in a _Thiessen polygon_, would have the value of 1 
+* Township-Range TR13, which includes no point measurement and is included in a _Thiessen polygon_, would have the value of 1 
 which is the value of the point measurement of that polygon
-* Township TR5 which overlays 3 _Thiessen polygons_ would have the value equal to the mean of the three polygons it 
+* Township-Range TR5 which overlays 3 _Thiessen polygons_ would have the value equal to the mean of the three polygons it 
 crosses. That is (3+2+1)/3=2
 * Likewise township TR6 would have a value of (1+3+3+4+2)/5=2.6
 
-!["From point measurements to Township value"](../images/point_to_township_value.png)
+!["From point measurements to Township-Range value"](../images/point_to_township_value.png)
 
 ## Result
 The result of the average precipitations per township for the year 2021 in the San Joaquin Valley is as follow.
 
-!["2021 San Joaquin Valley Townships Average Precipitations"](../images/sjv_townships_precipitation.png)
+!["2021 San Joaquin Valley Township-Ranges Average Precipitations"](../images/sjv_townships_precipitation.png)
 
 ## Code 
 Please refer to the `compute_areas_from_points()` function in the `wsdatasets` library [here](lib/wsdatasets.py). 
