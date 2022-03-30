@@ -1,4 +1,4 @@
-# The WsGeoDatase Class
+# The WsGeoDataset Class
 ## Why develop our library?
 Even though the data they contain are different, in this project we are dealing with mainly two types of datasets
 sharing many common characteristics:

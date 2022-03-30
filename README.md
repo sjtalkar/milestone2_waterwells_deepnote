@@ -24,7 +24,7 @@ This repository is organized following the below folder structure:
 * Output Dataset
 * Custom Libraries
 * ETL operations
-  * [The WsGeoDatase Class](doc/etl/wsgeodataset.md)
+  * [The WsGeoDataset Class](doc/etl/wsgeodataset.md)
   * [Overlaying San Joaquin Valley Township-Range Boundaries](doc/etl/township_overlay.md)
   * [Squaring San Joaquin Valley Township-Ranges](doc/etl/squaring_townships.md)
   * [Dropping Rare Township Features](doc/etl/drop_rare_features.md)
