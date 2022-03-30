@@ -34,7 +34,7 @@ def plot_townships_features(df, feature_name: str, year: str, cmap: str = None, 
     fig, axs = plt.subplots(rows, columns, figsize=(15, 15))
     fig.suptitle(f"San Joaquin Valley Townships {feature_name} in {year}", fontsize=20)
     df_year = df[df["YEAR"] == year]
-    features = df_year.columns.columns.tolist() - ["YEAR", "TOWNSHIP", "geometry"]
+    features = df_year.columns.columns.tolist() - ["YEAR", "TOWNSHIP_RANGE", "geometry"]
     for i, feature in enumerate(features):
         ax = axs[int(i / columns), i % columns]
 

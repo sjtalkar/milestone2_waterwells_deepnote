@@ -14,8 +14,8 @@ from lib.wsdatasets import WsGeoDataset
 class WellCompletionReportsDataset(WsGeoDataset):
     """This class loads, processes and exports the Well Completion Reports dataset"""
     def __init__(self,
-                 input_geofiles: List[str] = ["/work/milestone2_waterwells_deepnote/assets/inputs/common/plss_subbasin.geojson"],
-                 input_datafile: str = "/work/milestone2_waterwells_deepnote/assets/inputs/wellcompletion/wellcompletion.csv",
+                 input_geofiles: List[str] = ["../assets/inputs/common/plss_subbasin.geojson"],
+                 input_datafile: str = "../assets/inputs/wellcompletion/wellcompletion.csv",
                  ):
         WsGeoDataset.__init__(self, input_geofiles=input_geofiles, input_datafile=input_datafile)
                               
@@ -39,7 +39,7 @@ class WellCompletionReportsDataset(WsGeoDataset):
 
         wellcompletion_df['DECIMALLATITUDE'] = wellcompletion_df.DECIMALLATITUDE.astype('float')
         wellcompletion_df['DECIMALLONGITUDE'] = wellcompletion_df.DECIMALLONGITUDE.astype('float')
-
+        wellcompletion_df.rename(columns={"TOWNSHIP": "TOWNSHIP_RANGE"}, inplace=True)
 
         #Correct incorrectly signed logitude and latiude Example :   120.54483 Longitude
         wellcompletion_df['DECIMALLONGITUDE'] = np.where(wellcompletion_df['DECIMALLONGITUDE'] > 0,
@@ -54,7 +54,7 @@ class WellCompletionReportsDataset(WsGeoDataset):
         wellcompletion_df = wellcompletion_df.dropna(subset=['DECIMALLATITUDE', 'DECIMALLONGITUDE']).copy()
 
         # Pick data of interest
-        wellcompletion_subset_df = wellcompletion_df[["DECIMALLATITUDE", "DECIMALLONGITUDE", "TOWNSHIP", "RANGE", "SECTION", "WELLLOCATION", "CITY", "COUNTYNAME", 
+        wellcompletion_subset_df = wellcompletion_df[["DECIMALLATITUDE", "DECIMALLONGITUDE", "TOWNSHIP_RANGE", "RANGE", "SECTION", "WELLLOCATION", "CITY", "COUNTYNAME",
                                                     "BOTTOMOFPERFORATEDINTERVAL", "TOPOFPERFORATEDINTERVAL", "GROUNDSURFACEELEVATION", "STATICWATERLEVEL", 
                                                     "RECORDTYPE",  "PLANNEDUSEFORMERUSE", "WCRNUMBER", "TOTALDRILLDEPTH", 
                                                     "TOTALCOMPLETEDDEPTH", "DATEWORKENDED", 'WELLYIELD', 'WELLYIELDUNITOFMEASURE']].copy()
