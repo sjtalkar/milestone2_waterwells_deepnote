@@ -21,6 +21,7 @@ ETL processes,
 we created our own library of dataset ETL classes.
 
 ## The library structure
+```
 .
 ├── /lib
 │   ├── wsdataset.py         contains the parent `WsGeoDataset` with all the common functions
@@ -33,6 +34,7 @@ we created our own library of dataset ETL classes.
 │   ├── soils.py             contains the `SoilsDataset` class for the [soils dataset](doc/assets/soils.md) ETL
 │   ├── vegetation.py        contains the `VegetationDataset` class for the [vegetation dataset](doc/assets/vegetation.md) ETL
 │   ├── wellcompletion.py    contains the `WellCompletionReportsDataset` class for the [well completion reports dataset](doc/assets/well_completion_reports.md) ETL
+```
 
 ## The Class attributes
 * `map_df` - The main Geopandas dataframe holding the geospatial geometries and the feature data
