@@ -40,13 +40,16 @@ we created our own library of dataset ETL classes.
 * `map_df` - The main Geopandas dataframe holding the geospatial geometries and the feature data
 * `data_df` - When geometries and data come from 2 different datasets, the `data_df` is meant to hold the feature data 
 before being merged into the geometry in the `map_df`
-* `sjv_township_range_df` - The GeoPandas dataframe holding the cleaned-up San Joaquin Valley PLSS geometries
+* `sjv_township_range_df` - The GeoPandas dataframe holding the 
+[cleaned-up San Joaquin Valley PLSS geometries](doc/etl/squaring_townships.md), which is used to compute features at
+the Toenship-Range level
 * `sjv_boundaries` - The GeoPandas dataframe holding only 1 big geometry of the outer boundaries of
 `sjv_township_range_df`. When we have data for the whole California state, this is used to filter only the data within 
 the San Joaquin Valley
-* `ca_counties_df` - The GeoPandas dataframe holds the geometries of all the counties in the state of California
+* `ca_counties_df` - The GeoPandas dataframe holds the geometries of all the counties in the state of California. This
+is used for visualisation purposes.
 * `ca_boundaries` - The GeoPandas dataframe holding only 1 big geometry of the outer boundaries of the state of 
-California
+California. This is used for visualisation purposes.
 * `output_df` - The Pandas dataframe holding the data after final transformation without the geometries, ready to be 
 * merged with other datasets and is the one written in a CSV file in the `/assets/outputs` folder
 
