@@ -14,7 +14,8 @@ and the the Township-Ranges boundaries overaly on top.
 In order to:
 * avoid code duplication,
 * centralize the code for easier maintenance,
-* benefit in each datasets ETL process of common tasks, while still allowing for custom dataset retrieval procedures and 
+* ensure consistency of common ETL processes,
+* benefit in each dataset ETL process of common tasks, while still allowing for custom dataset retrieval procedures and 
 ETL processes,
 * increase jupyter notebook readability by offloading the ETL code to libraries,
 
