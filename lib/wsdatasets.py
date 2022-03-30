@@ -54,7 +54,7 @@ class WsGeoDataset(BaseWsDataset):
             self.data_df = self._read_input_datafile(input_datafile, input_datafile_format)
 
         self.sjv_township_range_df, self.sjv_boundaries = self._preprocess_sjv_shapefile(sjv_shapefile)
-        self.ca_counties, self.ca_boundaries = self._preprocess_ca_shapefile(ca_shapefile)
+        self.ca_counties_df, self.ca_boundaries = self._preprocess_ca_shapefile(ca_shapefile)
 
     def _read_geospatial_file(self, filename: str):
         """Read a Geospatial dataframe and set the projection as WGS84 Latitude/Longitude ("EPSG:4326").
