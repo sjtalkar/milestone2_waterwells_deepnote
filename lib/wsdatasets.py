@@ -160,17 +160,19 @@ class WsGeoDataset(BaseWsDataset):
         """
         pass
 
-    def merge_map_with_data(self, how: str = "left", dropna: bool = False):
+    def merge_map_with_data(self, how: str = "left", dropkeys: bool = False, dropna: bool = False):
         """This function merges the data dataset into the map dataframe, updates the class' map_df GeoDataFrame and
         drops the map and data keys from the final map dataset.The result is saved in the self.map_df variable.
 
         :param how: how to merge the data (e.g. "left", "right", "inner").
+        :param dropkeys: whether to drop the map and data keys from the final map dataset.
         :param dropna: whether to drop rows with missing values in the data dataset.
         """
         if self.data_df is not None:
             self.map_df = self.map_df.merge(self.data_df, how=how, left_on=self.__merging_keys[0],
                                             right_on=self.__merging_keys[1])
-            self.map_df.drop(self.__merging_keys, axis=1, inplace=True)
+            if dropkeys:
+                self.map_df.drop(self.__merging_keys, axis=1, inplace=True)
         if dropna:
             self.map_df.dropna(inplace=True)
 
