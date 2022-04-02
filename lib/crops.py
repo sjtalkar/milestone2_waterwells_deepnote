@@ -1,42 +1,35 @@
 import json
 import pandas as pd
 
-from typing import List, Tuple, Dict
+from typing import List
 from lib.wsdatasets import WsGeoDataset
 
 
 class CropsDataset(WsGeoDataset):
     """This class loads, processes and exports the Crops dataset"""
-    def __init__(self, input_geofiles: Dict[str, str] = {
-            "2014": "../assets/inputs/crops/crops_2014/i15_Crop_Mapping_2014.shp",
-            "2016": "../assets/inputs/crops/crops_2016/i15_Crop_Mapping_2016.shp",
-            "2018": "../assets/inputs/crops/crops_2018/i15_Crop_Mapping_2018.shp"},
-            crop_name_to_type_file: str = "../assets/inputs/crops/crop_name_to_type_mapping.json"):
+    def __init__(self, input_geodir: str = "../assets/inputs/crops/",
+                 crop_name_to_type_file: str = "../assets/inputs/crops/crop_name_to_type_mapping.json"):
         """Initialization of the 2014, 2016 and 2018 Crops datasets. The function loads the elf.map_2014_df,
         elf.map_2016_df and elf.map_2018_df dataframes
 
-        :param input_geofiles: dictionnary of of geospatial files to vertically concatenate in the format
-        {"year": "file path"}. The dictionnary must at least contains the data for the years 2014, 2016 and 2018
+        :param input_geodir: the directory containing the crops geospatial subfolders (subfolder example: crops_2014)
+        :param crop_name_to_type_file: the file containing the crop name to type mapping
         """
-        if not set(input_geofiles.keys()).issubset({"2014", "2016", "2018"}):
-            raise KeyError(
-                "The input_geofiles dictionnary must at least contain the data files for the years 2014, 2016 and 2018")
         WsGeoDataset.__init__(self, [])
-        self.map_2014_df = self._read_geospatial_file(input_geofiles.get("2014"))
-        self.map_2016_df = self._read_geospatial_file(input_geofiles.get("2016"))
-        self.map_2018_df = self._read_geospatial_file(input_geofiles.get("2018"))
+        self.map_2014_df = self._read_geospatial_file(f"{input_geodir}crops_2014/i15_Crop_Mapping_2014.shp")
+        self.map_2016_df = self._read_geospatial_file(f"{input_geodir}crops_2016/i15_Crop_Mapping_2016.shp")
+        self.map_2018_df = self._read_geospatial_file(f"{input_geodir}crops_2018/i15_Crop_Mapping_2018.shp")
         with open(crop_name_to_type_file) as f:
             self.crop_name_to_type_mapping = json.load(f)
 
-    def preprocess_map_df(self, features_to_keep: List[str] = ["YEAR", "CROP_TYPE", "geometry"],
-                          get_crops_details: bool=False):
+    def preprocess_map_df(self, features_to_keep: List[str], get_crops_details: bool = False):
         """This function preprocesses the Crops map datasets (2014, 2016, 2018) by: 1) extracting only the summer crop
         class in each dataset. 2) adding a YEAR feature. 3) merging the contiguous land areas of the same crop class
         together. Each dataset is updated individually. The final self.map_df dataset only concatenates the 2016 and
         2018 datasets as the analysis only use data from 2015. The function updates the map dataframes.
 
         :param features_to_keep: the list of features (columns) to keep.
-        :param get_drops_details: whether to extract the crops data at the crop level instead of the crop class level.
+        :param get_crops_details: whether to extract the crops data at the crop level instead of the crop class level.
         """
         crop_type_mapping = {
             "2014": "DWR_Standa",

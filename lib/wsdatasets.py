@@ -82,6 +82,7 @@ class WsGeoDataset(BaseWsDataset):
         """This function closes polygon holes by limitation to the exterior ring.
         I.e. if there are any empty space inside a Polygon (e.g. O) it will only keep the coordinates
         of the external boundaries of the Polygon as the new Polygon shape (e.g. █).
+
         :param poly: Input shapely Polygon to close
         :return: the closed Polygon
         """
@@ -155,7 +156,6 @@ class WsGeoDataset(BaseWsDataset):
 
     def preprocess_map_df(self, features_to_keep: List[str]):
         """This function should be used in child classes to perform dataset specific pre-processing of the map dataset.
-
         :param features_to_keep: the list of features (columns) to keep
         """
         pass
@@ -396,7 +396,6 @@ class WsGeoDataset(BaseWsDataset):
 
     def output_dataset_to_csv(self, output_filename: str):
         """This function writes the self.output_df dataframe into a CSV file.
-
         :param output_filename: the name of the file with the relative path
         """
         if not self.output_df.empty:

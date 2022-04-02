@@ -8,9 +8,8 @@ from lib.wsdatasets import WsGeoDataset
 class GroundwaterDataset(WsGeoDataset):
     """This class loads, processes and exports the Well Completion Reports dataset"""
     def __init__(self,
-                 input_geofiles: List[str] = [],
                  input_datafile: str = "../assets/inputs/groundwater/groundwater.csv"):
-        WsGeoDataset.__init__(self, input_geofiles=input_geofiles, input_datafile=input_datafile,
+        WsGeoDataset.__init__(self, input_geofiles=[], input_datafile=input_datafile,
                               merging_keys=["SITE_CODE", "SITE_CODE"])
         # Initializes the Geospatial map_df dataset based on the LATITUDE & LONGITUDE features of the
         # groundwater_stations dataset
@@ -24,9 +23,8 @@ class GroundwaterDataset(WsGeoDataset):
         #Set the coordinate reference system so that we now have the projection axis
         self.map_df = self.map_df.set_crs("epsg:4326")
 
-    def preprocess_data_df(self, features_to_keep: List[str] = ["SITE_CODE", "GSE_GWE", "YEAR"], min_year: int = 2014):
+    def preprocess_data_df(self, features_to_keep: List[str], min_year: int = 2014):
         """This function keeps the GSE_GWE feature for the spring months.
-
         :param features_to_keep: the list of features (columns) to keep.
         :param min_year: the minimum year to keep.
         """
@@ -47,8 +45,9 @@ class GroundwaterDataset(WsGeoDataset):
         current_year = datetime.now().year
         self.data_df = self.data_df[(self.data_df["YEAR"] >= min_year) & (self.data_df["YEAR"] < current_year)]
 
-    def preprocess_map_df(self, features_to_keep: List[str] = ["SITE_CODE", "COUNTY", "geometry"]):
-        """This function keeps only the SITE_CODE, COUNTY and geometry features in the original geospatial data."""
+    def preprocess_map_df(self, features_to_keep: List[str]):
+        """This function keeps only the features in the features_to_keep list from the original geospatial data.
+        :param features_to_keep: the list of features (columns) to keep."""
         self.map_df.rename(columns={"COUNTY_NAME": "COUNTY"}, inplace=True)
         self.map_df = self.map_df[features_to_keep]
 
