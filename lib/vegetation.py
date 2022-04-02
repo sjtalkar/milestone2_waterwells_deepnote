@@ -1,20 +1,25 @@
+import os
 import json
 import pandas as pd
 
-from typing import List, Tuple
+from typing import List
 from lib.wsdatasets import WsGeoDataset
 
 
 class VegetationDataset(WsGeoDataset):
     """This class loads, processes and exports the Existing Vegetation dataset"""
-    def __init__(self, input_geofiles: List[str] = ["../assets/inputs/vegetation/central_coast/a00000009.gdbtable",
-                                                    "../assets/inputs/vegetation/central_valley/a00000009.gdbtable"],
+    def __init__(self, input_geodir: str = "../assets/inputs/vegetation/",
                  saf_cover_type_file: str = "../assets/inputs/vegetation/saf_cover_type_mapping.json"):
+        vegetation_subdir_list = [name for name in os.listdir(input_geodir) if os.path.isdir(
+            os.path.join(input_geodir, name))]
+        input_geofiles = []
+        for vegetation_subdir in vegetation_subdir_list:
+            input_geofiles.append(os.path.join(input_geodir, vegetation_subdir, "a00000009.gdbtable"))
         WsGeoDataset.__init__(self, input_geofiles=input_geofiles)
         with open(saf_cover_type_file) as f:
             self.saf_cover_type_mapping = json.load(f)
 
-    def preprocess_map_df(self, features_to_keep: List[str] = ["SAF_COVER_TYPE", "geometry"]):
+    def preprocess_map_df(self, features_to_keep: List[str]):
         """This function preprocesses the Vegetation map dataset by 1) extracting only the columns: "SAF_COVER_TYPE",
         "geometry". 2) renaming the "SAF_COVER_TYPE" column to "VEGETATION_TYPE. 3) Replace the "SAF_COVER_TYPE" codes
          by the forest type names. The function updates the self.map_df

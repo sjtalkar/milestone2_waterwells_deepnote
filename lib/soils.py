@@ -1,18 +1,16 @@
-import os
 import numpy as np
 import pandas as pd
 
-from typing import List, Tuple
+from typing import List
 from lib.wsdatasets import WsGeoDataset
 
 
 class SoilsDataset(WsGeoDataset):
     """This class loads, processes and exports the Soil dataset"""
-    def __init__(self, input_geofiles: List[str] = ["../assets/inputs/soils/map/gsmsoilmu_a_ca.shp"],
-                 input_datafile: str = "../assets/inputs/soils/soil_data.csv",
-                 merging_keys: List[str] = ["MUKEY", "mukey"]):
-        WsGeoDataset.__init__(self, input_geofiles=input_geofiles, input_datafile=input_datafile,
-                              merging_keys=merging_keys)
+    def __init__(self, input_geofile: str = "../assets/inputs/soils/map/gsmsoilmu_a_ca.shp",
+                 input_datafile: str = "../assets/inputs/soils/soil_data.csv"):
+        WsGeoDataset.__init__(self, input_geofiles=[input_geofile], input_datafile=input_datafile,
+                              merging_keys=["MUKEY", "mukey"])
 
     def _read_input_datafile(self, input_datafile: str, input_datafile_format: str = "csv") -> pd.DataFrame:
         """This functions loads additional data not provided together with the map data.
@@ -23,7 +21,7 @@ class SoilsDataset(WsGeoDataset):
         """
         return pd.read_csv(input_datafile, delimiter=";")
 
-    def preprocess_map_df(self, features_to_keep: List[str] = ["MUKEY", "geometry"]):
+    def preprocess_map_df(self, features_to_keep: List[str]):
         """This function preprocesses the Soil map dataset by: 1) extracting only the columns: "MUKEY", "geometry". 2)
         changing the type of the "MUKEY" to int64. The function updates the self.map_df dataframe.
 

@@ -106,7 +106,7 @@ class WellCompletionReportsDataset(WsGeoDataset):
         elevation_file_list = os.listdir(elevation_datadir)
         elevation_df = pd.DataFrame()
         for file_name in elevation_file_list:
-            lat_long_elev_df = pd.read_csv(elevation_datadir + file_name,
+            lat_long_elev_df = pd.read_csv(os.path.join(elevation_datadir, file_name),
                                            usecols=["LATITUDE", "LONGITUDE", "elev_meters"])
             if elevation_df.shape[0] == 0:
                 elevation_df = lat_long_elev_df
@@ -114,7 +114,13 @@ class WellCompletionReportsDataset(WsGeoDataset):
                 elevation_df = pd.concat([elevation_df, lat_long_elev_df], axis=0)
         return elevation_df
 
-    def preprocess_map_df(self, features_to_keep: List[str] = ["WCRNUMBER", "YEAR", "geometry"], min_year: int = 2014):
+    def preprocess_map_df(self, features_to_keep: List[str], min_year: int = 2014):
+        """This function keeps only the features in the features_to_keep list from the original geospatial data
+        and from the year greater than or equal to min_year.
+
+        :param features_to_keep: the list of features (columns) to keep.
+        :param min_year: the minimum year to keep.
+        """
         # filter to only include new well completion since we predict on this
         self.map_df = self.map_df[self.map_df["RECORDTYPE"] == "WellCompletion/New/Production or Monitoring/NA"]
         # filter to only include agriculture, domestic, or public wells
