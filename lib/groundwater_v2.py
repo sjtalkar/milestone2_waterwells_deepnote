@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 import pandas as pd
 import geopandas as gpd
 
@@ -44,12 +44,12 @@ class GroundwaterDataset(WsGeoDataset):
         # Keep only the necessary features
         self.data_df = self.data_df[features_to_keep]
         # Keep only the data after min_year and before the current year
-        current_year = datetime.datetime.now().year
+        current_year = datetime.now().year
         self.data_df = self.data_df[(self.data_df["YEAR"] >= min_year) & (self.data_df["YEAR"] < current_year)]
 
-    def preprocess_map_df(self):
+    def preprocess_map_df(self, features_to_keep: List[str] = ["SITE_CODE", "COUNTY", "geometry"]):
         """This function keeps only the SITE_CODE, COUNTY and geometry features in the original geospatial data."""
         self.map_df.rename(columns={"COUNTY_NAME": "COUNTY"}, inplace=True)
-        self.map_df = self.map_df[["SITE_CODE", "COUNTY", "geometry"]]
+        self.map_df = self.map_df[features_to_keep]
 
 

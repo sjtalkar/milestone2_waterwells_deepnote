@@ -176,12 +176,14 @@ class WsGeoDataset(BaseWsDataset):
         if dropna:
             self.map_df.dropna(inplace=True)
 
-    def fill_townships_with_no_data(self, feature_to_fill: str):
+    def fill_townships_with_no_data(self, feature_to_fill: str, feature_value):
         """Some Township-Ranges in some datasets have no data. This function assigns the "X" "Unclassified" value to
         these Township-Ranges for all the years where they have no data
 
         :param feature_to_fill: the feature name resulting from ETL, which must be filled with missing data (e.g.
-        "CROP_TYPE")."""
+        "CROP_TYPE").
+        :param feature_value: the value to fill the feature with (e.g. "X", "Unclassified", or 0).
+        """
         all_townships = set(self.sjv_township_range_df["TOWNSHIP_RANGE"].unique())
         for year in self.map_df["YEAR"].unique():
             year_df = self.map_df[self.map_df["YEAR"] == year]
@@ -189,7 +191,7 @@ class WsGeoDataset(BaseWsDataset):
             missing_townships_df = self.sjv_township_range_df[self.sjv_township_range_df["TOWNSHIP_RANGE"].isin(
                 missing_townships)].copy()
             missing_townships_df["YEAR"] = year
-            missing_townships_df[feature_to_fill] = "X"
+            missing_townships_df[feature_to_fill] = feature_value
             self.map_df = pd.concat([self.map_df, missing_townships_df], axis=0)
 
     def keep_only_sjv_data(self):
@@ -287,21 +289,36 @@ class WsGeoDataset(BaseWsDataset):
             normalized_df = pd.concat([normalized_df, year_df], axis=0)
         return normalized_df
 
-    def aggregate_points_by_township(self, feature_name: str, aggfunc: str = "mean"):
-        """This function keeps only the map_df data for the San Joaquin Valley and merges the points identified by
-        their latitude and longitude by TOWNSHIP and YEAR, and use the aggfunc on the feature_name to compute the value
-        for the Township.
+    def count_points_by_township(self, original_feature_name: str = None, new_feature_name: str = None):
+        """This function keeps only the map_df data for the San Joaquin Valley and for every year, merges the points
+        identified by their latitude and longitude by TOWNSHIP and YEAR, and counts them.
 
-        :param feature_name: the name of the feature to use to compute the values for each Township-Range
-        :param aggfunc: the function to use to aggregate the values per Township-Range"""
+        :param original_feature_name: the original name of the feature which is counted
+        :param new_feature_name: the name of the new feature counting the points per Township-Ranges
+        """
         self.keep_only_sjv_data()
-        # group datapoints by Townships based on longitude/latitude
-        self.map_df = self.map_df.sjoin(self.sjv_township_range_df)
+        # We count at the Township-Range level and Counties and Twosnhip-Ranges boundaries do no map
+        # so we drop the COUNTY column
         if "COUNTY" in list(self.map_df.columns):
             self.map_df.drop(columns=["COUNTY"], inplace=True)
-        # Group data points with multiple measurements in some years and get the average of feature_name
-        self.map_df = self.map_df.dissolve(by=["TOWNSHIP_RANGE", "YEAR"], aggfunc=aggfunc).reset_index()
-        self.map_df.drop(columns=["index_right"], inplace=True)
+        # If the map_df already has TOWNSHIP_RANGE data we drop it to join data with Township-Ranges based on their
+        # latitude-longitude, not based on the recorded Township, which can be different than our Township-Range
+        # definition
+
+        new_map_df = gpd.GeoDataFrame()
+        for year in self.map_df["YEAR"].unique():
+            year_df = self.map_df[self.map_df["YEAR"] == year].copy()
+            # group datapoints by Township-Ranges based on longitude/latitude
+            year_df = year_df.sjoin(self.sjv_township_range_df, how="right")
+            # Group data points with multiple measurements in some years and get the average of feature_name
+            year_df = year_df.dissolve(by=["TOWNSHIP_RANGE", "YEAR"], aggfunc="count").reset_index()
+
+            new_map_df = pd.concat([new_map_df, year_df], axis=0)
+        self.map_df = new_map_df
+        if "index_left" in list(self.map_df.columns):
+            self.map_df.drop(columns=["index_left"], inplace=True)
+        if original_feature_name and new_feature_name:
+            self.map_df.rename(columns={original_feature_name: new_feature_name}, inplace=True)
 
     def aggregate_feature_at_township_level(self, group_by_features: List[str], feature_to_aggregate_on: str,
                                           aggfunc: str = "mean"):
