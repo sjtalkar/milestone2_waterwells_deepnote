@@ -1,5 +1,6 @@
 import altair as alt
 import pandas as pd
+import numpy as np
 import geopandas as gpd
 from datetime import datetime
 
@@ -116,7 +117,66 @@ def view_year_with_slider(base_map, gdf, color_col, color_scheme='blues',  time_
     else:
         return base_map + area_slider_chart
 
-def view_year_side_by_side(gdf, feature: str, title: str, color_scheme='blues', draw_stations=False):
+def simple_geodata_viz(gdf: gpd.GeoDataFrame, feature:str, title: str, year:int = None, color_scheme='blues',
+                       draw_stations=False):
+    """This function creates a simple visualization of a single feature of a geodataframe.
+
+    :param gdf: the geodataframe to visualize
+    :param feature: the feature to visualize
+    :param title: the title of the visualization
+    :param year: the year to visualize
+    :param color_scheme: the color scheme to use for the visualization
+    :param draw_stations: if True, the stations will be drawn on the map
+    :return: the Altair visualization
+    """
+    if "points" in list(gdf.columns):
+        area_df = gdf.drop(columns=['points'])
+    else:
+        area_df = gdf.copy()
+    if year:
+        area_df = area_df[area_df['YEAR'] == year]
+    area_df['YEAR'] = area_df['YEAR'].astype(str)
+    if area_df[feature].dtype == 'object':
+        feature = f"{feature}:N"
+    else:
+        feature = f"{feature}:Q"
+    if draw_stations:
+        base = alt.Chart(area_df)
+        feature_chart = base.mark_geoshape(stroke='darkgray').encode(
+            color=alt.Color(feature, scale=alt.Scale(scheme=color_scheme)),
+            tooltip=list(area_df.columns),
+        ).properties(
+            width=850,
+            height=850
+        )
+        stations_chart = base.mark_circle().encode(
+            latitude='LATITUDE:Q',
+            longitude='LONGITUDE:Q',
+            fill=alt.value('green'),
+        )
+        chart = feature_chart + stations_chart
+        chart.properties(title=title)
+    else:
+        chart = alt.Chart(area_df).mark_geoshape(stroke='darkgray').encode(
+            color=alt.Color(feature, scale=alt.Scale(scheme=color_scheme)),
+            tooltip=list(area_df.columns),
+        ).properties(
+            width=850,
+            height=850,
+            title=title
+        )
+    return chart
+
+def view_year_side_by_side(gdf: gpd.GeoDataFrame, feature: str, title: str, color_scheme='blues', draw_stations=False):
+    """ This function creates a side by side Altair visualization of the data per year for a given feature
+
+    :param gdf: the geodataframe to be visualized
+    :param feature: the feature to be visualized
+    :param title: the title of the visualization
+    :param color_scheme: the color scheme to be used
+    :param draw_stations: if True, the stations will be drawn on each sur chart
+    :return: the Altair visualization
+    """
     if "points" in list(gdf.columns):
         area_df = gdf.drop(columns=['points'])
     else:
@@ -141,7 +201,7 @@ def view_year_side_by_side(gdf, feature: str, title: str, color_scheme='blues', 
             title=title
         )
     else:
-        # There is a bug in Vega-Lite and simple facet charts doesn't work with GeoPandas
+        # There is a bug in Vega-Lite and simple facet charts don't work with GeoPandas
         # References
         # - Altair: https://github.com/altair-viz/altair/issues/2369
         # - Vega-Lite: https://github.com/vega/vega-lite/issues/3729
@@ -158,7 +218,14 @@ def view_year_side_by_side(gdf, feature: str, title: str, color_scheme='blues', 
         ).properties(title=title)
     return chart
 
+
 def visualize_seasonality_by_month(gdf: gpd.GeoDataFrame, feature:str):
+    """ This function visualizes the seasonality of the data by month
+
+    :param gdf: the geodataframe to visualize
+    :param feature: the feature to visualize
+    :return: the Altair visualization
+    """
     viz_gdf = gdf.copy()
     viz_gdf["DATE"] = viz_gdf.apply(lambda row: datetime(row.YEAR, row.MONTH, 1), axis=1)
     chart = alt.Chart(viz_gdf[viz_gdf["YEAR"] >= 2000]).mark_bar().encode(
@@ -168,5 +235,16 @@ def visualize_seasonality_by_month(gdf: gpd.GeoDataFrame, feature:str):
     ).properties(width=800)
     return chart
 
-def map_exploration(df: gpd.GeoDataFrame, feature:str, year:int):
-    return df[df.YEAR == year].explore(feature)
+
+def display_data_on_map(gdf: gpd.GeoDataFrame, feature:str, year:int = None):
+    """Use GeoPandas explore() function based on Folium to display the Geospatial data on a map.
+
+    :param gdf: the GeoDataFrame to be displayed
+    :param feature: the feature to be displayed
+    :param year: the year to be displayed
+    :return: the Folium map
+    """
+    if year:
+        return gdf[gdf.YEAR == year].explore(feature)
+    else:
+        return gdf.explore(feature)
