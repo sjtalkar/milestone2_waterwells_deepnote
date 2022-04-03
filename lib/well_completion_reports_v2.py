@@ -12,7 +12,7 @@ class WellCompletionReportsDataset(WsGeoDataset):
     """This class loads, processes and exports the Well Completion Reports dataset"""
     def __init__(self,
                  input_datafile: str = "../assets/inputs/wellcompletion/wellcompletion.csv",
-                 elevation_datadir: str = "../assets/outputs/elevation_api_results/",
+                 elevation_datadir: str = "../assets/inputs/wellcompletion/elevation_api_results/",
                  ):
         WsGeoDataset.__init__(self, input_geofiles=[], input_datafile="")
         self.elevation_df = self._get_missing_elevation(elevation_datadir)
@@ -102,6 +102,11 @@ class WellCompletionReportsDataset(WsGeoDataset):
         return wcr_df
 
     def _get_missing_elevation(self, elevation_datadir: str):
+        """This function reads the elevation data and returns a dataframe with the missing elevation data.
+
+        :param elevation_datadir: the directory of the elevation data
+        :return: the dataframe with the missing elevation data
+        """
         elevation_file_list = os.listdir(elevation_datadir)
         elevation_df = pd.DataFrame()
         for file_name in elevation_file_list:
