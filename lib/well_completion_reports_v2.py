@@ -169,13 +169,13 @@ class WellCompletionReportsDataset(WsGeoDataset):
         # Keep only the requested features
         self.map_df = self.map_df[features_to_keep]
 
-    def get_well_count_by_tr_year_month(self, count_feature: str = "WCRNUMBER"):
-        """This function returns a GeoDataframe of the number of wells per Township-Range, year and month
+    def get_well_count_by_year_month(self, count_feature: str = "WCRNUMBER"):
+        """This function returns a GeoDataframe of the number of wells per year and month
 
         :param count_feature: the feature to use for counting the number of wells in each Township-Range.
         :return: a dataframe with the number of wells in each Township-Range
         """
-        count_by_township_df = self._get_aggregate_points_by_township(by=["TOWNSHIP_RANGE", "YEAR", "MONTH"],
+        count_by_township_df = self._get_aggregate_points_by_township(by=["YEAR", "MONTH"],
                                                                       features_to_aggregate=[count_feature],
                                                                       aggfunc="count")
         count_by_township_df.rename(columns={count_feature: "WELL_COUNT"}, inplace=True)
@@ -191,7 +191,8 @@ class WellCompletionReportsDataset(WsGeoDataset):
         :param fill_na_with_zero: if True, the features nin NaN data are filled with 0
         """
         self.keep_only_sjv_data()
-        township_features_df = self._get_aggregate_points_by_township(features_to_aggregate=features_to_average,
+        township_features_df = self._get_aggregate_points_by_township(by=["TOWNSHIP_RANGE", "YEAR"],
+                                                                      features_to_aggregate=features_to_average,
                                                                       aggfunc="mean", new_feature_suffix="_AVG",
                                                                       fill_na_with_zero=fill_na_with_zero)
         if add_well_count:
