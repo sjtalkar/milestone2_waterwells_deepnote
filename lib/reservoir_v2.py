@@ -133,9 +133,9 @@ class ReservoirDataset(WsGeoDataset):
             This function saves weekly and yearly level reservoir data in separate CSV files
         """
         if granularity == 'weekly':
-            reservoir_station_df.to_csv(r"../assets/outputs/weekly_reservoir_station_data.csv", index=False)
+            reservoir_station_df.to_csv(r"../assets/inputs/reservoir/weekly_reservoir_station_data.csv", index=False)
         else:
-            reservoir_station_df.to_csv(r"../assets/outputs/reservoir_station_data.csv", index=False)
+            reservoir_station_df.to_csv(r"../assets/inputs/reservoir/reservoir_station_data.csv", index=False)
 
     def _retrieve_stations_geospatial_data(self):
         """This function retrieves all the precipitation stations geospatial data. It scraps the web for precipitation

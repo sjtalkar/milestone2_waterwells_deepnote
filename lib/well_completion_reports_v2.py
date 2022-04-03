@@ -87,15 +87,14 @@ class WellCompletionReportsDataset(WsGeoDataset):
                                               wcr_df["DECIMALLONGITUDE"])
         wcr_df["DECIMALLATITUDE"] = np.where(wcr_df["DECIMALLATITUDE"] < 0, -wcr_df["DECIMALLATITUDE"],
                                              wcr_df["DECIMALLATITUDE"])
-
         # About 5% of the dataframe has eith latitude or longitude missing, we drop these
         wcr_df = wcr_df.dropna(subset=["DECIMALLATITUDE", "DECIMALLONGITUDE"]).copy()
         # Pick data of interest
         wcr_df = wcr_df[
-            ["DECIMALLATITUDE", "DECIMALLONGITUDE", "SECTION", "WELLLOCATION", "COUNTYNAME", "STATICWATERLEVEL",
-             "BOTTOMOFPERFORATEDINTERVAL", "TOPOFPERFORATEDINTERVAL", "GROUNDSURFACEELEVATION", "RECORDTYPE",
-             "PLANNEDUSEFORMERUSE", "WCRNUMBER", "TOTALDRILLDEPTH", "TOTALCOMPLETEDDEPTH", "DATEWORKENDED", "WELLYIELD",
-             "WELLYIELDUNITOFMEASURE"]].copy()
+            ["DECIMALLATITUDE", "DECIMALLONGITUDE", "SECTION", "WELLLOCATION", "COUNTYNAME",
+             "STATICWATERLEVEL", "BOTTOMOFPERFORATEDINTERVAL", "TOPOFPERFORATEDINTERVAL", "GROUNDSURFACEELEVATION",
+             "RECORDTYPE", "PLANNEDUSEFORMERUSE", "WCRNUMBER", "TOTALDRILLDEPTH", "TOTALCOMPLETEDDEPTH",
+             "DATEWORKENDED", "WELLYIELD", "WELLYIELDUNITOFMEASURE"]].copy()
         # rename columns
         wcr_df.rename(columns={"DECIMALLATITUDE": "LATITUDE", "DECIMALLONGITUDE": "LONGITUDE", 
                                "PLANNEDUSEFORMERUSE": "USE", "COUNTYNAME": "COUNTY"},
@@ -150,16 +149,60 @@ class WellCompletionReportsDataset(WsGeoDataset):
         self.map_df["DATEWORKENDED"] = pd.to_datetime(self.map_df["DATEWORKENDED"], errors="coerce")
         self.map_df["DATEWORKENDED_CORRECTED"] = self.map_df["DATEWORKENDED"].apply(
             lambda x: x if x < datetime.now() else np.nan)
+        # Drop data points with date of NaN
+        self.map_df.dropna(subset=["DATEWORKENDED_CORRECTED"], inplace=True)
         # create simple year and month columns
-        self.map_df["YEARWORKENDED"] = pd.DatetimeIndex(self.map_df["DATEWORKENDED_CORRECTED"]).year
-        self.map_df["MONTHWORKENDED"] = pd.DatetimeIndex(self.map_df["DATEWORKENDED_CORRECTED"]).month
+        # self.map_df["YEARWORKENDED"] = pd.DatetimeIndex(self.map_df["DATEWORKENDED_CORRECTED"]).year
+        # self.map_df["MONTHWORKENDED"] = pd.DatetimeIndex(self.map_df["DATEWORKENDED_CORRECTED"]).month
+        self.map_df["DATE"] = pd.to_datetime(self.map_df.DATEWORKENDED_CORRECTED)
+        self.map_df["YEARWORKENDED"] = self.map_df["DATE"].dt.year
+        self.map_df["MONTHWORKENDED"] = self.map_df["DATE"].dt.month
         # Merge missing elevation data
         self.map_df = self.map_df.merge(self.elevation_df, how="left", left_on=["LATITUDE", "LONGITUDE"],
                                         right_on=["LATITUDE", "LONGITUDE"])
         self.map_df.drop(columns=["GROUNDSURFACEELEVATION"], inplace=True)
-        self.map_df.rename(columns={"elev_meters": "GROUNDSURFACEELEVATION", "YEARWORKENDED": "YEAR"}, inplace=True)
+        self.map_df.rename(columns={"elev_meters": "GROUNDSURFACEELEVATION", "YEARWORKENDED": "YEAR",
+                                    "MONTHWORKENDED": "MONTH"}, inplace=True)
         # Keep only the data after min_year and before the current year
         current_year = datetime.now().year
         self.map_df = self.map_df[(self.map_df["YEAR"] >= min_year) & (self.map_df["YEAR"] < current_year)]
         # Keep only the requested features
         self.map_df = self.map_df[features_to_keep]
+
+    def get_well_count_by_tr_year_month(self, count_feature: str = "WCRNUMBER"):
+        """This function returns a GeoDataframe of the number of wells per Township-Range, year and month
+
+        :param count_feature: the feature to use for counting the number of wells in each Township-Range.
+        :return: a dataframe with the number of wells in each Township-Range
+        """
+        count_by_township_df = self._get_aggregate_points_by_township(by=["TOWNSHIP_RANGE", "YEAR", "MONTH"],
+                                                                      features_to_aggregate=[count_feature],
+                                                                      aggfunc="count")
+        count_by_township_df.rename(columns={count_feature: "WELL_COUNT"}, inplace=True)
+        return count_by_township_df
+
+    def compute_features_by_township(self, features_to_average: List[str], add_well_count: bool = True,
+                                      count_feature: str = "WCRNUMBER", fill_na_with_zero: bool = True):
+        """This function computes the features in the features_to_compute list for each township
+
+        :param features_to_average: the list of features to average.
+        :param add_well_count: if True, a feature counting the number of wells per Township-Range is added.
+        :param count_feature: the feature to use for counting the number of wells in each Township-Range.
+        :param fill_na_with_zero: if True, the features nin NaN data are filled with 0
+        """
+        self.keep_only_sjv_data()
+        township_features_df = self._get_aggregate_points_by_township(features_to_aggregate=features_to_average,
+                                                                      aggfunc="mean", new_feature_suffix="_AVG",
+                                                                      fill_na_with_zero=fill_na_with_zero)
+        if add_well_count:
+            # Get the weel count by Township-Range and year
+            count_by_township_df = self._get_aggregate_points_by_township(by=["TOWNSHIP_RANGE", "YEAR"],
+                                                                          features_to_aggregate=[count_feature],
+                                                                          aggfunc="count")
+            count_by_township_df.rename(columns={count_feature: "WELL_COUNT"}, inplace=True)
+            # Merge the count by township with the township features
+            township_features_df = township_features_df.merge(count_by_township_df, how="left",
+                                                              left_on=["TOWNSHIP_RANGE", "YEAR", "geometry"],
+                                                              right_on=["TOWNSHIP_RANGE", "YEAR", "geometry"]
+                                                              )
+        self.map_df = township_features_df

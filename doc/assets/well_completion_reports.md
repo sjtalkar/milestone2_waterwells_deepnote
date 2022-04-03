@@ -70,12 +70,7 @@ The columns specified here are as per original dataset name:
 |----------------------------	|-------------------------------------------------------------------------------------------------------------------------------------------------------	|
 | DECIMALLATITUDE            	| Latitudinal position of the well                                                                                                                      	|
 | DECIMALLONGITUDE           	| Longitudinal position of the well                                                                                                                     	|
-| TOWNSHIP                   	| Township in which well is located (see PLSS documentation for definition of Range)                                                                    	|
-| RANGE                      	| Range in which well is located (see PLSS documentation for definition of Range)                                                                       	|
-| SECTION                    	| Section which well is located (see PLSS documentation for definition of Section)                                                                      	|
 | WELLLOCATION               	| Address of location, typically postal                                                                                                                 	|
-| CITY                       	| Well location city                                                                                                                                    	|
-| COUNTYNAME                 	| Well location county                                                                                                                                  	|
 | BOTTOMOFPERFORATEDINTERVAL 	| Bottom of the screen/perforation that is the opening to the aquifer                                                                                   	|
 | TOPOFPERFORATEDINTERVAL    	| Top of the screen/perforation that is the opening to the aquifer                                                                                      	|
 | GROUNDSURFACEELEVATION     	| See definition above                                                                                                                                  	|
