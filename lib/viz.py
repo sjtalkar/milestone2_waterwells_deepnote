@@ -108,13 +108,12 @@ def view_year_with_slider(base_map, gdf: gpd.GeoDataFrame, color_col: str, color
     )
     area_slider_chart = alt.Chart(gdf).mark_geoshape().encode(
         color=alt.Color(f'{color_col}', scale=alt.Scale(scheme=color_scheme)),
-        tooltip=list(gdf.columns)
+        tooltip=tooltip_columns
     ).transform_filter(
         slider_selection
     ).add_selection(
         slider_selection
     ).properties(
-
         width=500,
         height=500
     )
