@@ -1,8 +1,8 @@
 import altair as alt
 import pandas as pd
-import numpy as np
 import geopandas as gpd
 from datetime import datetime
+from typing import List
 
 def draw_missing_data_chart(df: pd.DataFrame):
     """This function charts the percentage missing data in the data file read in
@@ -36,17 +36,14 @@ def draw_missing_data_chart(df: pd.DataFrame):
     )
     return chart + text
 
-def draw_base_map(gdf, color, opacity):
-    """
-        When provided with a geodataframe, the function creates and returns a base map
+def get_base_map(gdf: gpd.GeoDataFrame, color: str, opacity: float):
+    """This function creates and returns an base map with Altair from the GeoDataFrame
 
-        :param gdf: The geopandas DataFrame for which to draw missing data
-        :param color: Color for the area
-        :param opacity: Opacity to apply to the color
-
+    :param gdf: The geopandas DataFrame from which to generate the Altair base map
+    :param color: Color for the area
+    :param opacity: Opacity to apply to the color
     """
     base_gdf = gdf.set_crs('epsg:4326')
-
     #Set the class's base chart 
     return alt.Chart(base_gdf).mark_geoshape(
                         stroke='black',
@@ -59,61 +56,72 @@ def draw_base_map(gdf, color, opacity):
                         height=500
                     )
 
+def get_stations_chart(stations_gdf: gpd.GeoDataFrame, tooltip_columns: List[str]):
+    """This function creates and returns an Altair chart of the stations
 
-def chart_stations(df):
-    
-    stations_df = df[['LATITUDE', 'LONGITUDE']].drop_duplicates()
-    return alt.Chart(stations_df).mark_circle().encode( 
-        latitude='LATITUDE:Q',    
-        longitude='LONGITUDE:Q',
-        tooltip = ['LATITUDE:Q', 'LONGITUDE:Q'],
-        fill=alt.value('green'),
-        stroke=alt.value('blue')
-    )
+    :param stations_gdf: The GeoDataFrame containing the stations data
+    :param tooltip_columns: The columns to display in the tooltip
+    """
+    if "points" in list(stations_gdf.columns):
+        points_df = stations_gdf.copy()
+        points_df.drop(columns=["geometry"], inplace=True)
+        points_df.set_geometry("points", inplace=True)
+        stations_chart = alt.Chart(points_df).mark_geoshape().encode(
+            color=alt.value('green'),
+            tooltip=tooltip_columns,
+        )
+    else:
+        stations_chart = alt.Chart(stations_gdf).mark_circle().encode(
+            latitude='LATITUDE:Q',
+            longitude='LONGITUDE:Q',
+            tooltip=tooltip_columns,
+            fill=alt.value('green'),
+        )
+    return stations_chart
       
-def view_year_with_slider(base_map, gdf, color_col, color_scheme='blues',  time_col = 'YEAR', draw_stations=False):
-    """
-            This function charts out a geodataframe with a slider that controls the data in the dataframe by the position of the slider indicating a Year period
-            The color of the values is scaled by the color_col in the dataframe. MAKE SURE, the string contains type of column as well
- 
-    """
+def view_year_with_slider(base_map, gdf: gpd.GeoDataFrame, color_col: str, color_scheme : str = 'blues',
+                          time_col: str = 'YEAR', draw_stations: bool =False):
+    """This function generates an interactive visualization of the data with a slider
 
+    :param base_map: The Altair chart to use as the base map
+    :param gdf: The GeoDataFrame containing the data
+    :param color_col: The column to use for the color
+    :param color_scheme: The color scheme to use for the areas
+    :param time_col: The column to use for the time
+    :param draw_stations: If True, draw the stations
+    """
     gdf = gdf.set_crs('epsg:4326')
     #Limit the time range so that the chart can be shown
-    df = gdf[gdf[time_col] >= 2014]
-
-
-    min_year_num = df[time_col].min()
-    max_year_num = df[time_col].max()
+    gdf = gdf[gdf[time_col] >= 2014]
+    min_year_num = gdf[time_col].min()
+    max_year_num = gdf[time_col].max()
+    tooltip_columns = list(set(gdf.columns) - {"geometry", "points"})
     slider = alt.binding_range(
         min=min_year_num,
         max=max_year_num,
         step=1,
         name="Year: ",
     )
-
     slider_selection = alt.selection_single(
         fields=[f"{time_col}"], bind=slider, name="Year:",
         init={f"{time_col}": 2014}
     )
+    area_slider_chart = alt.Chart(gdf).mark_geoshape().encode(
+        color=alt.Color(f'{color_col}', scale=alt.Scale(scheme=color_scheme)),
+        tooltip=list(gdf.columns)
+    ).transform_filter(
+        slider_selection
+    ).add_selection(
+        slider_selection
+    ).properties(
 
-    area_slider_chart = alt.Chart(df).mark_geoshape(
-                                                ).encode( 
-                                                    color= alt.Color(f'{color_col}', scale=alt.Scale(scheme=color_scheme)),
-                                                    tooltip= list(df.columns)
-                                                ).transform_filter(
-                                                    slider_selection
-                                                ).add_selection(
-                                                    slider_selection
-                                                ).properties( 
-
-                                                    width=500,
-                                                    height=500
-                                                )
+        width=500,
+        height=500
+    )
 
     if draw_stations:
-        stations = chart_stations(df)
-        return base_map + area_slider_chart + stations
+        stations_chart = get_stations_chart(gdf, ['LONGITUTDE:Q', 'LATITUDE:Q'])
+        return base_map + area_slider_chart + stations_chart
     else:
         return base_map + area_slider_chart
 
@@ -129,10 +137,9 @@ def simple_geodata_viz(gdf: gpd.GeoDataFrame, feature:str, title: str, year: int
     :param draw_stations: if True, the stations will be drawn on the map
     :return: the Altair visualization
     """
-    if "points" in list(gdf.columns):
-        area_df = gdf.drop(columns=['points'])
-    else:
-        area_df = gdf.copy()
+    area_df = gdf.copy()
+    if "points" in list(area_df.columns):
+        area_df.drop(columns=['points'], inplace=True)
     if year:
         area_df = area_df[area_df['YEAR'] == year]
     area_df['YEAR'] = area_df['YEAR'].astype(str)
@@ -140,26 +147,24 @@ def simple_geodata_viz(gdf: gpd.GeoDataFrame, feature:str, title: str, year: int
         feature = f"{feature}:N"
     else:
         feature = f"{feature}:Q"
+    tooltip_columns = list(set(area_df.columns) - {"geometry", "points"})
     if draw_stations:
         base = alt.Chart(area_df)
         feature_chart = base.mark_geoshape(stroke='darkgray').encode(
             color=alt.Color(feature, scale=alt.Scale(scheme=color_scheme)),
-            tooltip=list(area_df.columns),
+            tooltip=tooltip_columns,
         ).properties(
             width=850,
-            height=850
+            height=850,
+            title=title
         )
-        stations_chart = base.mark_circle().encode(
-            latitude='LATITUDE:Q',
-            longitude='LONGITUDE:Q',
-            fill=alt.value('green'),
-        )
+        stations_chart = get_stations_chart(gdf, tooltip_columns)
         chart = feature_chart + stations_chart
         chart.properties(title=title)
     else:
         chart = alt.Chart(area_df).mark_geoshape(stroke='darkgray').encode(
             color=alt.Color(feature, scale=alt.Scale(scheme=color_scheme)),
-            tooltip=list(area_df.columns),
+            tooltip=tooltip_columns,
         ).properties(
             width=850,
             height=850,
@@ -178,25 +183,21 @@ def view_year_side_by_side(gdf: gpd.GeoDataFrame, feature: str, title: str, colo
     :param draw_stations: if True, the stations will be drawn on each sur chart
     :return: the Altair visualization
     """
-    if "points" in list(gdf.columns):
-        area_df = gdf.drop(columns=['points'])
-    else:
-        area_df = gdf.copy()
+    area_df = gdf.copy()
+    if "points" in list(area_df.columns):
+        area_df.drop(columns=['points'], inplace=True)
     area_df['YEAR'] = area_df['YEAR'].astype(str)
+    tooltip_columns = list(set(area_df.columns) - {"geometry", "points"})
     if draw_stations:
         base = alt.Chart(area_df).mark_geoshape(stroke='darkgray').encode(
             color=alt.Color(f'{feature}:Q', scale=alt.Scale(scheme=color_scheme)),
-            tooltip=list(area_df.columns),
+            tooltip=tooltip_columns,
         ).properties(
             width=350,
             height=350
         )
-        stations = alt.Chart().mark_circle().encode(
-            latitude='LATITUDE:Q',
-            longitude='LONGITUDE:Q',
-            fill=alt.value('green'),
-        )
-        chart = alt.layer(base, stations, data=area_df).facet(
+        stations_chart = get_stations_chart(gdf, tooltip_columns)
+        chart = alt.layer(base, stations_chart, data=area_df).facet(
             facet='YEAR:N',
             columns=3,
             title=title
@@ -208,7 +209,8 @@ def view_year_side_by_side(gdf: gpd.GeoDataFrame, feature: str, title: str, colo
         # - Vega-Lite: https://github.com/vega/vega-lite/issues/3729
         chart = alt.concat(*(
                 alt.Chart(area_df[area_df.YEAR == year]).mark_geoshape(stroke='darkgray').encode(
-                    color=alt.Color(f'{feature}:Q', scale=alt.Scale(scheme=color_scheme))
+                    color=alt.Color(f'{feature}:Q', scale=alt.Scale(scheme=color_scheme)),
+                    tooltip=tooltip_columns
                 ).properties(
                     width=350, height=350,
                     title=year
