@@ -45,7 +45,7 @@ the United States, “48” represents the state of Texas and “201” represen
 
 For Shape file you need only state and County : To join data downloaded from data.census.gov to TIGER/Line Shapefiles you will need to remove the first nine characters of “GEO.ID”.
 
-## Mapping at the Township level
+## Mapping at the Township-Range level
 
 
 ## Potential issues

@@ -16,17 +16,24 @@ conserves, develops, and manages much of California's water supply.
 
 ## How to download ?
 
-Web scraping was employed to scrape data over multiple years from 2013 through 2022. The data can be manually downloaded by entering the year for the download but it is expedited using BeautifulSoup 
-by sending requests through Python's requests package. The raw HTML is retrieved from the response. The HTML is then parsed using BeautifulSoup. As an example, using Chrome Browser Developer tools, the aatributes of the
-HTML table that contains precipitation data is identified and passed to the 'find' method of the constructed BeautifulSoup class.
+Web scraping was employed to scrape data over multiple years from 2013 through 2022. 
 
-``` python
+The `PrecipitationDataset` class in the `/lib/precipitation.py` custom library is designed to load the weather stations 
+data and geospatial information from the local `/assets/inputs/precipitation/` folder. If they are not found the data 
+are scraped from the web saved into that folder for further reuse.
+
+The data are downloaded using Python's requests package. The HTML is then parsed using BeautifulSoup. As an example, 
+the attributes of the HTML table that contains precipitation data is identified and passed to the 'find' method of the 
+constructed BeautifulSoup class.
+
+```python
 # Parse the html content
 soup = BeautifulSoup(html_content, "lxml")
 precipitation_table = soup.find("table", attrs={"id":"data", "class": "data"})  
 ```
 
-Analysis of the table structure is performed to furthe identify the specifuc rows and columns to be retrieved through parsing. 
+Analysis of the table structure is performed to further identify the specific rows and columns to be retrieved through 
+parsing. 
 - In the code below for instance, we first identify the table header and save the column names in a list. 
 - We then collect all the data rows in the table and loop through the list
 - Within each row, we then extract the data in the cell of each row
@@ -46,24 +53,25 @@ for eachTableRow in precipitation_table_rows:
         all_rows_list.append(this_row)
 ```
 
-We can then create a dataframe out of the list of datarows and the column headers using pandas. The precipitation stations information was similarly scraped with the page url used to retrieve the raw HTML.
+We can then create a dataframe out of the list of datar ows and the column headers using pandas. The precipitation 
+stations information was similarly scraped with the page url used to retrieve the raw HTML.
 
 ## Features of interest
 
 The precipitation data is collected for each year and for each precipitation recording station at the month level. The average precipitation over the year for every station is first computed.
 We have the station's latitude and longitude available to us. We use the strategy described in well_completion_reports.md and groundwater.md to convert the latitude and longitude to point geomtery and then through spatial join 
-into TownshipRange. Merge to othe datasets can now be performed through this TownshipRange.
+into Township-Range. Merge to othe datasets can now be performed through this Township-Range.
 
-The primary feature to be derived from this dataset is the average precipitation in inches for a TownshipRange.
+The primary feature to be derived from this dataset is the average precipitation in inches for a Township-Range.
 
-## Mapping at the Township level
+## Mapping at the Township-Range level
 
 The strategy in the project is:
 - Create a GeoDataFrame when starting from a regular DataFrame that has latitudinal and longitudinal coordinates. Each shortage report should have a viable latitude and longitude that can be converted to points.
   If not, the record is dropped from the dataset.
 - A GeoDataFrame needs a shapely object.
 -  We use geopandas points_from_xy() to transform Longitude and Latitude into a list of shapely.Point objects and set it as a geometry while creating the GeoDataFrame.
-- Once we have a GeoDataframe with the points in the coordinate reference system, we spatially join to the California PLSS GeoJSON to map to the closest TownshipRange using sjoin method in geopandas.
+- Once we have a GeoDataframe with the points in the coordinate reference system, we spatially join to the California PLSS GeoJSON to map to the closest Township-Range using sjoin method in geopandas.
 
 ## Potential issues
 The availablity of data for precipitation is limited by the collection of data by the stations positioned in the river basin of interest. We have to average the data over the year since the precipitation over
@@ -71,4 +79,4 @@ the entire year has the possibility of feeding the groundwater subsystem.
 The stations are sparsely positioned and we have to derive/impute the precipitation information from a few stations' data that is available, for other townships where a station is not located.
 
 ### How did we remediate these issues?
-For TownshipRanges where a station is not situated, the average of precipitation of the entire region will be allocated.
+For Township-Ranges where a station is not situated, the average of precipitation of the entire region will be allocated.

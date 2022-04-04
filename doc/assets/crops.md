@@ -90,7 +90,7 @@ The 2016 and 2018 have other interesting features like:
 
 Unfortunately those data are available only for the 2016 and 2018 datasets so these fields have thus been 
 ignored at this stage.
-## Mapping at the Township level
+## Mapping at the Township-Range level
 Please refer to this documentation [Overlaying San Joaquin Valley Township Boundaries](doc/etl/township_overlay.md)
 ## Potential issues
 ### Description
