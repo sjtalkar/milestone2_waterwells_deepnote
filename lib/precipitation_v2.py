@@ -6,13 +6,14 @@ import geopandas as gpd
 from bs4 import BeautifulSoup
 from typing import List
 from lib.wsdatasets import WsGeoDataset
+from fiona.errors import DriverError
 
 
 class PrecipitationDataset(WsGeoDataset):
     """This class loads, processes the precipitation dataset. The range of years for which the data is to be collected
     is captured in
     """
-    def __init__(self, input_geofile: str = "../assets/inputs/precipitation/precipitation_stations.shp",
+    def __init__(self, input_stationfile: str = "../assets/inputs/precipitation/precipitation_stations.shp",
                  input_datafile: str = "../assets/inputs/precipitation/precipitation_data.csv",
                  year_start: int = 2013, year_end: int = 2022):
         """ The initialization of the PrecipitationDataset class automatically scrapes the monthly precipitation data
@@ -28,28 +29,28 @@ class PrecipitationDataset(WsGeoDataset):
         """
         self.year_start = year_start
         self.year_end = year_end
-        self.input_geofile = input_geofile
+        self.input_geofile = input_stationfile
         self.input_datafile = input_datafile
         # Try to load the dataset for pre-downloaded files. If not scrap the data from the web and save them
         try:
-            WsGeoDataset.__init__(self, input_geofiles=[input_geofile], input_datafile=input_datafile,
+            WsGeoDataset.__init__(self, input_geofiles=[input_stationfile], input_datafile=input_datafile,
                                   merging_keys=["STATION_ID", "STATION_ID"])
-        except:
+        except (FileNotFoundError, DriverError):
             # Initialize the parent class with the bare minimum, without loading any data from file (outside of the
             # San Joaquin Valley Township data) as the data are scrapped from the web.
             WsGeoDataset.__init__(self, input_geofiles=[], merging_keys=["STATION_ID", "STATION_ID"])
             # Scrap the precipitation data and the precipitation geospatial data from the web
-            self.data_df = self._scrape_monthly_precipitation_data()
-            self.map_df = self._retrieve_stations_geospatial_data()
+            self.data_df = self._get_monthly_precipitation_data()
+            self.map_df = self._get_stations_geospatial_data()
 
-    def _download_precipitation_data_per_year(self, year: int) -> pd.DataFrame:
+    def _scrape_precipitation_data_per_year(self, year: int) -> pd.DataFrame:
         """This function downloads the precipitation data for a given year from the web and returns it as a dataframe.
 
         :param year: the year to download the data from.
         :return: the dataframe containing the precipitation data for the given year.
         """
         # The URL for the data for a given year
-        url=f"https://cdec.water.ca.gov/reportapp/javareports?name=PRECIPMON.{year}"
+        url = f"https://cdec.water.ca.gov/reportapp/javareports?name=PRECIPMON.{year}"
         # Make a GET request to fetch the raw HTML content
         html_content = requests.get(url).text
         # Parse the html content
@@ -83,7 +84,7 @@ class PrecipitationDataset(WsGeoDataset):
         df.drop(columns=months, inplace=True)
         return df
 
-    def _scrape_monthly_precipitation_data(self):
+    def _get_monthly_precipitation_data(self):
         """This function loops through a set of years in a list, scrap the monthly precipitation from the
         California Dta Exchange Center web sites and computes the average yearly precipitation.
 
@@ -92,7 +93,7 @@ class PrecipitationDataset(WsGeoDataset):
         all_years_precipitation_data = pd.DataFrame()
         # We use threading to load the data in parallel
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-            future_to_year = executor.map(self._download_precipitation_data_per_year,
+            future_to_year = executor.map(self._scrape_precipitation_data_per_year,
                                           range(self.year_start, self.year_end + 1))
         for year_df in future_to_year:
             if not year_df.empty:
@@ -102,8 +103,7 @@ class PrecipitationDataset(WsGeoDataset):
         all_years_precipitation_data.to_csv(self.input_datafile, index=False)
         return all_years_precipitation_data
 
-
-    def _get_precipitation_station_data(self, level: str, station_features: List[str]):
+    def _scrape_precipitation_station_data(self, level: str, station_features: List[str]):
         """This function scrapes the web for daily or monthly precipitation station data in order to retrieve all
         the weather station geospatial information.
 
@@ -112,19 +112,18 @@ class PrecipitationDataset(WsGeoDataset):
         :return: the precipitation stations geospatial data
         """
         if level == "daily":
-            url=f"https://cdec.water.ca.gov/reportapp/javareports?name=DailyStations"
+            url = f"https://cdec.water.ca.gov/reportapp/javareports?name=DailyStations"
         else:
-            url= "https://cdec.water.ca.gov/reportapp/javareports?name=MonthlyPrecip"
-
+            url = "https://cdec.water.ca.gov/reportapp/javareports?name=MonthlyPrecip"
         # Make a GET request to fetch the raw HTML content
         html_content = requests.get(url).text
         # Parse the html content
         soup = BeautifulSoup(html_content, "lxml")
 
         if level == "daily":
-            station_table = soup.find("table", attrs={"id":"DLY_STNLIST", "class": "data"})
+            station_table = soup.find("table", attrs={"id": "DLY_STNLIST", "class": "data"})
         else:
-            station_table = soup.find("table", attrs={"id":"REALPRECIP_LIST", "class": "data"})
+            station_table = soup.find("table", attrs={"id": "REALPRECIP_LIST", "class": "data"})
 
         all_rows_list = []
         for eachRow in station_table.find_all("tr"):
@@ -134,15 +133,15 @@ class PrecipitationDataset(WsGeoDataset):
 
             if this_row and len(this_row) > 1:
                 all_rows_list.append(this_row)
-        station_table = pd.DataFrame(all_rows_list )
-        station_table.columns = station_table.iloc[0,:]
-        station_table = station_table.iloc[2:,:].copy()
-        station_table.rename(columns={"ID":"STATION_ID"}, inplace=True)
-        station_table.drop(columns=["ELEV(FEET)"], inplace = True)
+        station_table = pd.DataFrame(all_rows_list)
+        station_table.columns = station_table.iloc[0, :]
+        station_table = station_table.iloc[2:, :].copy()
+        station_table.rename(columns={"ID": "STATION_ID"}, inplace=True)
+        station_table.drop(columns=["ELEV(FEET)"], inplace=True)
         station_table = station_table[station_features]
         return station_table
 
-    def _retrieve_stations_geospatial_data(self):
+    def _get_stations_geospatial_data(self):
         """This function retrieves all the precipitation stations geospatial data. It scraps the web for precipitation
         data at daily and monthly level and extracts the latitude and longitude of all stations and returns it in a
         Geospatial dataframe.
@@ -150,14 +149,12 @@ class PrecipitationDataset(WsGeoDataset):
         :return: The geospatial dataframe containing the latitude and longitude of all weather stations in California
         """
         station_features = ["STATION", "STATION_ID", "LATITUDE", "LONGITUDE", "COUNTY"]
-        daily_station_data = self._get_precipitation_station_data("daily", station_features)
-        monthly_station_data = self._get_precipitation_station_data("monthly", station_features)
+        daily_station_data = self._scrape_precipitation_station_data("daily", station_features)
+        monthly_station_data = self._scrape_precipitation_station_data("monthly", station_features)
 
         all_stations_data = pd.concat([daily_station_data, monthly_station_data], axis=0)
         all_stations_data = all_stations_data.groupby(station_features).agg(
             count_latitude=('LATITUDE', 'count')).reset_index()
-        #Making sure we do not have duplicates
-        #all_stations_data[all_stations_data.station_id.str.contains('ASM|ATW|BFK|BAL|YSV')]
         all_stations_data.drop(columns=["count_latitude"], inplace=True)
         all_stations_geodf = gpd.GeoDataFrame(
             all_stations_data,
@@ -174,7 +171,4 @@ class PrecipitationDataset(WsGeoDataset):
         """This function keeps only the features in the features_to_keep list from the original geospatial data.
         :param features_to_keep: the list of features (columns) to keep."""
         self.map_df = self.map_df[features_to_keep]
-
-
-
 
