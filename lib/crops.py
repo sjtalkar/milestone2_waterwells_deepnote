@@ -78,7 +78,7 @@ class CropsDataset(WsGeoDataset):
         :return: the function updates the self.map_df dataframe
         """
         # Use the 2014 data for 2015
-        map_2015_df = self.map_2014_df.copy()
+        map_2015_df = self.map_df[self.map_df["YEAR"] == 2014].copy()
         map_2015_df["YEAR"] = 2015
         # Use the 2016 data for 2017
         map_2017_df = self.map_df[self.map_df["YEAR"] == 2016].copy()

@@ -180,29 +180,34 @@ class WellCompletionReportsDataset(WsGeoDataset):
         :param count_feature: the feature to use for counting the number of wells in each Township-Range.
         :return: a dataframe with the number of wells in each Township-Range
         """
-        count_by_township_df = self._get_aggregate_points_by_township(by=["YEAR", "MONTH"],
+        count_by_township_df = self._get_aggregated_points_by_township(by=["YEAR", "MONTH"],
                                                                       features_to_aggregate=[count_feature],
                                                                       aggfunc="count")
         count_by_township_df.rename(columns={count_feature: "WELL_COUNT"}, inplace=True)
         return count_by_township_df
 
     def compute_features_by_township(self, features_to_average: List[str], add_well_count: bool = True,
-                                      count_feature: str = "WCRNUMBER", fill_na_with_zero: bool = True):
+                                     add_well_usage_count: bool = True, count_feature: str = "WCRNUMBER",
+                                     count_category_feature: str = "USE",
+                                     fill_na_with_zero: bool = True):
         """This function computes the features in the features_to_compute list for each township
 
         :param features_to_average: the list of features to average.
         :param add_well_count: if True, a feature counting the number of wells per Township-Range is added.
+        :param add_well_usage_count: if True, a feature counting the number of wells per usage type and Township-Range
+        is added.
         :param count_feature: the feature to use for counting the number of wells in each Township-Range.
+        :param count_category_feature: the feature to use for counting the number of wells per usage type.
         :param fill_na_with_zero: if True, the features nin NaN data are filled with 0
         """
         self.keep_only_sjv_data()
-        township_features_df = self._get_aggregate_points_by_township(by=["TOWNSHIP_RANGE", "YEAR"],
+        township_features_df = self._get_aggregated_points_by_township(by=["TOWNSHIP_RANGE", "YEAR"],
                                                                       features_to_aggregate=features_to_average,
                                                                       aggfunc="mean", new_feature_suffix="_AVG",
                                                                       fill_na_with_zero=fill_na_with_zero)
         if add_well_count:
             # Get the weel count by Township-Range and year
-            count_by_township_df = self._get_aggregate_points_by_township(by=["TOWNSHIP_RANGE", "YEAR"],
+            count_by_township_df = self._get_aggregated_points_by_township(by=["TOWNSHIP_RANGE", "YEAR"],
                                                                           features_to_aggregate=[count_feature],
                                                                           aggfunc="count")
             count_by_township_df.rename(columns={count_feature: "WELL_COUNT"}, inplace=True)
@@ -210,5 +215,13 @@ class WellCompletionReportsDataset(WsGeoDataset):
             township_features_df = township_features_df.merge(count_by_township_df, how="left",
                                                               left_on=["TOWNSHIP_RANGE", "YEAR", "geometry"],
                                                               right_on=["TOWNSHIP_RANGE", "YEAR", "geometry"]
+                                                              )
+        if add_well_usage_count:
+            usage_count_by_township_df = self._get_category_count_by_township(by=["TOWNSHIP_RANGE", "YEAR"],
+                                                                              feature_name=count_category_feature,
+                                                                              feature_prefix="WELL_COUNT_")
+            township_features_df = township_features_df.merge(usage_count_by_township_df, how="left",
+                                                              left_on=["TOWNSHIP_RANGE", "YEAR"],
+                                                              right_on=["TOWNSHIP_RANGE", "YEAR"]
                                                               )
         self.map_df = township_features_df

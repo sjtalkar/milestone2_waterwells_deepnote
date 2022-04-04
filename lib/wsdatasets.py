@@ -274,7 +274,25 @@ class WsGeoDataset(BaseWsDataset):
         new_map_df["YEAR"] = new_map_df["YEAR"].astype(int)
         self.map_df = new_map_df
 
-    def _get_aggregate_points_by_township(self, by: List[str], features_to_aggregate: List[str], aggfunc: str = "mean",
+    def _get_geodata_grouped_by_township(self):
+        """This function returns the geodata grouped by township using the GeoPandas spatial join (SJOIN) operation"""
+        features_to_keep = self.map_df.columns.tolist()
+        # If TOWNSHIP_RANGE is already in the map_df dataset we get rid of it because we will get it from the sjoin with
+        # the township boundaries
+        if "TOWNSHIP_RANGE" in features_to_keep:
+            features_to_keep.remove("TOWNSHIP_RANGE")
+        geodf = self.map_df[features_to_keep]
+        geodf = gpd.sjoin(self.sjv_township_range_df, geodf, how="inner")
+        geodf.dropna(subset=["TOWNSHIP_RANGE", "YEAR"], axis=0, inplace=True)
+        if "index_left" in list(geodf.columns):
+            geodf.drop(columns=["index_left"], inplace=True)
+        # There's a bug in the GeoPandas sjoin function which can convert years and months in floats
+        geodf["YEAR"] = geodf["YEAR"].astype(int)
+        if "MONTH" in geodf.columns:
+            geodf["MONTH"] = geodf["MONTH"].astype(int)
+        return geodf
+
+    def _get_aggregated_points_by_township(self, by: List[str], features_to_aggregate: List[str], aggfunc: str = "mean",
                                           new_feature_suffix: str = None, fill_na_with_zero: bool = True
                                           ) -> gpd.GeoDataFrame:
         """This function keeps only the map_df data for the San Joaquin Valley and for every year, merges the points
@@ -290,31 +308,32 @@ class WsGeoDataset(BaseWsDataset):
         features_to_keep = by + features_to_aggregate
         if "geometry" not in features_to_keep:
             features_to_keep.append("geometry")
-        # If TOWNSHIP_RANGE is already in the map_df dataset we get rid of it because we will get it from the sjoin with
-        # the township boundaries
-        if "TOWNSHIP_RANGE" in features_to_keep:
-            features_to_keep.remove("TOWNSHIP_RANGE")
-        df = self.map_df[features_to_keep].copy()
+        geodf = self._get_geodata_grouped_by_township()[features_to_keep]
         agg_township_df = gpd.GeoDataFrame()
-        for year in df["YEAR"].unique():
-            year_df = df[df["YEAR"] == year].copy()
-            # group datapoints by Township-Ranges based on longitude/latitude
-            year_df = year_df.sjoin(self.sjv_township_range_df, how="right")
+        for year in geodf["YEAR"].unique():
+            year_df = geodf[geodf["YEAR"] == year].copy()
             # Group data points with multiple measurements in some years and get the average of feature_name
             year_df = year_df.dissolve(by=by, aggfunc=aggfunc).reset_index()
             agg_township_df = pd.concat([agg_township_df, year_df], axis=0)
-        # There's a bug in the GeoPandas dissolve function which can convert years and months in floats
-        agg_township_df["YEAR"] = agg_township_df["YEAR"].astype(int)
-        if "MONTH" in agg_township_df.columns:
-            agg_township_df["MONTH"] = agg_township_df["MONTH"].astype(int)
-        if "index_left" in list(agg_township_df.columns):
-            agg_township_df.drop(columns=["index_left"], inplace=True)
         if new_feature_suffix:
             for feature_name in features_to_aggregate:
                 agg_township_df.rename(columns={feature_name: feature_name + new_feature_suffix}, inplace=True)
         if fill_na_with_zero:
             agg_township_df = agg_township_df.fillna(0)
         return agg_township_df
+
+    def _get_category_count_by_township(self, by: List[str], feature_name: str, feature_prefix: str = None
+                                        ) -> gpd.GeoDataFrame:
+        features_to_keep = by.copy()
+        features_to_keep.append(feature_name)
+        geodf = self._get_geodata_grouped_by_township()[features_to_keep]
+        category_count_df = geodf.groupby(features_to_keep, as_index=False).size()
+        category_count_df = pd.pivot_table(category_count_df, index=by, columns=[feature_name], values="size",
+                                           fill_value=0).reset_index()
+        category_count_df.columns = [
+            f"{feature_prefix.replace(' ', '_').strip('_').upper()}_{c.upper().replace(' ', '_')}"
+            if c not in {"TOWNSHIP_RANGE", "YEAR"} else c for c in category_count_df.columns]
+        return category_count_df
 
     def _compute_land_surface(self, feature_name: str):
         """This function computes the surface area of the polygons in the GeoPandas dataframe and adds
@@ -348,13 +367,12 @@ class WsGeoDataset(BaseWsDataset):
         # Get the land surface used for each feature class
         township_features_df = pd.pivot_table(self.map_df[["TOWNSHIP_RANGE", "YEAR", "AREA_PCT", feature_name]],
                                               index=["TOWNSHIP_RANGE", "YEAR"], columns=[feature_name],
-                                              values="AREA_PCT").fillna(0)
+                                              values="AREA_PCT", fill_value=0).reset_index()
         # Rename columns (except "TOWNSHIP_RANGE" and "YEAR") by adding the feature_prefix, replacing spaces by underscores
         # and transform to uppercase
         township_features_df.columns = [
             f"{feature_prefix.replace(' ', '_').strip('_').upper()}_{c.upper().replace(' ', '_')}"
             if c not in {"TOWNSHIP_RANGE", "YEAR"} else c for c in township_features_df.columns]
-        township_features_df.reset_index(inplace=True)
         # Merge the townships with their new features
         self.output_df = self.sjv_township_range_df.dissolve(by="TOWNSHIP_RANGE").reset_index().\
             merge(township_features_df, how="right", left_on="TOWNSHIP_RANGE", right_on="TOWNSHIP_RANGE")
