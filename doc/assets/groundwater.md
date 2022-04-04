@@ -1,8 +1,7 @@
-# [California Groundwater Dataset and Stations](https://cdec.water.ca.gov/)
+# California Groundwater Dataset and Stations
 
 ## Description
 ![What is groundwater](https://github.com/sjtalkar/milestone2_waterwells_deepnote/blob/master/doc/images/groundwater.png)
-
 
 Groundwater, which is found in aquifers below the surface of the earth, is one of our most important natural resources. 
 Groundwater provides drinking water for a large portion of Califoria, nay, the nation's population. It also supplies business and industries, and is used extensively 
@@ -36,6 +35,7 @@ The analyis is performed against the backdrop of the Sustainable Groundwater Man
 to form groundwater sustainability agencies (GSAs) for the high and medium priority basins.
 
 ## Source
+[California Groundwater Dataset and Stations](https://cdec.water.ca.gov/)
 
 Long-term groundwater level measurements are publicly posted in [The Department of Water Resources Periodic Groundwater Levels datasets](https://data.cnra.ca.gov/dataset/periodic-groundwater-level-measurements)
 This dataset is maintained in the DWR Enterprise Water Management database, and contains information specific to the location of **groundwater level monitoring wells**
@@ -116,7 +116,7 @@ Hence, we filter for spring measurements of groundwater.
 `GSE_GWE:`	Ground Surface Elevation to Groundwater Elevation -	 Depth to groundwater elevation in feet below ground surface.
 
 ## Mapping at the TRS level
-Once we have a GeoDataframe with the points in the coordinate reference system, we spatially join to the California PLSS GeoJSON to map to the closest TownshipRange using sjoin method in geopandas.
+Once we have a GeoDataframe with the points in the coordinate reference system, we spatially join to the California PLSS GeoJSON to map to the closest Township-Range using sjoin method in geopandas.
 
 ## Potential issues
 

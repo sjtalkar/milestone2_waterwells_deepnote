@@ -60,7 +60,7 @@ Soil orders are described as follow:
 * `Oxisols` - Extremely weathered, tropical soils
 * `Histosols` - Soils formed in organic material
 * `Vertisols` - Shrinking and swelling clay soils
-## Mapping at the Township level
+## Mapping at the Township-Range level
 Please refer to this documentation [Overlaying San Joaquin Valley Township Boundaries](doc/etl/township_overlay.md)
 ## Potential issues
 ### Description

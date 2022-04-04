@@ -13,7 +13,7 @@ columns?, and why do we focus just on the 4~5 major crops?)
 The features extracted from the original dataset are:
 * `feature 1` - explain the feature
 * `feature 2` - explain the feature
-## Mapping at the Township level
+## Mapping at the Township-Range level
 How did we mapped the dataset at the Township level
 ## Potential issues
 ### Description
