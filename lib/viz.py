@@ -117,8 +117,8 @@ def view_year_with_slider(base_map, gdf, color_col, color_scheme='blues',  time_
     else:
         return base_map + area_slider_chart
 
-def simple_geodata_viz(gdf: gpd.GeoDataFrame, feature:str, title: str, year:int = None, color_scheme='blues',
-                       draw_stations=False):
+def simple_geodata_viz(gdf: gpd.GeoDataFrame, feature:str, title: str, year: int = None, color_scheme:str = 'blues',
+                       draw_stations: bool = False):
     """This function creates a simple visualization of a single feature of a geodataframe.
 
     :param gdf: the geodataframe to visualize
@@ -167,7 +167,8 @@ def simple_geodata_viz(gdf: gpd.GeoDataFrame, feature:str, title: str, year:int 
         )
     return chart
 
-def view_year_side_by_side(gdf: gpd.GeoDataFrame, feature: str, title: str, color_scheme='blues', draw_stations=False):
+def view_year_side_by_side(gdf: gpd.GeoDataFrame, feature: str, title: str, color_scheme: str = 'blues',
+                           draw_stations: bool = False):
     """ This function creates a side by side Altair visualization of the data per year for a given feature
 
     :param gdf: the geodataframe to be visualized
@@ -212,14 +213,14 @@ def view_year_side_by_side(gdf: gpd.GeoDataFrame, feature: str, title: str, colo
                     width=350, height=350,
                     title=year
                 )
-                for year in area_df["YEAR"].unique()
+                for year in sorted(area_df["YEAR"].unique())
             ),
             columns=3
         ).properties(title=title)
     return chart
 
 
-def visualize_seasonality_by_month(gdf: gpd.GeoDataFrame, feature:str):
+def visualize_seasonality_by_month(gdf: gpd.GeoDataFrame, feature: str):
     """ This function visualizes the seasonality of the data by month
 
     :param gdf: the geodataframe to visualize
@@ -236,7 +237,7 @@ def visualize_seasonality_by_month(gdf: gpd.GeoDataFrame, feature:str):
     return chart
 
 
-def display_data_on_map(gdf: gpd.GeoDataFrame, feature:str, year:int = None):
+def display_data_on_map(gdf: gpd.GeoDataFrame, feature: str, year: int = None):
     """Use GeoPandas explore() function based on Folium to display the Geospatial data on a map.
 
     :param gdf: the GeoDataFrame to be displayed

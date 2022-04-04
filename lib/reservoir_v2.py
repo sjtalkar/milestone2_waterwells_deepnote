@@ -34,7 +34,7 @@ class ReservoirDataset(WsGeoDataset):
             It creates URLS at weekly intervals for reservoir data
             It creates one dataframe containing reservoir data at weekly level for years for which we have data
         """
-        all_years_reservoir_data = pd.read_csv("../assets/outputs/weekly_reservoir_station_data.csv")
+        all_years_reservoir_data = pd.read_csv("../assets/inputs/reservoir/weekly_reservoir_station_data.csv")
         if not all_years_reservoir_data.empty:
             all_years_reservoir_data['PCT_OF_CAPACITY'] = pd.to_numeric(all_years_reservoir_data['PCT_OF_CAPACITY'],
                                                                         errors='coerce')
