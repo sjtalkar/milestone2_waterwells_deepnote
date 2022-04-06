@@ -1,4 +1,4 @@
-# California Groundwater Dataset and Stations
+# [California Groundwater Dataset and Stations](https://cdec.water.ca.gov/)
 
 ## Description
 ![What is groundwater](https://github.com/sjtalkar/milestone2_waterwells_deepnote/blob/master/doc/images/groundwater.png)
@@ -35,8 +35,6 @@ The analyis is performed against the backdrop of the Sustainable Groundwater Man
 to form groundwater sustainability agencies (GSAs) for the high and medium priority basins.
 
 ## Source
-[California Groundwater Dataset and Stations](https://cdec.water.ca.gov/)
-
 Long-term groundwater level measurements are publicly posted in [The Department of Water Resources Periodic Groundwater Levels datasets](https://data.cnra.ca.gov/dataset/periodic-groundwater-level-measurements)
 This dataset is maintained in the DWR Enterprise Water Management database, and contains information specific to the location of **groundwater level monitoring wells**
  and **groundwater level measurements collected at these wells**.
