@@ -206,7 +206,7 @@ class WellCompletionReportsDataset(WsGeoDataset):
                                                                       aggfunc="mean", new_feature_suffix="_AVG",
                                                                       fill_na_with_zero=fill_na_with_zero)
         if add_well_count:
-            # Get the weel count by Township-Range and year
+            # Get the well count by Township-Range and year
             count_by_township_df = self._get_aggregated_points_by_township(by=["TOWNSHIP_RANGE", "YEAR"],
                                                                           features_to_aggregate=[count_feature],
                                                                           aggfunc="count")

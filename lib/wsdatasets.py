@@ -158,7 +158,8 @@ class WsGeoDataset(BaseWsDataset):
         """This function should be used in child classes to perform dataset specific pre-processing of the map dataset.
         :param features_to_keep: the list of features (columns) to keep
         """
-        pass
+        # Keep only the requested features
+        self.map_df = self.map_df[features_to_keep]
 
     def merge_map_with_data(self, how: str = "left", dropkeys: bool = False, dropna: bool = False):
         """This function merges the data dataset into the map dataframe, updates the class' map_df GeoDataFrame and
@@ -265,11 +266,8 @@ class WsGeoDataset(BaseWsDataset):
         :param feature_name: the name of the original feature to use to compute the values for each new features
         :param feature_prefix: the prefix to add to feature names (e.g. "CROPS" for the Crops dataset features)
         """
-        new_map_df = gpd.GeoDataFrame()
-        for year in self.map_df["YEAR"].unique():
-            year_df = self.map_df[self.map_df["YEAR"] == year].copy()
-            year_df = year_df.dissolve(by=group_by_features, aggfunc=aggfunc).reset_index()
-            new_map_df = pd.concat([new_map_df, year_df], axis=0)
+        # Aggregate the areas within the townships
+        new_map_df = self.map_df.dissolve(by=group_by_features, aggfunc=aggfunc).reset_index()
         # There's a bug in the GeoPandas dissolve function which can convert years in floats
         new_map_df["YEAR"] = new_map_df["YEAR"].astype(int)
         self.map_df = new_map_df
@@ -281,9 +279,7 @@ class WsGeoDataset(BaseWsDataset):
         # the township boundaries
         if "TOWNSHIP_RANGE" in features_to_keep:
             features_to_keep.remove("TOWNSHIP_RANGE")
-        geodf = self.map_df[features_to_keep]
-        geodf = gpd.sjoin(self.sjv_township_range_df, geodf, how="inner")
-        geodf.dropna(subset=["TOWNSHIP_RANGE", "YEAR"], axis=0, inplace=True)
+        geodf = gpd.sjoin(self.sjv_township_range_df, self.map_df[features_to_keep], how="inner")
         if "index_left" in list(geodf.columns):
             geodf.drop(columns=["index_left"], inplace=True)
         # There's a bug in the GeoPandas sjoin function which can convert years and months in floats
@@ -295,7 +291,7 @@ class WsGeoDataset(BaseWsDataset):
     def _get_aggregated_points_by_township(self, by: List[str], features_to_aggregate: List[str], aggfunc: str = "mean",
                                           new_feature_suffix: str = None, fill_na_with_zero: bool = True
                                           ) -> gpd.GeoDataFrame:
-        """This function keeps only the map_df data for the San Joaquin Valley and for every year, merges the points
+        """This function keeps only the map_df data in the San Joaquin Valley and,  for every year, merges the points
         identified by their latitude and longitude by TOWNSHIP and YEAR, and counts them.
 
         :param by: the list of features to use to merge the points
@@ -309,12 +305,7 @@ class WsGeoDataset(BaseWsDataset):
         if "geometry" not in features_to_keep:
             features_to_keep.append("geometry")
         geodf = self._get_geodata_grouped_by_township()[features_to_keep]
-        agg_township_df = gpd.GeoDataFrame()
-        for year in geodf["YEAR"].unique():
-            year_df = geodf[geodf["YEAR"] == year].copy()
-            # Group data points with multiple measurements in some years and get the average of feature_name
-            year_df = year_df.dissolve(by=by, aggfunc=aggfunc).reset_index()
-            agg_township_df = pd.concat([agg_township_df, year_df], axis=0)
+        agg_township_df = geodf.dissolve(by=by, aggfunc=aggfunc).reset_index()
         if new_feature_suffix:
             for feature_name in features_to_aggregate:
                 agg_township_df.rename(columns={feature_name: feature_name + new_feature_suffix}, inplace=True)
@@ -377,24 +368,21 @@ class WsGeoDataset(BaseWsDataset):
         self.output_df = self.sjv_township_range_df.dissolve(by="TOWNSHIP_RANGE").reset_index().\
             merge(township_features_df, how="right", left_on="TOWNSHIP_RANGE", right_on="TOWNSHIP_RANGE")
 
-    def return_yearly_normalized_township_feature(self, feature_name: str, normalize_method: str = "mean"):
+    def return_yearly_normalized_township_feature(self, feature_name: str, normalize_method: str = "minmax"):
         """This function returns a dataframe with the feature values normalized by the "YEAR" column.
 
         :param feature_name: the name of the feature to normalize
         :return: a GeoDataFrame with an additional normalized feature column
         """
-        normalized_df = gpd.GeoDataFrame()
-        for year in self.map_df["YEAR"].unique():
-            year_df = self.map_df[self.map_df["YEAR"] == year].copy()
-            if normalize_method == "minmax":
-                year_df[f"{feature_name}_NORMALIZED"] = (year_df[feature_name] - year_df[feature_name].mean()) / \
-                                                        (year_df[feature_name].max() - year_df[feature_name].min())
-            elif normalize_method == "std":
-                year_df[f"{feature_name}_NORMALIZED"] = (year_df[feature_name] - year_df[feature_name].min()) / \
-                                                        year_df[feature_name].std()
-            else:
-                year_df[f"{feature_name}_NORMALIZED"] = year_df[feature_name] / year_df[feature_name].mean()
-            normalized_df = pd.concat([normalized_df, year_df], axis=0)
+        normalized_df = self.map_df.copy()
+        if normalize_method == "minmax":
+            norm_function = lambda x: (x - x.min()) / (x.max() - x.min())
+        elif normalize_method == "std":
+            norm_function = lambda x: (x - x.mean()) / x.std()
+        else:
+            norm_function = lambda x: x / x.mean()
+        normalized_df[f"{feature_name}_NORMALIZED"] = normalized_df.groupby("YEAR")[feature_name].transform(
+            norm_function)
         return normalized_df
 
     ####################################################################################################################
