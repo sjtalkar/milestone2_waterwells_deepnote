@@ -323,7 +323,7 @@ class WsGeoDataset(BaseWsDataset):
                                            fill_value=0).reset_index()
         category_count_df.columns = [
             f"{feature_prefix.replace(' ', '_').strip('_').upper()}_{c.upper().replace(' ', '_')}"
-            if c not in {"TOWNSHIP_RANGE", "YEAR"} else c for c in category_count_df.columns]
+            if c not in by else c for c in category_count_df.columns]
         return category_count_df
 
     def _compute_land_surface(self, feature_name: str):
