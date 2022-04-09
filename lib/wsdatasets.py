@@ -280,7 +280,6 @@ class WsGeoDataset(BaseWsDataset):
         if "TOWNSHIP_RANGE" in features_to_keep:
             features_to_keep.remove("TOWNSHIP_RANGE")
         geodf = gpd.sjoin(self.sjv_township_range_df, self.map_df[features_to_keep], how="inner")
-        #geodf.dropna(subset=["TOWNSHIP_RANGE", "YEAR"], axis=0, inplace=True)
         if "index_left" in list(geodf.columns):
             geodf.drop(columns=["index_left"], inplace=True)
         # There's a bug in the GeoPandas sjoin function which can convert years and months in floats
