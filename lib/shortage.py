@@ -17,7 +17,7 @@ class ShortageDataset(WsGeoDataset):
                  input_geofiles: List[str] = ["../assets/inputs/common/plss_subbasin.geojson"],
                  input_datafile: str = "../assets/inputs/shortage/shortage.csv",
                  ):
-        WsGeoDataset.__init__(self, input_geofiles=input_geofiles, input_datafile=input_datafile)
+        WsGeoDataset.__init__(self, input_datafile=input_datafile)
                               
 
 

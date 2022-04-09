@@ -166,9 +166,3 @@ class PrecipitationDataset(WsGeoDataset):
         # Save the file for future direct loading
         all_stations_geodf.to_file(self.input_geofile, index=False)
         return all_stations_geodf
-
-    def preprocess_map_df(self, features_to_keep: List[str]):
-        """This function keeps only the features in the features_to_keep list from the original geospatial data.
-        :param features_to_keep: the list of features (columns) to keep."""
-        self.map_df = self.map_df[features_to_keep]
-
