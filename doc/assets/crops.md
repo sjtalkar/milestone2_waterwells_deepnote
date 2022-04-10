@@ -1,4 +1,4 @@
-# California Statewide Crop Mapping Datasets
+# [California Statewide Crop Mapping Datasets](https://data.cnra.ca.gov/dataset/statewide-crop-mapping)
 ## Description
 These datasets represent the 2014, 2016 and 2018 _'main season agricultural land use, wetlands, and urban boundaries 
 for all 58 counties in California.'_
@@ -44,13 +44,14 @@ resource agencies involved in work and planning efforts across the state for cur
 * FGDC Geospatial Presentation Format: vector digital data
 * Other Citation Details: 
   * CDWR Land Use Viewer: [https://gis.water.ca.gov/app/CADWRLandUseViewer/](https://gis.water.ca.gov/app/CADWRLandUseViewer/) 
-  * Statewide Crop Mapping on California Natural Resources Agency (CRNA) Open Data Portal: [https://data.cnra.ca.gov/dataset/statewide-crop-mapping](https://data.cnra.ca.gov/dataset/statewide-crop-mapping). 
+  * Statewide Crop Mapping on California Natural Resources Agency (CRNA) Open Data Portal: 
+  [https://data.cnra.ca.gov/dataset/statewide-crop-mapping](https://data.cnra.ca.gov/dataset/statewide-crop-mapping). 
   * SGMA Data Viewer: [https://sgma.water.ca.gov/webgis/?appid=SGMADataViewer#waterbudget](https://sgma.water.ca.gov/webgis/?appid=SGMADataViewer#waterbudget)
 ## How to download ?
 The `CropsDataset` class in the `/lib/crops.py` custom library is designed to load the crops geospatial datasets from 
 the local `/assets/inputs/crops/` folder. If files are not found the data are downloaded from the 
 [Statewide Crop Mapping](https://data.cnra.ca.gov/dataset/statewide-crop-mapping) page. The custom crop name-to-type 
-mapping JSON file is provided in [a dedicated Github repository](https://github.com/mlnrt/milestone2_waterwells_data) 
+mapping JSON file is downloaded from [a dedicated Github repository](https://github.com/mlnrt/milestone2_waterwells_data) 
 where we provide additional files.
 
 The datasets used for this analysis are the _Statewide Crop Mapping GIS Shapefiles_ datasets for the years 2014, 2016,
@@ -65,12 +66,14 @@ without going the subclass details of each crop (e.g. `Apples`, `Apricots`, `Che
 and nuts` class). This means that we are assuming that each crop in a class have the same agricultural impact on
 water usage and resources. This assumption is broad, but is made in order to simplify the analysis.
 
-Thus, the features extracted from the original dataset are:
-* `DWR_Standa` - the July crop class in the 2014 dataset. We keep only the first letter of the column which corresponds
-to the class code (e.g. "V | VINEYARD") and corresponds to the class codes used in the 2016 and 2018 datasets 
-* `CLASS2` - the summer crops in the 2016 and 2018 datasets.
-* `geometry` - containing the polygon shapes of each crop field. The polygon coordinates must be converted to 
-EPSG:4326 format. 
+Thus, the features extracted from the original dataset are
+
+| Feature Name | Description                                                                                                     |
+|--------------|-----------------------------------------------------------------------------------------------------------------|
+| DWR_Standa   | the July crop class in the 2014 dataset. We keep only the first letter of the column which corresponds          |
+| CLASS2       | the summer crops in the 2016 and 2018 datasets                                                                  |
+| geometry     | containing the polygon shapes of each crop field. The polygon coordinates must be converted to EPSG:4326 format |
+
 
 ### Why Use Only the Summer Data?
 Aquifers water level are usually measured in spring when they are at their maximum levels due to water recharge from

@@ -1,11 +1,9 @@
 import json
 import requests
 import os
-import zipfile
 import pandas as pd
 
 from typing import List
-from io import BytesIO
 from fiona.errors import DriverError
 from lib.wsdatasets import WsGeoDataset
 
@@ -22,26 +20,23 @@ class CropsDataset(WsGeoDataset):
         """
         WsGeoDataset.__init__(self, [])
         try:
-            self.map_2014_df = self._read_geospatial_file(f"{input_geodir}crops_2014/i15_Crop_Mapping_2014.shp")
-            self.map_2016_df = self._read_geospatial_file(f"{input_geodir}crops_2016/i15_Crop_Mapping_2016.shp")
-            self.map_2018_df = self._read_geospatial_file(f"{input_geodir}crops_2018/i15_Crop_Mapping_2018.shp")
+            self._load_local_datasets(input_geodir, crop_name_to_type_file)
         except (FileNotFoundError, DriverError):
-            self._download_crops_datasets(input_geodir)
-            self.map_2014_df = self._read_geospatial_file(f"{input_geodir}crops_2014/i15_Crop_Mapping_2014.shp")
-            self.map_2016_df = self._read_geospatial_file(f"{input_geodir}crops_2016/i15_Crop_Mapping_2016.shp")
-            self.map_2018_df = self._read_geospatial_file(f"{input_geodir}crops_2018/i15_Crop_Mapping_2018.shp")
-        try:
-            with open(crop_name_to_type_file) as f:
-                self.crop_name_to_type_mapping = json.load(f)
-        except FileNotFoundError:
-            self._download_crop_name_mapping(crop_name_to_type_file)
-            with open(crop_name_to_type_file) as f:
-                self.crop_name_to_type_mapping = json.load(f)
+            self._download_datasets(input_geodir, crop_name_to_type_file)
+            self._load_local_datasets(input_geodir, crop_name_to_type_file)
 
-    def _download_crops_datasets(self, input_geodir: str):
+    def _load_local_datasets(self, input_geodir: str, crop_name_to_type_file: str):
+        self.map_2014_df = self._read_geospatial_file(f"{input_geodir}crops_2014/i15_Crop_Mapping_2014.shp")
+        self.map_2016_df = self._read_geospatial_file(f"{input_geodir}crops_2016/i15_Crop_Mapping_2016.shp")
+        self.map_2018_df = self._read_geospatial_file(f"{input_geodir}crops_2018/i15_Crop_Mapping_2018.shp")
+        with open(crop_name_to_type_file) as f:
+            self.crop_name_to_type_mapping = json.load(f)
+
+    def _download_datasets(self, input_geodir: str, crop_name_to_type_file: str):
         """This function downloads the crops datasets from the web
 
         :param input_geodir: the directory where to store the crops geospatial datasets
+        :param crop_name_to_type_file: the file name where to store the crop name to type mapping
         """
         url_base = "https://data.cnra.ca.gov/dataset/6c3d65e3-35bb-49e1-a51e-49d5a2cf09a9/resource"
         crops_datasets_urls = {
@@ -50,13 +45,8 @@ class CropsDataset(WsGeoDataset):
             "crops_2018": "/2dde4303-5c83-4980-a1af-4f321abefe95/download/i15_crop_mapping_2018_shp.zip"
         }
         for dataset_name, url in crops_datasets_urls.items():
-            self._download_and_extract_zip_file(url=url_base + url, extract_dir=os.path.join(input_geodir, dataset_name))
-
-    def _download_crop_name_mapping(self, crop_name_to_type_file: str):
-        """This function downloads the crop name to type mapping file from the web
-
-        :param crop_name_to_type_file: the file name where to store the crop name to type mapping
-        """
+            self._download_and_extract_zip_file(url=url_base + url,
+                                                extract_dir=os.path.join(input_geodir, dataset_name))
         url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/crops/crop_name_to_type_mapping.json"
         file_content = requests.get(url).text
         with open(crop_name_to_type_file, "w") as f:
