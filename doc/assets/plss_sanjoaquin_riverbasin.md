@@ -14,7 +14,7 @@ the Base Line, are extended east and (or) west from the Principal Meridian.
 The Township is 6 miles square. It is divided into 36 square-mile “sections” of 640 acres, each which may be divided and subdivided as desired. The diagram below show the system of numbering the sections and
 the usual method of subdividing them.
 
-![PLSS pictorial description](https://github.com/sjtalkar/milestone2_waterwells_deepnote/blob/master/doc/images/plss_info.png)
+![PLSS pictorial description](https://raw.githubusercontent.com/sjtalkar/milestone2_waterwells_deepnote/master/doc/images/plss_info.png)
 
 We will merge datasets at the TownshipRange level. 
 
