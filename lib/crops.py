@@ -50,18 +50,7 @@ class CropsDataset(WsGeoDataset):
             "crops_2018": "/2dde4303-5c83-4980-a1af-4f321abefe95/download/i15_crop_mapping_2018_shp.zip"
         }
         for dataset_name, url in crops_datasets_urls.items():
-            os.makedirs(os.path.join(input_geodir, dataset_name), exist_ok=True)
-            # Download the dataset content
-            geofile_content = requests.get(url_base + url).content
-            # extract the zip files directly from the content
-            with zipfile.ZipFile(BytesIO(geofile_content)) as zf:
-                # For each members of the archive
-                for member in zf.infolist():
-                    # If it's a directory, continue
-                    if member.filename[-1] == '/': continue
-                    # Else write its content to the dataset root folder
-                    with open(os.path.join(input_geodir, dataset_name, os.path.basename(member.filename)), "wb") as outfile:
-                        outfile.write(zf.read(member))
+            self._download_and_extract_zip_file(url=url_base + url, extract_dir=os.path.join(input_geodir, dataset_name))
 
     def _download_crop_name_mapping(self, crop_name_to_type_file: str):
         """This function downloads the crop name to type mapping file from the web

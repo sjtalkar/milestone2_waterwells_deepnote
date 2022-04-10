@@ -1,9 +1,14 @@
 # This file contains the base Class definition for the Waters Shortage Datasets
 import abc
+import os
+import requests
+import zipfile
 import pandas as pd
 import geopandas as gpd
 
 from typing import List, Tuple
+from io import BytesIO
+from fiona.errors import DriverError
 from shapely.geometry import Polygon, MultiPolygon, MultiPoint
 from shapely.ops import voronoi_diagram
 
@@ -57,6 +62,21 @@ class WsGeoDataset(BaseWsDataset):
         self.ca_counties_df, self.ca_boundaries = self._preprocess_ca_shapefile(ca_shapefile)
         self.counties_and_trs_df = gpd.overlay(self.sjv_township_range_df, self.ca_counties_df, how='identity',
                                                keep_geom_type=True)
+
+    def _download_and_extract_zip_file(self, url: str, extract_dir: str):
+        # Download the dataset content
+        zipfile_content = requests.get(url).content
+        os.makedirs(extract_dir, exist_ok=True)
+        # extract the zip files directly from the content
+        with zipfile.ZipFile(BytesIO(zipfile_content)) as zf:
+            # For each members of the archive
+            for member in zf.infolist():
+                # If it's a directory, continue
+                if member.filename[-1] == "/": continue
+                # Else write its content to the dataset root folder
+                with open(os.path.join(extract_dir, os.path.basename(member.filename)),
+                          "wb") as outfile:
+                    outfile.write(zf.read(member))
 
     def _read_geospatial_file(self, filename: str):
         """Read a Geospatial dataframe and set the projection as WGS84 Latitude/Longitude ("EPSG:4326").
@@ -114,7 +134,7 @@ class WsGeoDataset(BaseWsDataset):
                                     (shape.bounds[2], shape.bounds[1])])
         return bounding_polygon
 
-    def _preprocess_sjv_shapefile(self, sjv_shapefile: str) -> Tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
+    def _preprocess_sjv_shapefile(self, sjv_shapefile: str) -> Tuple[gpd.GeoDataFrame, gpd.GeoSeries]:
         """This function loads the geojson file containing the Township-Range Range Section land survey polygons
         for the San Joaquin Valley.
 
@@ -122,7 +142,15 @@ class WsGeoDataset(BaseWsDataset):
         :return: a tuple containing the Township-Range polygons of the San Joaquin Valley and the boundary Polygon of the
         San Joaquin Valley
         """
-        sjv_plss_df = gpd.read_file(sjv_shapefile)
+        try:
+            sjv_plss_df = gpd.read_file(sjv_shapefile)
+        except (FileNotFoundError, DriverError):
+            url = "https://github.com/datadesk/groundwater-analysis/raw/main/data/plss_subbasin.geojson"
+            geofile_content = requests.get(url).content
+            os.makedirs(os.path.dirname(sjv_shapefile), exist_ok=True)
+            with open(sjv_shapefile, "wb") as f:
+                f.write(geofile_content)
+            sjv_plss_df = gpd.read_file(sjv_shapefile)
         # Combine the map units at the Township-Range level
         sjv_township_range_df = sjv_plss_df.dissolve(by='TownshipRange').reset_index()
         # Keep only the 'TownshipRange' and 'geometry' columns
@@ -141,14 +169,19 @@ class WsGeoDataset(BaseWsDataset):
         sjv_polygon.geometry = sjv_polygon.geometry.apply(lambda p: self._close_holes(p))
         return sjv_township_range_df, sjv_polygon
 
-    def _preprocess_ca_shapefile(self, ca_shapefile: str) -> gpd.GeoDataFrame:
+    def _preprocess_ca_shapefile(self, ca_shapefile: str) -> Tuple[gpd.GeoDataFrame, gpd.GeoSeries]:
         """This function loads the geojson file of California counties and returns a geometry of the California state
         boundaries.
 
         :param ca_shapefile: the path to the shapefile containing the California counties polygons
-        :return: A Sahpely Polygon of the California boundaries
+        :return: A Shapely Polygon of the California boundaries
         """
-        ca_geodf = gpd.read_file(ca_shapefile).to_crs(epsg=4326)
+        try:
+            ca_geodf = gpd.read_file(ca_shapefile).to_crs(epsg=4326)
+        except (FileNotFoundError, DriverError):
+            url = "https://data.ca.gov/dataset/e212e397-1277-4df3-8c22-40721b095f33/resource/b0007416-a325-4777-9295-368ea6b710e6/download/ca-county-boundaries.zip"
+            self._download_and_extract_zip_file(url, os.path.dirname(ca_shapefile))
+            ca_geodf = gpd.read_file(ca_shapefile).to_crs(epsg=4326)
         ca_counties = ca_geodf[["NAME", "geometry"]].copy()
         ca_counties.rename(columns={"NAME": "COUNTY"}, inplace=True)
         # Create an artificial column with a unique value to merge all the Polygons together
@@ -218,13 +251,14 @@ class WsGeoDataset(BaseWsDataset):
         is saved in the self.map_df variable.
         """
         self.keep_only_sjv_data()
+        new_map_df = gpd.GeoDataFrame()
         for i, year in enumerate(self.map_df["YEAR"].unique()):
             yearly_map_df = self.map_df[self.map_df["YEAR"] == year]
             # Overlay the townships boundaries on the map data units to cut and explode them based on the townships
             map_data_by_township_df = gpd.overlay(yearly_map_df, self.sjv_township_range_df, how='identity',
                                                   keep_geom_type=True)
             if i == 0:
-                new_map_df = map_data_by_township_df
+                new_map_df = map_data_by_township_df.copy()
             else:
                 new_map_df = pd.concat([new_map_df, map_data_by_township_df], axis=0)
         new_map_df.reset_index(inplace=True, drop=True)
@@ -236,7 +270,7 @@ class WsGeoDataset(BaseWsDataset):
         The transformation is done year by year as measurements might not be performed at the exact same location from
         year to year.
 
-        :param voronoi_envelope: the envelope or boundary to use to compute the Voronoi Diagram."""
+        :param boundary: the envelope or boundary to use to compute the Voronoi Diagram."""
         new_map_df = gpd.GeoDataFrame()
         if boundary == "svj":
             envelope = self.sjv_boundaries.geometry[0]
@@ -261,12 +295,11 @@ class WsGeoDataset(BaseWsDataset):
         if "index_right" in list(self.map_df.columns):
             self.map_df.drop(columns=["index_right"], inplace=True)
 
-    def aggregate_areas_within_townships(self, group_by_features: List[str], feature_to_aggregate_on: str,
-                                         aggfunc: str = "mean"):
+    def aggregate_areas_within_townships(self, group_by_features: List[str], aggfunc: str = "mean"):
         """This function essentially computes the mean of all values in a Township for each year
 
-        :param feature_name: the name of the original feature to use to compute the values for each new features
-        :param feature_prefix: the prefix to add to feature names (e.g. "CROPS" for the Crops dataset features)
+        :param group_by_features: the features to group by
+        :param aggfunc: the aggregation function to use
         """
         # Aggregate the areas within the townships
         new_map_df = self.map_df.dissolve(by=group_by_features, aggfunc=aggfunc).reset_index()
@@ -391,7 +424,7 @@ class WsGeoDataset(BaseWsDataset):
     # Output related functions
     ####################################################################################################################
 
-    def drop_features(self, drop_rate: float = 0.0, unwanted_features: List[str] = []):
+    def drop_features(self, drop_rate: float = 0.0, unwanted_features: List[str] = None):
         """This function removes features (columns) from the self.output_df dataset in two ways. 1) it drops the
         features which cover a smaller land surface percentage of every Township-Range for any given year. 2) it drops
         unwanted features (e.g. the "Urban" class from the crops dataset).
@@ -410,7 +443,7 @@ class WsGeoDataset(BaseWsDataset):
         if unwanted_features:
             self.output_df.drop(columns=unwanted_features, errors="ignore", inplace=True)
 
-    def prepare_output_from_map_df(self, unwanted_features: List[str] = []):
+    def prepare_output_from_map_df(self, unwanted_features: List[str] = None):
         """This functions, prepares the map_df Geospastial Dataframe to be written in the output file.
         At the minimum, it removes the geospatial "geometry feature".
 
