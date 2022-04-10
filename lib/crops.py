@@ -1,7 +1,12 @@
 import json
+import requests
+import os
+import zipfile
 import pandas as pd
 
 from typing import List
+from io import BytesIO
+from fiona.errors import DriverError
 from lib.wsdatasets import WsGeoDataset
 
 
@@ -16,11 +21,57 @@ class CropsDataset(WsGeoDataset):
         :param crop_name_to_type_file: the file containing the crop name to type mapping
         """
         WsGeoDataset.__init__(self, [])
-        self.map_2014_df = self._read_geospatial_file(f"{input_geodir}crops_2014/i15_Crop_Mapping_2014.shp")
-        self.map_2016_df = self._read_geospatial_file(f"{input_geodir}crops_2016/i15_Crop_Mapping_2016.shp")
-        self.map_2018_df = self._read_geospatial_file(f"{input_geodir}crops_2018/i15_Crop_Mapping_2018.shp")
-        with open(crop_name_to_type_file) as f:
-            self.crop_name_to_type_mapping = json.load(f)
+        try:
+            self.map_2014_df = self._read_geospatial_file(f"{input_geodir}crops_2014/i15_Crop_Mapping_2014.shp")
+            self.map_2016_df = self._read_geospatial_file(f"{input_geodir}crops_2016/i15_Crop_Mapping_2016.shp")
+            self.map_2018_df = self._read_geospatial_file(f"{input_geodir}crops_2018/i15_Crop_Mapping_2018.shp")
+        except (FileNotFoundError, DriverError):
+            self._download_crops_datasets(input_geodir)
+            self.map_2014_df = self._read_geospatial_file(f"{input_geodir}crops_2014/i15_Crop_Mapping_2014.shp")
+            self.map_2016_df = self._read_geospatial_file(f"{input_geodir}crops_2016/i15_Crop_Mapping_2016.shp")
+            self.map_2018_df = self._read_geospatial_file(f"{input_geodir}crops_2018/i15_Crop_Mapping_2018.shp")
+        try:
+            with open(crop_name_to_type_file) as f:
+                self.crop_name_to_type_mapping = json.load(f)
+        except FileNotFoundError:
+            self._download_crop_name_mapping(crop_name_to_type_file)
+            with open(crop_name_to_type_file) as f:
+                self.crop_name_to_type_mapping = json.load(f)
+
+    def _download_crops_datasets(self, input_geodir: str):
+        """This function downloads the crops datasets from the web
+
+        :param input_geodir: the directory where to store the crops geospatial datasets
+        """
+        url_base = "https://data.cnra.ca.gov/dataset/6c3d65e3-35bb-49e1-a51e-49d5a2cf09a9/resource"
+        crops_datasets_urls = {
+            "crops_2014": "/3bba74e2-a992-48db-a9ed-19e6fabb8052/download/i15_crop_mapping_2014_shp.zip",
+            "crops_2016": "/3b57898b-f013-487a-b472-17f54311edb5/download/i15_crop_mapping_2016_shp.zip",
+            "crops_2018": "/2dde4303-5c83-4980-a1af-4f321abefe95/download/i15_crop_mapping_2018_shp.zip"
+        }
+        for dataset_name, url in crops_datasets_urls.items():
+            os.makedirs(os.path.join(input_geodir, dataset_name), exist_ok=True)
+            # Download the dataset content
+            geofile_content = requests.get(url_base + url).content
+            # extract the zip files directly from the content
+            with zipfile.ZipFile(BytesIO(geofile_content)) as zf:
+                # For each members of the archive
+                for member in zf.infolist():
+                    # If it's a directory, continue
+                    if member.filename[-1] == '/': continue
+                    # Else write its content to the dataset root folder
+                    with open(os.path.join(input_geodir, dataset_name, os.path.basename(member.filename)), "wb") as outfile:
+                        outfile.write(zf.read(member))
+
+    def _download_crop_name_mapping(self, crop_name_to_type_file: str):
+        """This function downloads the crop name to type mapping file from the web
+
+        :param crop_name_to_type_file: the file name where to store the crop name to type mapping
+        """
+        url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/crops/crop_name_to_type_mapping.json"
+        file_content = requests.get(url).text
+        with open(crop_name_to_type_file, "w") as f:
+            f.write(file_content)
 
     def preprocess_map_df(self, features_to_keep: List[str], get_crops_details: bool = False):
         """This function preprocesses the Crops map datasets (2014, 2016, 2018) by: 1) extracting only the summer crop
