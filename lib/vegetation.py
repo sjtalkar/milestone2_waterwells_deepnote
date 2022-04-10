@@ -1,8 +1,10 @@
 import os
 import json
+import requests
 import pandas as pd
 
 from typing import List
+from fiona.errors import DriverError
 from lib.wsdatasets import WsGeoDataset
 
 
@@ -10,6 +12,13 @@ class VegetationDataset(WsGeoDataset):
     """This class loads, processes and exports the Existing Vegetation dataset"""
     def __init__(self, input_geodir: str = "../assets/inputs/vegetation/",
                  saf_cover_type_file: str = "../assets/inputs/vegetation/saf_cover_type_mapping.json"):
+        try:
+            self._load_local_datasets(input_geodir, saf_cover_type_file)
+        except (FileNotFoundError, DriverError):
+            self._download_datasets(input_geodir, saf_cover_type_file)
+            self._load_local_datasets(input_geodir, saf_cover_type_file)
+
+    def _load_local_datasets(self, input_geodir: str, saf_cover_type_file: str):
         vegetation_subdir_list = [name for name in os.listdir(input_geodir) if os.path.isdir(
             os.path.join(input_geodir, name))]
         input_geofiles = []
@@ -18,6 +27,24 @@ class VegetationDataset(WsGeoDataset):
         WsGeoDataset.__init__(self, input_geofiles=input_geofiles)
         with open(saf_cover_type_file) as f:
             self.saf_cover_type_mapping = json.load(f)
+
+    def _download_datasets(self, input_geodir: str, cover_type_mapping: str):
+        """This function downloads the Vegetation datasets from the web
+
+        :param input_geodir: the directory where to store the vegetation geospatial datasets
+        :param cover_type_mapping: the file where the mapping between the SAF cover type code and the forest type will
+        be stored
+        """
+        vegetation_datasets_urls = {
+            "central_coast": "https://data.fs.usda.gov/geodata/edw/edw_resources/fc/S_USA.EVMid_R05_CentralCoast.gdb.zip",
+            "central_valley": "https://data.fs.usda.gov/geodata/edw/edw_resources/fc/S_USA.EVMid_R05_CentralValley.gdb.zip"
+        }
+        for dataset_name, url in vegetation_datasets_urls.items():
+            self._download_and_extract_zip_file(url=url, extract_dir=os.path.join(input_geodir, dataset_name))
+        url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/vegetation/saf_cover_type_mapping.json"
+        file_content = requests.get(url).text
+        with open(cover_type_mapping, "w") as f:
+            f.write(file_content)
 
     def preprocess_map_df(self, features_to_keep: List[str]):
         """This function preprocesses the Vegetation map dataset by 1) extracting only the columns: "SAF_COVER_TYPE",
@@ -41,6 +68,6 @@ class VegetationDataset(WsGeoDataset):
         for year in range(2014, 2022):
             if year != 2019:
                 map_other_year_df = self.map_df[self.map_df["YEAR"] == 2019].copy()
-                map_other_year_df["YEAR"] = str(year)
+                map_other_year_df["YEAR"] = year
                 self.map_df = pd.concat([self.map_df, map_other_year_df], axis=0)
         self.map_df.reset_index(inplace=True, drop=True)

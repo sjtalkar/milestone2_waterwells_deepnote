@@ -1,10 +1,12 @@
 import os
+import requests
 import numpy as np
 import pandas as pd
 import geopandas as gpd
 
 from datetime import datetime
 from typing import List
+from fiona.errors import DriverError
 from lib.wsdatasets import WsGeoDataset
 
 
@@ -14,6 +16,18 @@ class WellCompletionReportsDataset(WsGeoDataset):
                  input_datafile: str = "../assets/inputs/wellcompletion/wellcompletion.csv",
                  elevation_datadir: str = "../assets/inputs/wellcompletion/elevation_api_results/",
                  ):
+        try:
+            self._load_local_datasets(input_datafile, elevation_datadir)
+        except (FileNotFoundError, DriverError):
+            self._download_datasets(input_datafile, elevation_datadir)
+            self._load_local_datasets(input_datafile, elevation_datadir)
+
+    def _load_local_datasets(self, input_datafile: str, elevation_datadir: str):
+        """This function loads the datasets from the local file system
+
+        :param input_datafile: the path to the input datafile
+        :param elevation_datadir: the path to the elevation data directory
+        """
         WsGeoDataset.__init__(self, input_geofiles=[], input_datafile="")
         self.elevation_df = self._get_missing_elevation(elevation_datadir)
         wcr_df = self._load_wcr_data(wcr_datafile=input_datafile)
@@ -25,6 +39,14 @@ class WellCompletionReportsDataset(WsGeoDataset):
             ))
         # Set the coordinate reference system so that we now have the projection axis
         self.map_df = self.map_df.set_crs("epsg:4326")
+
+    def _download_datasets(self, input_datafile: str, elevation_datadir: str):
+        welldata_url = "https://data.cnra.ca.gov/dataset/647afc02-8954-426d-aabd-eff418d2652c/resource/8da7b93b-4e69-495d-9caa-335691a1896b/download/wellcompletionreports.csv"
+        file_content = requests.get(welldata_url).text
+        os.makedirs(os.path.dirname(input_datafile), exist_ok=True)
+        with open(input_datafile, "w") as f:
+            f.write(file_content)
+        os.makedirs(elevation_datadir, exist_ok=True)
         
     def _load_wcr_data(self, wcr_datafile: str):
         # We set the type to avoid pandas warning on some columns with mixed types

@@ -1,4 +1,4 @@
-# California Well Completion Report Dataset
+# [California Well Completion Report Dataset](https://data.cnra.ca.gov/dataset/well-completion-reports)
 
 ## Description
 
@@ -7,9 +7,22 @@ This Well Completion Report dataset represents an index of records from the Cali
  Water well completion reports or "well logs" include information about well including the construction, location, yield, geology, and depth. 
 
 ## Source
-- https://data.cnra.ca.gov/dataset/well-completion-reports
+The datasets is provided by the [__California Natural Resources Agency__](https://resources.ca.gov/) representing
+_an index of records from the California Department of Water Resources' (DWR) Online System for Well Completion Reports
+(OSWCR)_.
+
+Dataset information:
+* Originator: Benjamin Brezing, California Department of Water Resources
+* * Title: wellcompletionreports
+* Updated: weekly
+* Resources, website: [https://data.cnra.ca.gov/dataset/well-completion-reports](https://data.cnra.ca.gov/dataset/well-completion-reports)
 
 ## How to download ?
+The `WellCompletionReportsDataset` class in the `/lib/well.py` custom library is designed to load the well
+completion report CSV datasets from the local `/assets/inputs/wellcompletion/` folder. If files are not found the data 
+are downloaded from the [California Well Completion Reports](https://data.cnra.ca.gov/dataset/well-completion-reports) 
+page. The missing elevation data are downloaded through APIs.
+
 The public dataset site offers [Data API access](https://data.cnra.ca.gov/api/1/util/snippet/api_info.html?resource_id=8da7b93b-4e69-495d-9caa-335691a1896b) along with examples that show how to retrieve filtered
 data. For instance, it provides the following example for Python.
 
@@ -21,17 +34,13 @@ fileobj = urllib.request.urlopen(url)
 response_dict = json.loads(fileobj.read())
 print(response_dict)
 ```
-
-A deep study of well construction and aquifers had to be conducted to understand the features. The understanding has been distilled below and features are explained.
-
-
 ## Features of interest
-
-The columns specified here are as per original dataset name:
+A deep study of well construction and aquifers had to be conducted to understand the features. The understanding has 
+been distilled below and features are explained. The columns specified here are as per original dataset name:
 
 [Explanation of geologic terms](https://mbmggwic.mtech.edu/sqlserver/v11/help/welldesign.asp)
 
-![welldiagram](https://github.com/sjtalkar/milestone2_waterwells_deepnote/blob/master/doc/images/welldiagram.png)
+![welldiagram](../images/welldiagram.png)
 
 > **Aquifer**: An aquifer is a geologic unit (sand and gravel, sandstone, limestone, or other rock) that will yield usable amounts of water to a well or spring.
 
@@ -66,37 +75,35 @@ The columns specified here are as per original dataset name:
 > **Yield**: The amount of water measured in **gallons per minute** a well will produce when pumped.
 
 
-| Feature Name               	| Description                                                                                                                                           	|
-|----------------------------	|-------------------------------------------------------------------------------------------------------------------------------------------------------	|
-| DECIMALLATITUDE            	| Latitudinal position of the well                                                                                                                      	|
-| DECIMALLONGITUDE           	| Longitudinal position of the well                                                                                                                     	|
-| WELLLOCATION               	| Address of location, typically postal                                                                                                                 	|
-| BOTTOMOFPERFORATEDINTERVAL 	| Bottom of the screen/perforation that is the opening to the aquifer                                                                                   	|
-| TOPOFPERFORATEDINTERVAL    	| Top of the screen/perforation that is the opening to the aquifer                                                                                      	|
-| GROUNDSURFACEELEVATION     	| See definition above                                                                                                                                  	|
-| STATICWATERLEVEL           	| The static water level is the distance from the land surface (or the measuring point) to the water in the well under non-pumping (static) conditions. 	|
-| RECORDTYPE                 	| This indicates if the well completion report is for a new construction, modification or repair.                                                       	|
-| PLANNEDUSEFORMERUSE        	| Usage description from which we retrieve mention of Agricultural. Domestic, Public and Industrial use                                                 	|
-| WCRNUMBER                  	| Unique well identifier                                                                                                                                	|
-| TOTALDRILLDEPTH            	| Drilled depth of well                                                                                                                                 	|
-| TOTALCOMPLETEDDEPTH        	| Completed depth of well                                                                                                                               	|
-| DATEWORKENDED              	| Date of completion of well construction                                                                                                               	|
-| CASINGDIAMETER             	| See definition above                                                                                                                                  	|
-| TOTALDRAWDOWN             	| See definition above                                                                                                                                  	|
-| WELLYIELD                 	| Amount of water yielded (See definition above)                                                                                                            |
-| WELLYIELDUNITOFMEASURE       	| Yield unit of measure (See definition above)                                                                                                              |
-| GSE_GWE                      	| Depth to groundwater elevation in feet below ground surface.                                                                                              |
+| Feature Name               | Description                                                                                                                                           	|
+|----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------	|
+| DECIMALLATITUDE            | Latitudinal position of the well                                                                                                                      	|
+| DECIMALLONGITUDE           | Longitudinal position of the well                                                                                                                     	|
+| WELLLOCATION               | Address of location, typically postal                                                                                                                 	|
+| BOTTOMOFPERFORATEDINTERVAL | Bottom of the screen/perforation that is the opening to the aquifer                                                                                   	|
+| TOPOFPERFORATEDINTERVAL    | Top of the screen/perforation that is the opening to the aquifer                                                                                      	|
+| GROUNDSURFACEELEVATION     | See definition above                                                                                                                                  	|
+| STATICWATERLEVEL           | The static water level is the distance from the land surface (or the measuring point) to the water in the well under non-pumping (static) conditions. 	|
+| RECORDTYPE                 | This indicates if the well completion report is for a new construction, modification or repair.                                                       	|
+| PLANNEDUSEFORMERUSE        | Usage description from which we retrieve mention of Agricultural. Domestic, Public and Industrial use                                                 	|
+| WCRNUMBER                  | Unique well identifier                                                                                                                                	|
+| TOTALDRILLDEPTH            | Drilled depth of well                                                                                                                                 	|
+| TOTALCOMPLETEDDEPTH        | Completed depth of well                                                                                                                               	|
+| DATEWORKENDED              | Date of completion of well construction                                                                                                               	|
+| CASINGDIAMETER             | See definition above                                                                                                                                  	|
+| TOTALDRAWDOWN              | See definition above                                                                                                                                  	|
+| WELLYIELD                  | Amount of water yielded (See definition above)                                                                                                            |
+| WELLYIELDUNITOFMEASURE     | Yield unit of measure (See definition above)                                                                                                              |
+| GSE_GWE                    | Depth to groundwater elevation in feet below ground surface.                                                                                              |
 
 
 ## Mapping at the TRS level
 
 The strategy in the project is:
-
 - Create a GeoDataFrame when starting from a regular DataFrame that has latitudinal and longitudinal coordinates. In the well completion reports, we have columns for latitude and longitude.
 - A GeoDataFrame needs a shapely object.
 - We use geopandas points_from_xy() to transform Longitude and Latitude into a list of shapely.Point objects and set it as a geometry while creating the GeoDataFrame.
 - Once we have a GeoDataframe with the points in the coordinate reference system, we spatially join to the California PLSS GeoJSON to map to the closest TownshipRange using sjoin method in geopandas.
-
 
 ## Potential issues
 ### Description
@@ -104,8 +111,6 @@ Stated Known issues:
 - Missing and duplicate records
 - Missing values (either missing on original Well Completion Report, or not key entered into database)
 - Incorrect values (e.g. incorrect Latitude, Longitude, Record Type, Planned Use, Total Completed Depth) 
-
-
 
 ### How did we remediate the issues?
 Data cleaning of the dataset involves the following:
