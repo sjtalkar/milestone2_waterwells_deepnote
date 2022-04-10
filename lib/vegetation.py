@@ -43,7 +43,7 @@ class VegetationDataset(WsGeoDataset):
             self._download_and_extract_zip_file(url=url, extract_dir=os.path.join(input_geodir, dataset_name))
         url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/vegetation/saf_cover_type_mapping.json"
         file_content = requests.get(url).text
-        with open(cover_type_mapping, "w") as f:
+        with open(cover_type_mapping, "w", encoding="utf-8") as f:
             f.write(file_content)
 
     def preprocess_map_df(self, features_to_keep: List[str]):

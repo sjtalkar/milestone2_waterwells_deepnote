@@ -30,7 +30,7 @@ class SoilsDataset(WsGeoDataset):
         os.makedirs(input_geodir, exist_ok=True)
         data_url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/soils/soil_data.csv"
         datafile_content = requests.get(data_url).text
-        with open(input_datafile, "w") as f:
+        with open(input_datafile, "w", encoding="utf-8") as f:
             f.write(datafile_content)
         geofile_baseurl = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/soils/map/"
         files_basename = "gsmsoilmu_a_ca."
