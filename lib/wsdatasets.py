@@ -262,6 +262,8 @@ class WsGeoDataset(BaseWsDataset):
             else:
                 new_map_df = pd.concat([new_map_df, map_data_by_township_df], axis=0)
         new_map_df.reset_index(inplace=True, drop=True)
+        # There's a bug in the GeoPandas overlay function which can convert years in floats
+        new_map_df["YEAR"] = new_map_df["YEAR"].astype(int)
         self.map_df = new_map_df
 
     def compute_areas_from_points(self, boundary: str = "ca"):
@@ -378,6 +380,27 @@ class WsGeoDataset(BaseWsDataset):
             apply(lambda x:x/x.sum())
         self.map_df.drop(columns=["AREA"], inplace=True)
 
+    def return_yearly_normalized_township_feature(self, feature_name: str, normalize_method: str = "minmax"):
+        """This function returns a dataframe with the feature values normalized by the "YEAR" column.
+
+        :param feature_name: the name of the feature to normalize
+        :return: a GeoDataFrame with an additional normalized feature column
+        """
+        normalized_df = self.map_df.copy()
+        if normalize_method == "minmax":
+            norm_function = lambda x: (x - x.min()) / (x.max() - x.min())
+        elif normalize_method == "std":
+            norm_function = lambda x: (x - x.mean()) / x.std()
+        else:
+            norm_function = lambda x: x / x.mean()
+        normalized_df[f"{feature_name}_NORMALIZED"] = normalized_df.groupby("YEAR")[feature_name].transform(
+            norm_function)
+        return normalized_df
+
+    ####################################################################################################################
+    # Output related functions
+    ####################################################################################################################
+
     def pivot_township_categorical_feature_for_output(self, feature_name: str, feature_prefix: str = ""):
         """This function prepares the output_df dataframe by pivoting the geospatial dataframe, using the values in the
         feature_name parameter as the new feature columns and the land surface percentage the feature occupies in the
@@ -402,27 +425,6 @@ class WsGeoDataset(BaseWsDataset):
         # Merge the townships with their new features
         self.output_df = self.sjv_township_range_df.dissolve(by="TOWNSHIP_RANGE").reset_index().\
             merge(township_features_df, how="right", left_on="TOWNSHIP_RANGE", right_on="TOWNSHIP_RANGE")
-
-    def return_yearly_normalized_township_feature(self, feature_name: str, normalize_method: str = "minmax"):
-        """This function returns a dataframe with the feature values normalized by the "YEAR" column.
-
-        :param feature_name: the name of the feature to normalize
-        :return: a GeoDataFrame with an additional normalized feature column
-        """
-        normalized_df = self.map_df.copy()
-        if normalize_method == "minmax":
-            norm_function = lambda x: (x - x.min()) / (x.max() - x.min())
-        elif normalize_method == "std":
-            norm_function = lambda x: (x - x.mean()) / x.std()
-        else:
-            norm_function = lambda x: x / x.mean()
-        normalized_df[f"{feature_name}_NORMALIZED"] = normalized_df.groupby("YEAR")[feature_name].transform(
-            norm_function)
-        return normalized_df
-
-    ####################################################################################################################
-    # Output related functions
-    ####################################################################################################################
 
     def drop_features(self, drop_rate: float = 0.0, unwanted_features: List[str] = None):
         """This function removes features (columns) from the self.output_df dataset in two ways. 1) it drops the

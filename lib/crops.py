@@ -49,7 +49,7 @@ class CropsDataset(WsGeoDataset):
                                                 extract_dir=os.path.join(input_geodir, dataset_name))
         url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/crops/crop_name_to_type_mapping.json"
         file_content = requests.get(url).text
-        with open(crop_name_to_type_file, "w") as f:
+        with open(crop_name_to_type_file, "w", encoding="utf-8") as f:
             f.write(file_content)
 
     def preprocess_map_df(self, features_to_keep: List[str], get_crops_details: bool = False):
