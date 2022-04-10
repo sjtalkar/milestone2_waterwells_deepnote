@@ -55,6 +55,8 @@ class WsGeoDataset(BaseWsDataset):
 
         self.sjv_township_range_df, self.sjv_boundaries = self._preprocess_sjv_shapefile(sjv_shapefile)
         self.ca_counties_df, self.ca_boundaries = self._preprocess_ca_shapefile(ca_shapefile)
+        self.counties_and_trs_df = gpd.overlay(self.sjv_township_range_df, self.ca_counties_df, how='identity',
+                                               keep_geom_type=True)
 
     def _read_geospatial_file(self, filename: str):
         """Read a Geospatial dataframe and set the projection as WGS84 Latitude/Longitude ("EPSG:4326").

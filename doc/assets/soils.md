@@ -15,10 +15,15 @@ Information:
     * Publisher: U.S. Department of Agriculture, Natural Resources Conservation Service
   * Online_Linkage: [https://websoilsurvey-dev.dev.sc.egov.usda.gov/](https://websoilsurvey-dev.dev.sc.egov.usda.gov/)
 ## How to download ?
-The raw dataset file __wss_gsmsoil_CA_\[2016-10-13\].zip__ can be downloaded from 
-[the U.S. General Soil Map (STATSGO2) by state](https://nrcs.app.box.com/v/soils).
+The `SoilsDataset` class in the `/lib/soils.py` custom library is designed to load the soil survey data and geospatial 
+information from the local `/assets/inputs/soils/` folder. If they are not found the data are downloaded from 
+[a dedicated Github repository](https://github.com/mlnrt/california-soil-survey-dataset) where we store just the
+required file. Also, the survey data in the raw dataset are stored in a Microsoft Access database, making it difficult
+to automate the loading of the data. To eas reproducibility, we thus provide in the GitHub repository the data used
+in this analysis.
 
-It contains both:
+The raw dataset file __wss_gsmsoil_CA_\[2016-10-13\].zip__ can be downloaded from 
+[the U.S. General Soil Map (STATSGO2) by state](https://nrcs.app.box.com/v/soils). It contains both:
 * spatial shapefiles describing each map area 
 * and a Microsoft Access table describing the soil type of each area. For simplicity, the data have been extracted 
 * from the _Win-Pst - Input_ view in the Microsoft Access database as a CSV file, stored in the `./assets/inputs/soils/soil_data.csv`.
