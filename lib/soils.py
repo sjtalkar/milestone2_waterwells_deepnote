@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 
 from typing import List
-from lib.wsdatasets import WsGeoDataset
 from fiona.errors import DriverError
+from lib.wsdatasets import WsGeoDataset
 
 
 class SoilsDataset(WsGeoDataset):
@@ -28,11 +28,11 @@ class SoilsDataset(WsGeoDataset):
         :param input_datafile: the file name where to store the Soil data dataset
         """
         os.makedirs(input_geodir, exist_ok=True)
-        data_url = "https://raw.githubusercontent.com/mlnrt/california-soil-survey-dataset/main/soil_data.csv"
+        data_url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/soils/soil_data.csv"
         datafile_content = requests.get(data_url).text
         with open(input_datafile, "w") as f:
             f.write(datafile_content)
-        geofile_baseurl = "https://raw.githubusercontent.com/mlnrt/california-soil-survey-dataset/main/map/"
+        geofile_baseurl = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/soils/map/"
         files_basename = "gsmsoilmu_a_ca."
         extensions = ["dbf", "prj", "shp", "shx"]
         for ext in extensions:

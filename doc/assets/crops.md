@@ -47,9 +47,14 @@ resource agencies involved in work and planning efforts across the state for cur
   * Statewide Crop Mapping on California Natural Resources Agency (CRNA) Open Data Portal: [https://data.cnra.ca.gov/dataset/statewide-crop-mapping](https://data.cnra.ca.gov/dataset/statewide-crop-mapping). 
   * SGMA Data Viewer: [https://sgma.water.ca.gov/webgis/?appid=SGMADataViewer#waterbudget](https://sgma.water.ca.gov/webgis/?appid=SGMADataViewer#waterbudget)
 ## How to download ?
+The `CropsDataset` class in the `/lib/crops.py` custom library is designed to load the crops geospatial datasets from 
+the local `/assets/inputs/crops/` folder. If files are not found the data are downloaded from the 
+[Statewide Crop Mapping](https://data.cnra.ca.gov/dataset/statewide-crop-mapping) page. The custom crop name-to-type 
+mapping JSON file is provided in [a dedicated Github repository](https://github.com/mlnrt/milestone2_waterwells_data) 
+where we provide additional files.
+
 The datasets used for this analysis are the _Statewide Crop Mapping GIS Shapefiles_ datasets for the years 2014, 2016,
-2018.
-All the files can be directly downloaded from the 
+2018. All the files can be directly downloaded from the 
 [Statewide Crop Mapping](https://data.cnra.ca.gov/dataset/statewide-crop-mapping) page.
 
 The documentation of each dataset and fields within is described in a PDF file included within the download of the

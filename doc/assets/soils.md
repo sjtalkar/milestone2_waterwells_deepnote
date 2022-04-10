@@ -16,8 +16,8 @@ Information:
   * Online_Linkage: [https://websoilsurvey-dev.dev.sc.egov.usda.gov/](https://websoilsurvey-dev.dev.sc.egov.usda.gov/)
 ## How to download ?
 The `SoilsDataset` class in the `/lib/soils.py` custom library is designed to load the soil survey data and geospatial 
-information from the local `/assets/inputs/soils/` folder. If they are not found the data are downloaded from 
-[a dedicated Github repository](https://github.com/mlnrt/california-soil-survey-dataset) where we store just the
+information from the local `/assets/inputs/soils/` folder. If files are not found the data are downloaded from 
+[a dedicated Github repository](https://github.com/mlnrt/milestone2_waterwells_data) where we store just the
 required file. Also, the survey data in the raw dataset are stored in a Microsoft Access database, making it difficult
 to automate the loading of the data. To eas reproducibility, we thus provide in the GitHub repository the data used
 in this analysis.
