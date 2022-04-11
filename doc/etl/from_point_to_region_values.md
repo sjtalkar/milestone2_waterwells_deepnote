@@ -11,7 +11,6 @@ stations.
 How do we fill in the data for the townships without weather stations ?
 
 ## Solution applied
-
 According to these documentations
 * [Science Direct - Voronoi Diagram](https://www.sciencedirect.com/topics/earth-and-planetary-sciences/voronoi-diagram)
 * [precipitation measurements](https://www.weather.gov/abrfc/map) from the U.S. National Weather Service, 

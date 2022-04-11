@@ -3,6 +3,7 @@ import concurrent.futures
 import pandas as pd
 import geopandas as gpd
 
+from datetime import datetime
 from bs4 import BeautifulSoup
 from typing import List
 from lib.wsdatasets import WsGeoDataset
@@ -15,7 +16,7 @@ class PrecipitationDataset(WsGeoDataset):
     """
     def __init__(self, input_stationfile: str = "../assets/inputs/precipitation/precipitation_stations.shp",
                  input_datafile: str = "../assets/inputs/precipitation/precipitation_data.csv",
-                 year_start: int = 2013, year_end: int = 2022):
+                 year_start: int = 2014):
         """ The initialization of the PrecipitationDataset class automatically scrapes the monthly precipitation data
         for the state of California in the data_df dataframe and downloads the weather's station location into the
         map_df dataframe.
@@ -28,7 +29,7 @@ class PrecipitationDataset(WsGeoDataset):
         :param year_end: The year to end collecting the data from.
         """
         self.year_start = year_start
-        self.year_end = year_end
+        self.year_end = datetime.now().year - 1
         self.input_geofile = input_stationfile
         self.input_datafile = input_datafile
         # Try to load the dataset for pre-downloaded files. If not scrap the data from the web and save them

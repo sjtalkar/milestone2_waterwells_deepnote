@@ -14,7 +14,7 @@ class WellCompletionReportsDataset(WsGeoDataset):
     """This class loads, processes and exports the Well Completion Reports dataset"""
     def __init__(self,
                  input_datafile: str = "../assets/inputs/wellcompletion/wellcompletion.csv",
-                 elevation_datadir: str = "../assets/inputs/wellcompletion/elevation_api_results/",
+                 elevation_datadir: str = "../assets/inputs/wellcompletion/elevation_data/",
                  ):
         try:
             self._load_local_datasets(input_datafile, elevation_datadir)
@@ -47,6 +47,8 @@ class WellCompletionReportsDataset(WsGeoDataset):
         with open(input_datafile, "w") as f:
             f.write(file_content)
         os.makedirs(elevation_datadir, exist_ok=True)
+        elevation_url = "https://github.com/mlnrt/milestone2_waterwells_data/raw/main/well_completion/elevation_data.zip"
+        self._download_and_extract_zip_file(url = elevation_url, extract_dir=elevation_datadir)
         
     def _load_wcr_data(self, wcr_datafile: str):
         # We set the type to avoid pandas warning on some columns with mixed types
@@ -116,7 +118,7 @@ class WellCompletionReportsDataset(WsGeoDataset):
             ["DECIMALLATITUDE", "DECIMALLONGITUDE", "SECTION", "WELLLOCATION", "COUNTYNAME",
              "STATICWATERLEVEL", "BOTTOMOFPERFORATEDINTERVAL", "TOPOFPERFORATEDINTERVAL", "GROUNDSURFACEELEVATION",
              "RECORDTYPE", "PLANNEDUSEFORMERUSE", "WCRNUMBER", "TOTALDRILLDEPTH", "TOTALCOMPLETEDDEPTH",
-             "DATEWORKENDED", "WELLYIELD", "WELLYIELDUNITOFMEASURE"]].copy()
+             "DATEWORKENDED", "WELLYIELD", "CASINGDIAMETER", "TOTALDRAWDOWN", "WELLYIELDUNITOFMEASURE"]].copy()
         # rename columns
         wcr_df.rename(columns={"DECIMALLATITUDE": "LATITUDE", "DECIMALLONGITUDE": "LONGITUDE", 
                                "PLANNEDUSEFORMERUSE": "USE", "COUNTYNAME": "COUNTY"},
