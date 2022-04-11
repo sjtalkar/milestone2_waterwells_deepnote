@@ -4,6 +4,7 @@ import os
 import requests
 import zipfile
 import pandas as pd
+import pygeos as pg
 import geopandas as gpd
 
 from typing import List, Tuple
@@ -253,8 +254,12 @@ class WsGeoDataset(BaseWsDataset):
         self.keep_only_sjv_data()
         new_map_df = gpd.GeoDataFrame()
         for i, year in enumerate(self.map_df["YEAR"].unique()):
-            yearly_map_df = self.map_df[self.map_df["YEAR"] == year]
+            yearly_map_df = self.map_df[self.map_df["YEAR"] == year].copy()
             # Overlay the townships boundaries on the map data units to cut and explode them based on the townships
+            # We set the precision to avoid a "TopologyException: found non-noded intersection error from overlay"
+            # reference:https://github.com/geopandas/geopandas/issues/1724
+            yearly_map_df.geometry = pg.set_precision(yearly_map_df.geometry.values.data, 1e-6)
+            self.sjv_township_range_df.geometry = pg.set_precision(self.sjv_township_range_df.geometry.values.data, 1e-6)
             map_data_by_township_df = gpd.overlay(yearly_map_df, self.sjv_township_range_df, how='identity',
                                                   keep_geom_type=True)
             if i == 0:
