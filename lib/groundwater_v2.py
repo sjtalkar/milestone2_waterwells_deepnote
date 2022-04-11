@@ -11,16 +11,16 @@ from lib.wsdatasets import WsGeoDataset
 class GroundwaterDataset(WsGeoDataset):
     """This class loads, processes and exports the Well Completion Reports dataset"""
     def __init__(self,
-                 input_datafile: str = "../assets/inputs/groundwater/groundwater_short.csv",
+                 input_measurements_file: str = "../assets/inputs/groundwater/groundwater_measurements.csv",
                  input_stations_file: str = r"../assets/inputs/groundwater/groundwater_stations.csv"):
         try:
-            self._load_local_datasets(input_datafile, input_stations_file)
+            self._load_local_datasets(input_measurements_file, input_stations_file)
         except (FileNotFoundError, DriverError):
-            self._download_datasets(input_datafile, input_stations_file)
-            self._load_local_datasets(input_datafile, input_stations_file)
+            self._download_datasets(input_measurements_file, input_stations_file)
+            self._load_local_datasets(input_measurements_file, input_stations_file)
 
-    def _load_local_datasets(self, input_datafile: str, input_stations_file: str):
-        WsGeoDataset.__init__(self, input_geofiles=[], input_datafile=input_datafile,
+    def _load_local_datasets(self, input_measurements_file: str, input_stations_file: str):
+        WsGeoDataset.__init__(self, input_geofiles=[], input_datafile=input_measurements_file,
                               merging_keys=["SITE_CODE", "SITE_CODE"])
         # Initializes the Geospatial map_df dataset based on the LATITUDE & LONGITUDE features of the
         # groundwater_stations dataset
@@ -34,14 +34,16 @@ class GroundwaterDataset(WsGeoDataset):
         # Set the coordinate reference system so that we now have the projection axis
         self.map_df = self.map_df.set_crs("epsg:4326")
 
-    def _download_datasets(self, input_datafile: str, input_stations_file: str):
-        url = "https://github.com/mlnrt/milestone2_waterwells_data/raw/main/groundwater/groundwater_short.zip"
-        self._download_and_extract_zip_file(url=url, extract_dir=os.path.dirname(input_datafile))
-        url = "https://data.cnra.ca.gov/dataset/dd9b15f5-6d08-4d8c-bace-37dc761a9c08/resource/af157380-fb42-4abf-b72a-6f9f98868077/download/stations.csv"
-        os.makedirs(os.path.dirname(input_stations_file), exist_ok=True)
-        datafile_content = requests.get(url).text
+    def _download_datasets(self, input_measurements_file: str, input_stations_file: str):
+        os.makedirs(os.path.dirname(input_measurements_file), exist_ok=True)
+        measurements_url = "https://data.cnra.ca.gov/dataset/dd9b15f5-6d08-4d8c-bace-37dc761a9c08/resource/bfa9f262-24a1-45bd-8dc8-138bc8107266/download/measurements.csv"
+        measurements_content = requests.get(measurements_url).text
+        with open(input_measurements_file, "w", encoding="utf-8") as f:
+            f.write(measurements_content)
+        stations_url = "https://data.cnra.ca.gov/dataset/dd9b15f5-6d08-4d8c-bace-37dc761a9c08/resource/af157380-fb42-4abf-b72a-6f9f98868077/download/stations.csv"
+        stations_content = requests.get(stations_url).text
         with open(input_stations_file, "w", encoding="utf-8") as f:
-            f.write(datafile_content)
+            f.write(stations_content)
 
     def preprocess_data_df(self, features_to_keep: List[str], min_year: int = 2014):
         """This function keeps the GSE_GWE feature for the spring months.
