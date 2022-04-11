@@ -29,8 +29,10 @@ class ReservoirDataset(WsGeoDataset):
         self.input_datafile = input_datafile
         # Try to load the dataset for pre-downloaded files. If not scrap the data from the web and save them
         try:
+            print("Loading local datasets. Please wait...")
             WsGeoDataset.__init__(self, input_geofiles=[input_stationfile], input_datafile=input_datafile,
                                   merging_keys=["STATION_ID", "STATION_ID"])
+            print("Loading of datasets complete.")
         except (FileNotFoundError, DriverError):
             # Initialize the parent class with the bare minimum, without loading the reservoir stations geospatial
             # dataset.
@@ -38,12 +40,14 @@ class ReservoirDataset(WsGeoDataset):
             # Scrape the reservoir data and the reservoir geospatial data from the web
             self.data_df = self._get_weekly_reservoir_data()
             self.map_df = self._get_reservoir_station_geospatial_data()
+            print("Loading of datasets complete.")
 
     def _download_weekly_reservoir_geospatial_data(self):
         """This function downloads the weekly reservoir data from the web and returns it as a dataframe.
 
         :return: The dataframe containing the weekly reservoir data.
         """
+        print("Scrapping reservoir geospatial data from the web. Please wait...")
         # Make a GET request to fetch the raw HTML content
         html_content = requests.get("https://cdec.water.ca.gov/reportapp/javareports?name=DailyRes").text
         # Parse the html content
@@ -84,6 +88,7 @@ class ReservoirDataset(WsGeoDataset):
         return all_stations_geodf
 
     def _scrape_reservoir_data_per_date(self, a_date: str):
+        print("Data not found locally.\nScrapping reservoir data from the web. Please wait...")
         url = f"https://cdec.water.ca.gov/reportapp/javareports?name=RES.{a_date}"
         # Make a GET request to fetch the raw HTML content
         html_content = requests.get(url).text
