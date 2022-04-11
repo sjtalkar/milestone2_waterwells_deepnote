@@ -26,11 +26,18 @@ class CropsDataset(WsGeoDataset):
             self._load_local_datasets(input_geodir, crop_name_to_type_file)
 
     def _load_local_datasets(self, input_geodir: str, crop_name_to_type_file: str):
+        """This function loads the crops datasets from the local filesystem.
+
+        :param input_geodir: the directory containing the crops geospatial subfolders (subfolder example: crops_2014)
+        :param crop_name_to_type_file: the file containing the crop name to type mapping
+        """
+        print("Loading local datasets. Please wait...")
         self.map_2014_df = self._read_geospatial_file(f"{input_geodir}crops_2014/i15_Crop_Mapping_2014.shp")
         self.map_2016_df = self._read_geospatial_file(f"{input_geodir}crops_2016/i15_Crop_Mapping_2016.shp")
         self.map_2018_df = self._read_geospatial_file(f"{input_geodir}crops_2018/i15_Crop_Mapping_2018.shp")
         with open(crop_name_to_type_file) as f:
             self.crop_name_to_type_mapping = json.load(f)
+        print("Loading of datasets complete.")
 
     def _download_datasets(self, input_geodir: str, crop_name_to_type_file: str):
         """This function downloads the crops datasets from the web
@@ -38,6 +45,7 @@ class CropsDataset(WsGeoDataset):
         :param input_geodir: the directory where to store the crops geospatial datasets
         :param crop_name_to_type_file: the file name where to store the crop name to type mapping
         """
+        print(f"Data not found locally.")
         url_base = "https://data.cnra.ca.gov/dataset/6c3d65e3-35bb-49e1-a51e-49d5a2cf09a9/resource"
         crops_datasets_urls = {
             "crops_2014": "/3bba74e2-a992-48db-a9ed-19e6fabb8052/download/i15_crop_mapping_2014_shp.zip",
@@ -45,12 +53,15 @@ class CropsDataset(WsGeoDataset):
             "crops_2018": "/2dde4303-5c83-4980-a1af-4f321abefe95/download/i15_crop_mapping_2018_shp.zip"
         }
         for dataset_name, url in crops_datasets_urls.items():
+            print(f"Downloading the crops geospatial dataset '{dataset_name}'. Please wait...")
             self._download_and_extract_zip_file(url=url_base + url,
                                                 extract_dir=os.path.join(input_geodir, dataset_name))
+        print("Downloading the crops name-to-type mapping from GitHub repository. Please wait...")
         url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/crops/crop_name_to_type_mapping.json"
         file_content = requests.get(url).text
         with open(crop_name_to_type_file, "w", encoding="utf-8") as f:
             f.write(file_content)
+        print("Downloads complete.")
 
     def preprocess_map_df(self, features_to_keep: List[str], get_crops_details: bool = False):
         """This function preprocesses the Crops map datasets (2014, 2016, 2018) by: 1) extracting only the summer crop

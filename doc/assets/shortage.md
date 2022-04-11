@@ -1,75 +1,76 @@
 # [California Household Water Supply Shortage Dataset ](https://data.cnra.ca.gov/dataset/household-water-supply-shortage-reporting-system-data)
 
 ## Description
-Household well shortage reports from 2015 through 2022 publicly available dataset is available for API retrieval. There are less than 5000 records of reported shortage.
+Household well shortage reports from 2015 through 2022 publicly available dataset is available for API retrieval. There 
+are less than 5000 records of reported shortage.
 
-In California, water systems serving one (1) to 15 households are regulated at the county level. Counties vary in their practices, but rarely do counties collect data regularly from these systems.
-Even where data is collected, it is **entirely voluntary**. A review of well permit information suggests there are over 1 million such water systems in California.
+In California, water systems serving one (1) to 15 households are regulated at the county level. Counties vary in their 
+practices, but rarely do counties collect data regularly from these systems. Even where data is collected, it is 
+**entirely voluntary**. A review of well permit information suggests there are over 1 million such water systems in 
+California.
 
-In early 2014, a cross-agency Work Group created an easily accessible reporting system to get more systematic data on which parts of the state had households at risk of water supply shortages.
-The initial motivation for local water supply systems to report shortage information was to obtain statewide drought assistance. The reporting system receives ongoing reports of shortages from local, state,
-federal and non-governmental organizations, and tracks their status to resolution. While several counties have developed their own tracking mechanisms, this data is manually entered into the reporting system.
+In early 2014, a cross-agency Work Group created an easily accessible reporting system to get more systematic data on 
+which parts of the state had households at risk of water supply shortages. The initial motivation for local water supply 
+systems to report shortage information was to obtain statewide drought assistance. The reporting system receives ongoing 
+reports of shortages from local, state, federal and non-governmental organizations, and tracks their status to 
+resolution. While several counties have developed their own tracking mechanisms, this data is manually entered into 
+the reporting system.
 
-The cross-agency team, led by DWR, seeks to verify and update the data submitted. However, due to the volunteer nature of the reporting and limitations on reporting agencies, collected data are undoubtedly
-**under-representative of all shortages to have occurred**. In addition, reports are received from multiple sources and there are occasionally errors and omissions that can create duplicate entries,
- non-household water supply reporting, and under-reporting.
- For example, missing information or no data for a given county does not necessarily mean that there are no household water shortages in the county, rather only that none have been reported to the State.
+The cross-agency team, led by DWR, seeks to verify and update the data submitted. However, due to the volunteer nature 
+of the reporting and limitations on reporting agencies, collected data are undoubtedly **under-representative of all 
+shortages to have occurred**. In addition, reports are received from multiple sources and there are occasionally errors 
+and omissions that can create duplicate entries, non-household water supply reporting, and under-reporting. For example, 
+missing information or no data for a given county does not necessarily mean that there are no household water shortages 
+in the county, rather only that none have been reported to the State.
 
 ## Source
+This data is published by The Department of Water Resources that manages California's water resources, systems, 
+and infrastructure, including the State Water Project (SWP), in a responsible, sustainable way.
 
-Tis data is published by The Department of Water Resources that manages California's water resources, systems, and infrastructure, including the State Water Project (SWP), in a responsible, sustainable way.
-
+Datasets information:
+* Organization: California Department of Water Resources
+* Contact  Name: Benjamin Brezing
+* Title: Household Water Supply Shortage Reporting System Data
+* Resources, website: [https://data.cnra.ca.gov/dataset/household-water-supply-shortage-reporting-system-data](https://data.cnra.ca.gov/dataset/household-water-supply-shortage-reporting-system-data).
 
 ## How to download ?
-The data is obtained using API call. 
+The `ShortageReportsDataset` class in the `/lib/shortage.py` custom library is designed to load the well shortage 
+reports dataset from the local  `/assets/inputs/shortage/` folder. If files are not found, it is  automatically 
+downloaded from the 
+[Household Water Supply Shortage Reporting System Data](https://data.cnra.ca.gov/dataset/household-water-supply-shortage-reporting-system-data) 
+page, when running the `/eda/shortage.ipynb` notebook. 
 
-[API call URL]Query example (results containing 'jones')
-https://data.cnra.ca.gov/api/3/action/datastore_search?resource_id=e1fd9f48-a613-4567-8042-3d2e064d77c8&q=jones
-
+The datasets can be manually downloaded from the 
+[Household Water Supply Shortage Reporting System Data](https://data.cnra.ca.gov/dataset/household-water-supply-shortage-reporting-system-data) 
+page, using the download button.
 
 ## Features of interest
-| COLUMN                       | DESCRIPTION                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-|------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| ID                           | Unique Identifier (auto generated)                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| CREATE DATE                  | Date report created                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Status                       | Local Agency designated status [null, outage, temporary, resolved]                                                                                                                                                                                                                                                                                                                                                                                                      |
-| Shortage Type                | Answer to: What type of water shortage are you facing? [Dry well (groundwater); Low creek, stsream, spring, or other surface water source]                                                                                                                                                                                                                                                                                                                              |
-| Primary Usages               | Answer to: What is the primary use of this well or creek? [Household; Ag/Irrigation; Combination of Household/Agriculture; Other __]                                                                                                                                                                                                                                                                                                                                    |
-| Household Support            | Answer to: If household use, what kind of houehold is the well supporting ? [owner-occupied; renter-occupied; Other _]                                                                                                                                                                                                                                                                                                                                                  |
-| Water Issues                 | Answer to : Please describe the water issue. [<br>  Well is dry (no longer producing water); <br>  Reduction in water pressure, lower flows;<br>  Well is pumping sand, muddy water;<br>  Well is catching air, have to wait to be able to pump; <br>  reduction in water quality;<br>  Intermittent availability of creek, stream, spring or other surface water source; <br>  Entirely unavailable creek, stream, spring, or other surface water source;<br> Other _] |
-| Approximate Issue Start Date | Answer to: Approximate date problem started [__]                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| County                       | [pull down of California counties]                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| CITY                         | City address                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| LATITUDE                     | [Interactive map generates latitude, longitude, street address, city, zip code, or; numerical decimal degrees]                                                                                                                                                                                                                                                                                                                                                          |
-| LONGITUDE                    | [Interactive map generates latitude, longitude, street address, city, zip code, or; numerical decimal degrees]                                                                                                                                                                                                                                                                                                                                                          |
-| Well Depth                   | [numerical; "in feet, if known"]                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| Was Issue Resolved?          | Answer to: Was the problem resolved? [choose:<br> yes, lovered the pump bowl; <br> Yes, deepened the well;<br> Yes, drilled replacement well;<br> No, trucking in water, No, getting water from our neighbors with a hose;<br> No., cannot afford to finance solutions; <br> Other __]                                                                                                                                                                                  |
-| Approximate Repair Cost      | Answer to: If your well was fixed, please note the approximate cost of repairs [___]                                                                                                                                                                                                                                                                                                                                                                                    |
-| Additional Info              | Answer to: Additional Information [__anything else we should know_]                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Well to Water Depth          | Answer to: What is the depth to water in the well? "in feet, if know" [__]                                                                                                                                                                                                                                                                                                                                                                                              |
-| Measure Date                 | Answer to : Date Measured [____]                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| Pump Rate Reduction          | Answer to: Has the pumping rate been reduced? If yes, about how much? [No, I's pumping at the same rate; Yes, about 10% reduction; Yes, about a 20-30% reduction; Yes, about a 30-40% reduction; Not sure; It's no longer producing any water; Other ____]                                                                                                                                                                                                              |
-| Report Date                  | Answer to: Report Date [available only if reported by agency/local government/housing assistance organization; ___]                                                                                                                                                                                                                                                                                                                                                     |
-| StatusType                   | Status Type for Statewide Summary Report                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| Region                       | Hydrologic Region for Statewide Summary Report                                                                                                                                                                                                                                                                                                                                                                                                                          |
+The features extracted from the original datasets in the EDA notebook are:
+
+| COLUMN         | DESCRIPTION                                                                                                                               |
+|----------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| Status         | Local Agency designated status [null, outage, temporary, resolved]                                                                        |
+| Shortage Type  | Answer to: What type of water shortage are you facing? [Dry well (groundwater); Low creek, stream, spring, or other surface water source] |
+| Primary Usages | Answer to: What is the primary use of this well or creek? [Household; Ag/Irrigation; Combination of Household/Agriculture; Other __]      |
+| County         | [pull down of California counties]                                                                                                        |
+| LATITUDE       | [Interactive map generates latitude, longitude, street address, city, zip code, or; numerical decimal degrees]                            |
+| LONGITUDE      | [Interactive map generates latitude, longitude, street address, city, zip code, or; numerical decimal degrees]                            |
+| Report Date    | Answer to: Report Date [available only if reported by agency/local government/housing assistance organization; ___]                       |
+
+Based on the above features we compute the below features per Township-Range and year:
+
+| Feature Name   | Description                                                          |
+|----------------|----------------------------------------------------------------------|
+| SHORTAGE_COUNT | The total number of well shortage report per Township-Range and year |
 
 ## Mapping at the TownshipRange level
-
-The strategy in the project is:
-- Create a GeoDataFrame when starting from a regular DataFrame that has latitudinal and longitudinal coordinates. Each shortage report should have a viable latitude and longitude that can be converted to points.
-  If not, the record is dropped from the dataset.
-- A GeoDataFrame needs a shapely object.
--  We use geopandas points_from_xy() to transform Longitude and Latitude into a list of shapely.Point objects and set it as a geometry while creating the GeoDataFrame.
-- Once we have a GeoDataframe with the points in the coordinate reference system, we spatially join to the California PLSS GeoJSON to map to the closest TownshipRange using sjoin method in geopandas.
-
-
+To compute well shortage count per Township-Range we use the following approach:
+1. We overlay the Township-Ranges boundaries on the well geolocation information and group wells by Township-Range.
+2. We count the number of wells per Township-Range and year in the WELL_COUNT feature.
+3Township-Ranges without any new well completion reported get a value of 0 for all the WELL_COUNT features 
 
 ## Potential issues
-
 ### Description
-
 As mentioned above, reporting this data is voluntary and abscence of shortage for a county does not represent due absence of shortage
 The data is in its raw form and has to be cleaned to make it usable.
-
-
 ### How did we remediate the issues?

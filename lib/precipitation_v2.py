@@ -34,8 +34,10 @@ class PrecipitationDataset(WsGeoDataset):
         self.input_datafile = input_datafile
         # Try to load the dataset for pre-downloaded files. If not scrap the data from the web and save them
         try:
+            print("Loading local datasets. Please wait...")
             WsGeoDataset.__init__(self, input_geofiles=[input_stationfile], input_datafile=input_datafile,
                                   merging_keys=["STATION_ID", "STATION_ID"])
+            print("Loading of datasets complete.")
         except (FileNotFoundError, DriverError):
             # Initialize the parent class with the bare minimum, without loading any data from file (outside of the
             # San Joaquin Valley Township data) as the data are scrapped from the web.
@@ -43,6 +45,7 @@ class PrecipitationDataset(WsGeoDataset):
             # Scrap the precipitation data and the precipitation geospatial data from the web
             self.data_df = self._get_monthly_precipitation_data()
             self.map_df = self._get_stations_geospatial_data()
+            print("Loading of datasets complete.")
 
     def _scrape_precipitation_data_per_year(self, year: int) -> pd.DataFrame:
         """This function downloads the precipitation data for a given year from the web and returns it as a dataframe.
@@ -50,6 +53,7 @@ class PrecipitationDataset(WsGeoDataset):
         :param year: the year to download the data from.
         :return: the dataframe containing the precipitation data for the given year.
         """
+        print(f"Data not found locally. Scrapping {year} precipitation measurements data from the web. Please wait...")
         # The URL for the data for a given year
         url = f"https://cdec.water.ca.gov/reportapp/javareports?name=PRECIPMON.{year}"
         # Make a GET request to fetch the raw HTML content
@@ -112,6 +116,7 @@ class PrecipitationDataset(WsGeoDataset):
         geospatial data of the stations
         :return: the precipitation stations geospatial data
         """
+        print("Data not found locally. Scrapping the precipitation stations data from the web. Please wait...")
         if level == "daily":
             url = f"https://cdec.water.ca.gov/reportapp/javareports?name=DailyStations"
         else:
