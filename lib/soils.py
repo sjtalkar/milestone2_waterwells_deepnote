@@ -13,12 +13,16 @@ class SoilsDataset(WsGeoDataset):
     def __init__(self, input_geofile: str = "../assets/inputs/soils/map/gsmsoilmu_a_ca.shp",
                  input_datafile: str = "../assets/inputs/soils/soil_data.csv"):
         try:
+            print("Loading local datasets. Please wait...")
             WsGeoDataset.__init__(self, input_geofiles=[input_geofile], input_datafile=input_datafile,
                                   merging_keys=["MUKEY", "mukey"])
+            print("Loading of datasets complete.")
         except (FileNotFoundError, DriverError):
             self._download_datasets(os.path.dirname(input_geofile), input_datafile)
+            print("Loading local datasets. Please wait...")
             WsGeoDataset.__init__(self, input_geofiles=[input_geofile], input_datafile=input_datafile,
                                   merging_keys=["MUKEY", "mukey"])
+            print("Loading of datasets complete.")
 
     def _download_datasets(self, input_geodir: str, input_datafile: str):
         """This function downloads the Soil geospatial and data datasets from a GitHub repository where we extracted the
@@ -28,10 +32,12 @@ class SoilsDataset(WsGeoDataset):
         :param input_datafile: the file name where to store the Soil data dataset
         """
         os.makedirs(input_geodir, exist_ok=True)
+        print("Data not found locally.\nDownloading soil dataset from GitHub repository. Please wait...")
         data_url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/soils/soil_data.csv"
         datafile_content = requests.get(data_url).text
         with open(input_datafile, "w", encoding="utf-8") as f:
             f.write(datafile_content)
+        print("Downloading soil geospatial dataset from GitHub repository. Please wait...")
         geofile_baseurl = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/soils/map/"
         files_basename = "gsmsoilmu_a_ca."
         extensions = ["dbf", "prj", "shp", "shx"]
@@ -39,6 +45,7 @@ class SoilsDataset(WsGeoDataset):
             geofile_content = requests.get(geofile_baseurl + files_basename + ext).content
             with open(os.path.join(input_geodir, files_basename + ext), "wb") as f:
                 f.write(geofile_content)
+        print("Downloads complete.")
 
     def _read_input_datafile(self, input_datafile: str, input_datafile_format: str = "csv") -> pd.DataFrame:
         """This functions loads additional data not provided together with the map data.

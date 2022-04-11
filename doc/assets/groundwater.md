@@ -80,8 +80,10 @@ Hence, we filter for spring measurements of groundwater.
 | Feature Name | Description                                                                                                      |
 |--------------|------------------------------------------------------------------------------------------------------------------|
 | GSE_GWE      | Ground Surface Elevation to Groundwater Elevation - Depth to groundwater elevation in feet below ground surface |
+
 ## Mapping at the TRS level
 Please refer to this documentation [Overlaying San Joaquin Valley Township Boundaries](doc/etl/township_overlay.md)
+
 ## Potential issues
 ### Description
 1. As shown in the `/eda/groundwater.ipynb` 8% of the measurements have missing `GSE_GWE` data, our feature of interest

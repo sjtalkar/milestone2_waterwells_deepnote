@@ -19,6 +19,12 @@ class VegetationDataset(WsGeoDataset):
             self._load_local_datasets(input_geodir, saf_cover_type_file)
 
     def _load_local_datasets(self, input_geodir: str, saf_cover_type_file: str):
+        """This function loads the Vegetation datasets from the local filesystem.
+
+        :param input_geodir: the path to the vegetation geospatial datasets
+        :param saf_cover_type_file: the path to the SAF cover type mapping file
+        """
+        print("Loading local datasets. Please wait...")
         vegetation_subdir_list = [name for name in os.listdir(input_geodir) if os.path.isdir(
             os.path.join(input_geodir, name))]
         input_geofiles = []
@@ -27,6 +33,7 @@ class VegetationDataset(WsGeoDataset):
         WsGeoDataset.__init__(self, input_geofiles=input_geofiles)
         with open(saf_cover_type_file) as f:
             self.saf_cover_type_mapping = json.load(f)
+        print("Loading of datasets complete.")
 
     def _download_datasets(self, input_geodir: str, cover_type_mapping: str):
         """This function downloads the Vegetation datasets from the web
@@ -35,16 +42,20 @@ class VegetationDataset(WsGeoDataset):
         :param cover_type_mapping: the file where the mapping between the SAF cover type code and the forest type will
         be stored
         """
+        print(f"Data not found locally.")
         vegetation_datasets_urls = {
             "central_coast": "https://data.fs.usda.gov/geodata/edw/edw_resources/fc/S_USA.EVMid_R05_CentralCoast.gdb.zip",
             "central_valley": "https://data.fs.usda.gov/geodata/edw/edw_resources/fc/S_USA.EVMid_R05_CentralValley.gdb.zip"
         }
         for dataset_name, url in vegetation_datasets_urls.items():
+            print(f"Downloading the vegetation geospatial dataset '{dataset_name}'. Please wait...")
             self._download_and_extract_zip_file(url=url, extract_dir=os.path.join(input_geodir, dataset_name))
+        print("Downloading the vegetation cover-type-to-name mapping from GitHub repository. Please wait...")
         url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/vegetation/saf_cover_type_mapping.json"
         file_content = requests.get(url).text
         with open(cover_type_mapping, "w", encoding="utf-8") as f:
             f.write(file_content)
+        print("Downloads complete.")
 
     def preprocess_map_df(self, features_to_keep: List[str]):
         """This function preprocesses the Vegetation map dataset by 1) extracting only the columns: "SAF_COVER_TYPE",

@@ -1,5 +1,5 @@
 import os
-import numpy as np
+import requests
 import pandas as pd
 import geopandas as gpd
 
@@ -9,9 +9,23 @@ from lib.wsdatasets import WsGeoDataset
 
 
 class ShortageReportsDataset(WsGeoDataset):
-    """This class loads, processes and exports the Well Completion Reports dataset"""
+    """This class loads, processes and exports the Water Shortage Reports dataset"""
     def __init__(self, input_datafile: str = "../assets/inputs/shortage/shortage.csv"):
         WsGeoDataset.__init__(self, input_geofiles=[])
+        try:
+            self._load_local_datasets(input_datafile)
+        except FileNotFoundError:
+            self._load_local_datasets(input_datafile)
+            self._download_datasets(input_datafile)
+
+    def _load_local_datasets(self, input_datafile: str):
+        """This function loads the datasets from the local filesystem
+
+        :param input_datafile: the path to the local data file
+        """
+        print("Loading local datasets. Please wait...")
+        WsGeoDataset.__init__(self, input_geofiles=[], input_datafile=input_measurements_file,
+                              merging_keys=["SITE_CODE", "SITE_CODE"])
         shortage_df = self._clean_shortage_reports(shortage_datafile=input_datafile)
         self.map_df = gpd.GeoDataFrame(
             shortage_df,
@@ -21,6 +35,19 @@ class ShortageReportsDataset(WsGeoDataset):
             ))
         # Set the coordinate reference system so that we now have the projection axis
         self.map_df = self.map_df.set_crs("epsg:4326")
+        print("Loading of datasets complete.")
+
+    def _download_datasets(self, input_datafile: str):
+        """This function downloads the datasets from the web
+
+        :param input_datafile: the path and name of the file where to store the data"""
+        print("Data not found locally.\nDownloading the water shortage reports dataset. Please wait...")
+        os.makedirs(os.path.dirname(input_datafile), exist_ok=True)
+        shortage_url = "https://data.cnra.ca.gov/dataset/2cf184d1-2d34-46cc-8bb0-1dec86b6caf6/resource/e1fd9f48-a613-4567-8042-3d2e064d77c8/download/householdwatersupplyshortagereportingsystemdata.csv"
+        shortage_content = requests.get(shortage_url).text
+        with open(input_datafile, "w", encoding="utf-8") as f:
+            f.write(shortage_content)
+        print("Downloads complete.")
         
     def _clean_shortage_reports(self, shortage_datafile:str):
         """

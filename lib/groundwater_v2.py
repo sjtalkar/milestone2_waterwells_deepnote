@@ -20,6 +20,13 @@ class GroundwaterDataset(WsGeoDataset):
             self._load_local_datasets(input_measurements_file, input_stations_file)
 
     def _load_local_datasets(self, input_measurements_file: str, input_stations_file: str):
+        """This function loads the groundwater measurements dataset and the groundwater stations dataset from the
+        local file system.
+
+        :param input_measurements_file: the path to the measurements dataset.
+        :param input_stations_file: the path to the stations dataset.
+        """
+        print("Loading local datasets. Please wait...")
         WsGeoDataset.__init__(self, input_geofiles=[], input_datafile=input_measurements_file,
                               merging_keys=["SITE_CODE", "SITE_CODE"])
         # Initializes the Geospatial map_df dataset based on the LATITUDE & LONGITUDE features of the
@@ -33,17 +40,27 @@ class GroundwaterDataset(WsGeoDataset):
             ))
         # Set the coordinate reference system so that we now have the projection axis
         self.map_df = self.map_df.set_crs("epsg:4326")
+        print("Loading of datasets complete.")
 
     def _download_datasets(self, input_measurements_file: str, input_stations_file: str):
+        """This function downloads the groundwater measurements dataset and the groundwater stations dataset from the
+        web.
+
+        :param input_measurements_file: the path where to store the measurements dataset.
+        :param input_stations_file: the path where to store the stations dataset.
+        """
+        print("Data not found locally.\nDownloading the groundwater measurements dataset. Please wait...")
         os.makedirs(os.path.dirname(input_measurements_file), exist_ok=True)
         measurements_url = "https://data.cnra.ca.gov/dataset/dd9b15f5-6d08-4d8c-bace-37dc761a9c08/resource/bfa9f262-24a1-45bd-8dc8-138bc8107266/download/measurements.csv"
         measurements_content = requests.get(measurements_url).text
         with open(input_measurements_file, "w", encoding="utf-8") as f:
             f.write(measurements_content)
+        print("Downloading the groundwater stations dataset. Please wait...")
         stations_url = "https://data.cnra.ca.gov/dataset/dd9b15f5-6d08-4d8c-bace-37dc761a9c08/resource/af157380-fb42-4abf-b72a-6f9f98868077/download/stations.csv"
         stations_content = requests.get(stations_url).text
         with open(input_stations_file, "w", encoding="utf-8") as f:
             f.write(stations_content)
+        print("Downloads complete.")
 
     def preprocess_data_df(self, features_to_keep: List[str], min_year: int = 2014):
         """This function keeps the GSE_GWE feature for the spring months.

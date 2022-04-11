@@ -54,29 +54,33 @@ map unit, keeping only the `dominant_soil_type` of that map unit.
 
 We do not make use of the below features from the table of soil orders:
 
-| Feature Name               | Description                                                                            |
-|----------------------------|----------------------------------------------------------------------------------------|
-| slope_l, slope_h | representing the map unit's low and high slope percentage |
-| compname | the soil's component name |
-| musym | the column which contains in both datasets a symbol identifying a map unit, because each map unit have a unique `musym` and `mukey` to identify it. So using either of the two is sufficient to identify a map unit |
+| Feature Name     | Description                                                                                                                                                                                                         |
+|------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| slope_l, slope_h | representing the map unit's low and high slope percentage                                                                                                                                                           |
+| compname         | the soil's component name                                                                                                                                                                                           |
+| musym            | the column which contains in both datasets a symbol identifying a map unit, because each map unit have a unique `musym` and `mukey` to identify it. So using either of the two is sufficient to identify a map unit |
 
 ### What are Soil Orders?
 Soil Orders is the most general level of classification in the USDA system of Soil Taxonomy. Using this Order classes,
 all the soils in the world can be assigned one of the 12 orders.
 
-Soil orders are described as follow:
-* `Entisols` - Little, if any horizon development
-* `Inceptisols` - Beginning of horizon development
-* `Aridisols` - Soils located in arid climates
-* `Alfisols` - Deciduous forest soils
-* `Ultisols` - Extensively weathered soils
-* `Gelisols` - Soils containing permafrost
-* `Andisols` - Soil formed in volcanic material
-* `Mollisols` - Soft, grassland soils
-* `Spodosols` - Acidic, coniferous forest soils
-* `Oxisols` - Extremely weathered, tropical soils
-* `Histosols` - Soils formed in organic material
-* `Vertisols` - Shrinking and swelling clay soils
+Soil orders are described as follow.
+
+| Soil Order  | Description                         |
+|-------------|-------------------------------------|
+| Entisols    | Little, if any horizon development  |
+| Inceptisols | Beginning of horizon development    |
+| Aridisols   | Soils located in arid climates      |
+| Alfisols    | Deciduous forest soils              |
+| Ultisols    | Extensively weathered soils         |
+| Gelisols    | Soils containing permafrost         |
+| Andisols    | Soil formed in volcanic material    |
+| Mollisols   | Soft, grassland soils               |
+| Spodosols   | Acidic, coniferous forest soils     |
+| Oxisols     | Extremely weathered, tropical soils |
+| Histosols   | Soils formed in organic material    |
+| Vertisols   | Shrinking and swelling clay soils   |
+ 
 ## Mapping at the Township-Range level
 Please refer to this documentation [Overlaying San Joaquin Valley Township Boundaries](doc/etl/township_overlay.md)
 ## Potential issues

@@ -25,9 +25,10 @@ class WellCompletionReportsDataset(WsGeoDataset):
     def _load_local_datasets(self, input_datafile: str, elevation_datadir: str):
         """This function loads the datasets from the local file system
 
-        :param input_datafile: the path to the input datafile
+        :param input_datafile: the path to the well completion reports dataset
         :param elevation_datadir: the path to the elevation data directory
         """
+        print("Loading local datasets. Please wait...")
         WsGeoDataset.__init__(self, input_geofiles=[], input_datafile="")
         self.elevation_df = self._get_missing_elevation(elevation_datadir)
         wcr_df = self._load_wcr_data(wcr_datafile=input_datafile)
@@ -39,16 +40,25 @@ class WellCompletionReportsDataset(WsGeoDataset):
             ))
         # Set the coordinate reference system so that we now have the projection axis
         self.map_df = self.map_df.set_crs("epsg:4326")
+        print("Loading of datasets complete.")
 
     def _download_datasets(self, input_datafile: str, elevation_datadir: str):
+        """This function downloads the datasets from the web
+
+        :param input_datafile: the path where to store the well completion reports dataset
+        :param elevation_datadir: the path where to store the elevation data
+        """
+        print("Data not found locally.\nDownloading the well completion reports dataset. Please wait...")
         welldata_url = "https://data.cnra.ca.gov/dataset/647afc02-8954-426d-aabd-eff418d2652c/resource/8da7b93b-4e69-495d-9caa-335691a1896b/download/wellcompletionreports.csv"
         file_content = requests.get(welldata_url).text
         os.makedirs(os.path.dirname(input_datafile), exist_ok=True)
         with open(input_datafile, "w") as f:
             f.write(file_content)
+        print("Downloading the elevation data. Please wait...")
         os.makedirs(elevation_datadir, exist_ok=True)
         elevation_url = "https://github.com/mlnrt/milestone2_waterwells_data/raw/main/well_completion/elevation_data.zip"
         self._download_and_extract_zip_file(url = elevation_url, extract_dir=elevation_datadir)
+        print("Downloads complete.")
         
     def _load_wcr_data(self, wcr_datafile: str):
         # We set the type to avoid pandas warning on some columns with mixed types
