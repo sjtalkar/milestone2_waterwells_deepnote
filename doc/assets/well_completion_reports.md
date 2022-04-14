@@ -59,6 +59,20 @@ def elevation_function(df, lat_column, lon_column):
     df['elev_meters'] = elevations
     return df
 ```
+
+**Note:**
+The public dataset site offers [Data API access](https://data.cnra.ca.gov/api/1/util/snippet/api_info.html?resource_id=8da7b93b-4e69-495d-9caa-335691a1896b) along with examples that show how to retrieve filtered
+data. For instance, it provides the following example for Python, which was employed to gather the data programatically. 
+
+```Python
+import json
+import urllib.request
+url = 'https://data.cnra.ca.gov/api/3/action/datastore_search?resource_id=8da7b93b-4e69-495d-9caa-335691a1896b&limit=5&q=title:jones'  
+fileobj = urllib.request.urlopen(url)
+response_dict = json.loads(fileobj.read())
+print(response_dict)
+```
+
 ## Features of interest
 A deep study of well construction and aquifers had to be conducted to understand the features. The understanding has 
 been distilled below and features are explained. The columns specified here are as per original dataset name:
