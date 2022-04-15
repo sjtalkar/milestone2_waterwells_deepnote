@@ -13,7 +13,7 @@ class ReservoirDataset(WsGeoDataset):
     """This class loads, processes the precipitation dataset. The range of years for which the data is to be collected
     is captured in
     """
-    def __init__(self, input_stationfile: str = "../assets/inputs/reservoir/reservoir_stations.shp",
+    def __init__(self, input_stationfile: str = "../assets/inputs/reservoir/map/reservoir_stations.shp",
                  input_datafile: str = "../assets/inputs/reservoir/reservoir_data.csv",
                  year_start: int = 2018, year_end: int = 2022):
         """ The initialization of the ReservoirDataset class automatically scrapes the weekly reservoir data

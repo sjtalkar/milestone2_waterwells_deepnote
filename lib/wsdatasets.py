@@ -26,7 +26,7 @@ class WsGeoDataset(BaseWsDataset):
     """
     def __init__(self, input_geofiles: List[str], input_datafile: str = None, input_datafile_format: str = "csv",
                  merging_keys: List[str] = None, sjv_shapefile: str = "../assets/inputs/common/plss_subbasin.geojson",
-                 ca_shapefile= "../assets/inputs/common/ca_county_boundaries/CA_Counties_TIGER2016.shp"):
+                 ca_shapefile: str = "../assets/inputs/common/ca_county_boundaries/CA_Counties_TIGER2016.shp"):
         """Initialization of the dataset class.
 
         :param input_geofiles: list of of geospatial files to vertically concatenate. The geospatial datasets must
