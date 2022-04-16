@@ -70,6 +70,7 @@ To collect all data for the years 2014-2020, we used the following API call:
 `https://api.census.gov/data/{year}/acs/acs5?get=B01003_001E&=&for=tract:*&in=county:*&in=state:06&key={token}`
 
 __The Tracts Land Area Data:__
+
 We collected the 2019 Tracts land area data which are available in the 2021 PDB dataset. The land area is in the 
 `LAND_AREA` variable 
 [as described in the PDB Tract dataset variable documentation](https://api.census.gov/data/2021/pdb/tract/variables.html).
