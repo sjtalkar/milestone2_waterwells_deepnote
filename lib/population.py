@@ -43,8 +43,9 @@ class PopulationDataset(WsGeoDataset):
         :param tract_geofile: the file where to store the shapefile of the population census Tracts
         """
         print("Data not found locally.")
-
-        print("Downloading the 2014-2020 California Census population estimates at the Tract level. Please wait...")
+        os.makedirs(os.path.dirname(input_datafile), exist_ok=True)
+        print("Downloading the pre-packaged 2014-2020 California Census population estimates at the Tract level."
+              " Please wait...")
         url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/population/population.csv"
         file_content = requests.get(url).text
         with open(input_datafile, "w", encoding="utf-8") as f:

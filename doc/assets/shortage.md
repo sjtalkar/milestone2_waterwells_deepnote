@@ -27,7 +27,7 @@ in the county, rather only that none have been reported to the State.
 This data is published by The Department of Water Resources that manages California's water resources, systems, 
 and infrastructure, including the State Water Project (SWP), in a responsible, sustainable way.
 
-Datasets information:
+Datasets citation information:
 * Organization: California Department of Water Resources
 * Contact  Name: Benjamin Brezing
 * Title: Household Water Supply Shortage Reporting System Data

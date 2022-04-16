@@ -43,7 +43,7 @@ We use 2 datasets provided by
 * Long-term groundwater level measurements containing a time series measurement since 1900 
 * The groundwater measurement stations information, containing the geolocation information
 
-Datasets information:
+Datasets citation information:
 * Organization: California Department of Water Resources
 * Contact  Name: Water Data Library
 * Title: Periodic Groundwater Level Measurements

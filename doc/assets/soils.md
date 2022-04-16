@@ -6,8 +6,8 @@ the United States called
 ## Source
 This dataset is provided by the U.S. Department of Agriculture, Natural Resources Conservation.
 
-Information:
-* Originator: U.S. Department of Agriculture, Natural Resources Conservation Service
+Citation information:
+* Organization: U.S. Department of Agriculture, Natural Resources Conservation Service
 * Publication Date: 04-10-2016
 * Title: Digital General Soil Map of U.S.
 * Geospatial Data Presentation Form: Tabular digital data and vector digital data
