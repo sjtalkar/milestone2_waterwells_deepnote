@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import List
 from fiona.errors import DriverError
 from lib.wsdatasets import WsGeoDataset
+from lib.download import download_and_extract_zip_file
 
 
 class WellCompletionReportsDataset(WsGeoDataset):
@@ -49,15 +50,17 @@ class WellCompletionReportsDataset(WsGeoDataset):
         :param elevation_datadir: the path where to store the elevation data
         """
         print("Data not found locally.\nDownloading the well completion reports dataset. Please wait...")
-        welldata_url = "https://data.cnra.ca.gov/dataset/647afc02-8954-426d-aabd-eff418d2652c/resource/8da7b93b-4e69-495d-9caa-335691a1896b/download/wellcompletionreports.csv"
+        welldata_url = "https://data.cnra.ca.gov/dataset/647afc02-8954-426d-aabd-eff418d2652c/resource/" \
+                       "8da7b93b-4e69-495d-9caa-335691a1896b/download/wellcompletionreports.csv"
         file_content = requests.get(welldata_url).text
         os.makedirs(os.path.dirname(input_datafile), exist_ok=True)
         with open(input_datafile, "w") as f:
             f.write(file_content)
         print("Downloading the elevation data. Please wait...")
         os.makedirs(elevation_datadir, exist_ok=True)
-        elevation_url = "https://github.com/mlnrt/milestone2_waterwells_data/raw/main/well_completion/elevation_data.zip"
-        self._download_and_extract_zip_file(url = elevation_url, extract_dir=elevation_datadir)
+        elevation_url = "https://github.com/mlnrt/milestone2_waterwells_data/raw/main/well_completion/" \
+                        "elevation_data.zip"
+        download_and_extract_zip_file(url = elevation_url, extract_dir=elevation_datadir)
         print("Downloads complete.")
         
     def _load_wcr_data(self, wcr_datafile: str):
@@ -121,18 +124,16 @@ class WellCompletionReportsDataset(WsGeoDataset):
                                               wcr_df["DECIMALLONGITUDE"])
         wcr_df["DECIMALLATITUDE"] = np.where(wcr_df["DECIMALLATITUDE"] < 0, -wcr_df["DECIMALLATITUDE"],
                                              wcr_df["DECIMALLATITUDE"])
-        # About 5% of the dataframe has eith latitude or longitude missing, we drop these
-        wcr_df = wcr_df.dropna(subset=["DECIMALLATITUDE", "DECIMALLONGITUDE"]).copy()
+        # About 5% of the dataframe has either latitude or longitude missing, we drop these
+        wcr_df.dropna(subset=["DECIMALLATITUDE", "DECIMALLONGITUDE"], inplace=True)
         # Pick data of interest
         wcr_df = wcr_df[
             ["DECIMALLATITUDE", "DECIMALLONGITUDE", "SECTION", "WELLLOCATION", "COUNTYNAME",
              "STATICWATERLEVEL", "BOTTOMOFPERFORATEDINTERVAL", "TOPOFPERFORATEDINTERVAL", "GROUNDSURFACEELEVATION",
              "RECORDTYPE", "PLANNEDUSEFORMERUSE", "WCRNUMBER", "TOTALDRILLDEPTH", "TOTALCOMPLETEDDEPTH",
-             "DATEWORKENDED", "WELLYIELD", "CASINGDIAMETER", "TOTALDRAWDOWN", "WELLYIELDUNITOFMEASURE"]].copy()
-        # rename columns
+             "DATEWORKENDED", "WELLYIELD", "CASINGDIAMETER", "TOTALDRAWDOWN", "WELLYIELDUNITOFMEASURE"]]
         wcr_df.rename(columns={"DECIMALLATITUDE": "LATITUDE", "DECIMALLONGITUDE": "LONGITUDE", 
-                               "PLANNEDUSEFORMERUSE": "USE", "COUNTYNAME": "COUNTY"},
-                      inplace=True)
+                               "PLANNEDUSEFORMERUSE": "USE", "COUNTYNAME": "COUNTY"}, inplace=True)
         return wcr_df
 
     def _get_missing_elevation(self, elevation_datadir: str):
@@ -191,8 +192,6 @@ class WellCompletionReportsDataset(WsGeoDataset):
         # Drop data points with date of NaN
         self.map_df.dropna(subset=["DATEWORKENDED_CORRECTED"], inplace=True)
         # create simple year and month columns
-        # self.map_df["YEARWORKENDED"] = pd.DatetimeIndex(self.map_df["DATEWORKENDED_CORRECTED"]).year
-        # self.map_df["MONTHWORKENDED"] = pd.DatetimeIndex(self.map_df["DATEWORKENDED_CORRECTED"]).month
         self.map_df["DATE"] = pd.to_datetime(self.map_df.DATEWORKENDED_CORRECTED)
         self.map_df["YEARWORKENDED"] = self.map_df["DATE"].dt.year
         self.map_df["MONTHWORKENDED"] = self.map_df["DATE"].dt.month
