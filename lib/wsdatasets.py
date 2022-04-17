@@ -21,8 +21,9 @@ class BaseWsDataset(abc.ABC):
 
 
 class WsGeoDataset(BaseWsDataset):
-    """This is the parent class for the loading, ETL and export of the datasets used in the Water Shortage analysis
-
+    """
+    This is the parent class for the loading, ETL and export of the datasets used in the San Joawuin Valley
+    Water Shortage analysis project.
     """
     def __init__(self, input_geofiles: List[str], input_datafile: str = None, input_datafile_format: str = "csv",
                  merging_keys: List[str] = None, sjv_shapefile: str = "../assets/inputs/common/plss_subbasin.geojson",
@@ -378,11 +379,13 @@ class WsGeoDataset(BaseWsDataset):
             self.overlay_township_boundries()
         # Merge rows by TOWNSHIP , YEAR and feature_name
         self.map_df = self.map_df.dissolve(by=["TOWNSHIP_RANGE", "YEAR", feature_name]).reset_index()
-        # Compute the area percentage of the feature in each TOWNSHIP for each year
-        self.map_df.set_crs("epsg:4326")
+        # Compute the area percentage of the feature in each TOWNSHIP for each year switch temporarily to a coordinate
+        # systems based on linear units (meters) to compute area
+        self.map_df = self.map_df.set_crs(epsg=3347)
         self.map_df["AREA"] = self.map_df.geometry.area
-        self.map_df["AREA_PCT"] = self.map_df[["TOWNSHIP_RANGE", "YEAR", "AREA"]].groupby(["TOWNSHIP_RANGE", "YEAR"])["AREA"].\
-            apply(lambda x:x/x.sum())
+        self.map_df["AREA_PCT"] = self.map_df[["TOWNSHIP_RANGE", "YEAR", "AREA"]].\
+            groupby(["TOWNSHIP_RANGE", "YEAR"])["AREA"].apply(lambda x: x / x.sum())
+        self.map_df = self.map_df.set_crs(epsg=4326)
         self.map_df.drop(columns=["AREA"], inplace=True)
 
     def return_yearly_normalized_township_feature(self, feature_name: str, normalize_method: str = "minmax"):

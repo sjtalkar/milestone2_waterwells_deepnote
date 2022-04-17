@@ -9,7 +9,9 @@ from lib.wsdatasets import WsGeoDataset
 
 
 class VegetationDataset(WsGeoDataset):
-    """This class loads, processes and exports the Existing Vegetation dataset"""
+    """
+    This class loads, processes and exports the Existing Vegetation dataset
+    """
     def __init__(self, input_geodir: str = "../assets/inputs/vegetation/",
                  saf_cover_type_file: str = "../assets/inputs/vegetation/saf_cover_type_mapping.json"):
         try:

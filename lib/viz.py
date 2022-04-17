@@ -238,7 +238,7 @@ def visualize_seasonality_by_month(gdf: gpd.GeoDataFrame, feature: str):
     return chart
 
 
-def display_data_on_map(gdf: gpd.GeoDataFrame, feature: str, year: int = None):
+def display_data_on_map(gdf: gpd.GeoDataFrame, feature: str = None, year: int = None):
     """Use GeoPandas explore() function based on Folium to display the Geospatial data on a map.
 
     :param gdf: the GeoDataFrame to be displayed
