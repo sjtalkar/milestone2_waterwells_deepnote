@@ -14,15 +14,15 @@ According to the dataset documentation:
 ## Source
 The two existing vegetation datasets are coming from the U.S. Department of Agriculture, Forest Service.
 
-Central Valley dataset Information
-* Originator: U.S. Forest Service
+Central Valley dataset citation information
+* Organization: U.S. Forest Service
 * Publication Date: 15-10-2019
 * Title: EVeg Mid Region 5 Central Valley
 * Geospatial Data Presentation Form: vector digital data
 * Online Linkage: [http://data.fs.usda.gov/geodata/edw/datasets.php](http://data.fs.usda.gov/geodata/edw/datasets.php)
 
-Central Coast dataset Information
-* Originator: U.S. Forest Service
+Central Coast dataset citation information
+* Organization: U.S. Forest Service
 * Publication Date: 18-01-2018
 * Title: EVeg Mid Region 5 Central Coast
 * Geospatial Data Presentation Form: vector digital data

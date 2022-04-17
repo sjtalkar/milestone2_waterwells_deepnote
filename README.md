@@ -16,15 +16,19 @@ This repository is organized following the below folder structure:
 * __doc__ - contains the detailed documentation organized per category (see the Table of Contents below)
 
 ## Documentation Table of Contents
-* Input Datasets
-  * The Population Datasets
+* Datasets
   * [The Crops Dataset](doc/assets/crops.md)
-  * [The Soils Datasets](doc/assets/soils.md)
-  * [The Vegetation Datasets](doc/assets/vegetation.md)
-* Output Dataset
+  * [The Groundwater Dataset](doc/assets/groundwater.md)
+  * [The Population Dataset](doc/assets/population.md)
+  * [The Precipitation Dataset](doc/assets/precipitation.md)
+  * [The Water Reservoir Dataset](doc/assets/reservoir.md)
+  * [The Water Shortage Reports Dataset](doc/assets/shortage.md)
+  * [The Soils Dataset](doc/assets/soils.md)
+  * [The Vegetation Dataset](doc/assets/vegetation.md)
+  * [The Well Completion Reports Dataset](doc/assets/well_completion.md)
 * Custom Libraries
-* ETL operations
   * [The WsGeoDataset Class](doc/etl/wsgeodataset.md)
+* ETL operations
   * [Overlaying San Joaquin Valley Township-Range Boundaries](doc/etl/township_overlay.md)
   * [Squaring San Joaquin Valley Township-Ranges](doc/etl/squaring_townships.md)
   * [Dropping Rare Township Features](doc/etl/drop_rare_features.md)

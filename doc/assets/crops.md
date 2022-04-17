@@ -17,7 +17,7 @@ The datasets are provided by the [__California Natural Resources Agency__](https
 _'originally prepared by Land IQ, LLC and provided to the California Department of Water Resources (DWR) and other 
 resource agencies involved in work and planning efforts across the state for current land use information.'_
 
-2014 dataset information:
+2014 dataset citation information:
 * Originator: Joel Kimmelshue, Land IQ, LLC, Owner
 * Publication Date: 08-05-2017
 * Title: i15_Crop_Mapping_2014
@@ -26,7 +26,7 @@ resource agencies involved in work and planning efforts across the state for cur
 * Other Citation Details: CDWR (2017). 2014 California Statewide Agricultural Land Use , California Department of Water 
 * Resources, website: [https://gis.water.ca.gov/app/CADWRLandUseViewer/](https://gis.water.ca.gov/app/CADWRLandUseViewer/)
 
-2016 dataset information:
+2016 dataset citation information:
 * Originator: Joel Kimmelshue, Land IQ, LLC, Owner (Originator), Land IQ, LLC, Owner (Originator), Owner
 * Publication Date: 22-11-2019
 * Title: i15_Crop_Mapping_2016
@@ -35,7 +35,7 @@ resource agencies involved in work and planning efforts across the state for cur
 * Other Citation Details: CDWR (2019). 2016 California Statewide Agricultural Land Use , California Department of Water 
 * Resources, website: [https://gis.water.ca.gov/app/CADWRLandUseViewer/](https://gis.water.ca.gov/app/CADWRLandUseViewer/)
 
-2018 dataset information:
+2018 dataset citation information:
 * Organization's name: Joel Kimmelshue, Land IQ, LLC, Owner (Originator), Land IQ, LLC, Owner (Originator), Owner
 * Publication Date: 08-02-2021
 * Title: i15_Crop_Mapping_2018
