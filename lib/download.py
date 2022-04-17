@@ -1,6 +1,7 @@
 import os
 import pickle
 import requests
+import concurrent.futures
 import zipfile
 import time
 import numpy as np
@@ -81,34 +82,6 @@ def download_population_raw_data(input_datafile: str = "../assets/inputs/populat
     tract_url = "https://www2.census.gov/geo/tiger/TIGER2019/TRACT/tl_2019_06_tract.zip"
     download_and_extract_zip_file(url=tract_url, extract_dir=os.path.dirname(tract_geofile))
     print("Downloads complete.")
-
-
-def get_elevation_function_from_latlon(df: pd.DataFrame, nb_rows: int = 1000, lat_column: str = "LATITUDE",
-                                       lon_column: str = "LONGITUDE") -> pd.DataFrame:
-    """
-    This function queries the National Map service to retrieve the elevation of a point based on its latitude and
-    longitude.
-
-    :param df: the dataframe containing the latitude and longitude columns
-    :param nb_rows: the number of rows to query the service for
-    :param lat_column: the name of the latitude column
-    :param lon_column: the name of the longitude column
-    """
-    url = r"https://nationalmap.gov/epqs/pqs.php?"
-    elevations = []
-    for i in tqdm(range(nb_rows)):
-        # define rest query params
-        params = {
-            "output": "json",
-            "x": df.iloc[i, df.columns.get_loc(lon_column)],
-            "y": df.iloc[i, df.columns.get_loc(lat_column)],
-            "units": "Meters"
-        }
-        # Query the national map service
-        result = requests.get(url, params=params).json()
-        elevations.append(result["USGS_Elevation_Point_Query_Service"]["Elevation_Query"]["Elevation"])
-    df["elev_meters"] = elevations
-    return df
 
 
 def get_well_completion_latlon(well_datafile: str, start_year: int, end_year: int):
@@ -222,6 +195,49 @@ def get_well_completion_latlon(well_datafile: str, start_year: int, end_year: in
     return wcr_df
 
 
+def get_elevation_from_latlon(lat: float, lon: float) -> float:
+    """
+    This function queries the National Map service to retrieve the elevation of a point based on its latitude and
+    longitude.
+
+    :param lat: latitude of the point
+    :param lon: longitude of the point
+    :return: elevation of the point
+    """
+    url = r"https://nationalmap.gov/epqs/pqs.php?"
+    params = {
+        "output": "json",
+        "x": lat,
+        "y": lon,
+        "units": "Meters"
+    }
+    # Query the national map service
+    result = requests.get(url, params=params).json()
+    elevation = result["USGS_Elevation_Point_Query_Service"]["Elevation_Query"]["Elevation"]
+    return elevation
+
+
+def get_batch_elevation_from_latlon(df: pd.DataFrame, lat_column: str = "LATITUDE",
+                                    lon_column: str = "LONGITUDE") -> pd.DataFrame:
+    """
+    This function uses 5 threads to download
+
+    :param df: the dataframe containing the latitude and longitude columns
+    :param lat_column: the name of the latitude column
+    :param lon_column: the name of the longitude column
+    """
+    url = r"https://nationalmap.gov/epqs/pqs.php?"
+    elevations = []
+    # We use threading to load the data in parallel
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        elevations = list(tqdm(executor.map(get_elevation_from_latlon, list(df[lat_column]), list(df[lon_column])),
+                               total=len(df)))
+    # for batch_of_elevations in future_to_elevation:
+    #     elevations.append(batch_of_elevations)
+    df["elev_meters"] = elevations
+    return df
+
+
 def download_all_elevations(well_datafile: str = "./assets/inputs/wellcompletion/wellcompletion.csv",
                             elevation_basedir: str = "./assets/inputs/wellcompletion/elevation_data",
                             start_year: int = 2014, end_year: int = 2021,
@@ -242,7 +258,7 @@ def download_all_elevations(well_datafile: str = "./assets/inputs/wellcompletion
     end_row_loc = nb_rows
     max_row = len(wcr_df)
     while end_row_loc < max_row:
-        print(f"Downloading elevation data for {end_row_loc} of {max_row} rows.")
+        print(f"Downloading elevation data for {start_row_loc} to {end_row_loc} rows of {max_row} rows.")
         df = wcr_df.iloc[start_row_loc:end_row_loc, :].copy()
         part_already_downloaded = False
         # Check for already downloaded batches
@@ -251,13 +267,14 @@ def download_all_elevations(well_datafile: str = "./assets/inputs/wellcompletion
             if len(existing_df) == nb_rows:
                 part_already_downloaded = True
                 print(f"Skipping. Elevation data for {start_row_loc} to {end_row_loc} rows already fully downloaded.")
+                start_row_loc += nb_rows
+                end_row_loc += nb_rows
         except FileNotFoundError:
             pass
         # If the batch of lat-lon hasn't been downloaded yet, download it
         if not part_already_downloaded:
             try:
-                df = get_elevation_function_from_latlon(df, nb_rows=nb_rows, lat_column='LATITUDE',
-                                                        lon_column='LONGITUDE')
+                df = get_batch_elevation_from_latlon(df, lat_column='LATITUDE', lon_column='LONGITUDE')
                 df.to_csv(os.path.join(elevation_basedir, f"lat_long_elev_{start_row_loc}.csv"), index=False)
                 start_row_loc += nb_rows
                 end_row_loc += nb_rows
