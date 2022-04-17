@@ -7,6 +7,7 @@ import time
 import numpy as np
 import pandas as pd
 
+from typing import Tuple
 from datetime import datetime
 from io import BytesIO
 from tqdm import tqdm
@@ -207,8 +208,8 @@ def get_elevation_from_latlon(lat: float, lon: float) -> float:
     url = r"https://nationalmap.gov/epqs/pqs.php?"
     params = {
         "output": "json",
-        "x": lat,
-        "y": lon,
+        "x": lon,
+        "y": lat,
         "units": "Meters"
     }
     # Query the national map service
@@ -220,20 +221,17 @@ def get_elevation_from_latlon(lat: float, lon: float) -> float:
 def get_batch_elevation_from_latlon(df: pd.DataFrame, lat_column: str = "LATITUDE",
                                     lon_column: str = "LONGITUDE") -> pd.DataFrame:
     """
-    This function uses 5 threads to download
+    This function uses 5 threads to download in parallel the elevation of a batch of points.
 
     :param df: the dataframe containing the latitude and longitude columns
     :param lat_column: the name of the latitude column
     :param lon_column: the name of the longitude column
     """
-    url = r"https://nationalmap.gov/epqs/pqs.php?"
-    elevations = []
     # We use threading to load the data in parallel
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
         elevations = list(tqdm(executor.map(get_elevation_from_latlon, list(df[lat_column]), list(df[lon_column])),
                                total=len(df)))
-    # for batch_of_elevations in future_to_elevation:
-    #     elevations.append(batch_of_elevations)
+    # executor.map() returns the value sin the same order as the input so we can join the list to the dataframe
     df["elev_meters"] = elevations
     return df
 
@@ -241,7 +239,7 @@ def get_batch_elevation_from_latlon(df: pd.DataFrame, lat_column: str = "LATITUD
 def download_all_elevations(well_datafile: str = "./assets/inputs/wellcompletion/wellcompletion.csv",
                             elevation_basedir: str = "./assets/inputs/wellcompletion/elevation_data",
                             start_year: int = 2014, end_year: int = 2021,
-                            nb_rows: int = 1500, wait_between_batches: int = 5):
+                            batch_size: int = 1500, wait_between_batches: int = 5):
     """
     This function downloads the elevation of all wells in the well completion dataset.
 
@@ -249,36 +247,50 @@ def download_all_elevations(well_datafile: str = "./assets/inputs/wellcompletion
     :param elevation_basedir: the base directory where the elevation data will be stored
     :param start_year: the first year to download the elevation data for
     :param end_year: the last year to download the elevation data for
-    :param nb_rows: the number of rows to query the service for at each iteration
+    :param batch_size: the number of rows to query the service for at each iteration
     :param wait_between_batches: the number of minutes to wait between batches of queries to the National Map service.
     """
+    def increase_batch_numbers(start_val: int, end_val: int, increment: int, max_val: int) -> Tuple[int, int]:
+        """This is an internal function to increase the start and end row numbers of the batch"""
+        start_val += increment
+        end_val += increment
+        if (end_val > max_val) and ((end_val - max_val) < increment):
+            end_val = max_val
+        return start_val, end_val
+
     os.makedirs(elevation_basedir, exist_ok=True)
+    # We get the latitude and longitude of all wells completed between the start and end years for
+    # agriculture, domestic, public or industrial use
     wcr_df = get_well_completion_latlon(well_datafile, start_year, end_year)
-    start_row_loc = 0
-    end_row_loc = nb_rows
+    # Initiate the batch start and end row values
+    start_row = 0
+    end_row = batch_size
     max_row = len(wcr_df)
-    while end_row_loc < max_row:
-        print(f"Downloading elevation data for {start_row_loc} to {end_row_loc} rows of {max_row} rows.")
-        df = wcr_df.iloc[start_row_loc:end_row_loc, :].copy()
+    while end_row <= max_row:
+        print(f"Downloading elevation data for {start_row} to {end_row} rows of {max_row} rows.")
+        # We extracrt the first batch of rows from the dataframe
+        df = wcr_df.iloc[start_row:end_row, :].copy()
         part_already_downloaded = False
         # Check for already downloaded batches
+        # To avoid overloading the API service, we check if the batch has already been fully downloaded or not
+        # The file must exist and contains 1500 rows. If it contains less than 1500 rows, we re-download it.
         try:
-            existing_df = pd.read_csv(os.path.join(elevation_basedir, f"lat_long_elev_{start_row_loc}.csv"))
-            if len(existing_df) == nb_rows:
+            existing_df = pd.read_csv(os.path.join(elevation_basedir, f"lat_long_elev_{start_row}.csv"))
+            if len(existing_df) == batch_size:
                 part_already_downloaded = True
-                print(f"Skipping. Elevation data for {start_row_loc} to {end_row_loc} rows already fully downloaded.")
-                start_row_loc += nb_rows
-                end_row_loc += nb_rows
+                print(f"Skipping. Elevation data for {start_row} to {end_row} rows already fully downloaded.")
+                start_row, end_row = increase_batch_numbers(start_row, end_row, batch_size, max_row)
         except FileNotFoundError:
             pass
-        # If the batch of lat-lon hasn't been downloaded yet, download it
+        # If the batch of lat-lon hasn't been downloaded yet, download it and store the file
         if not part_already_downloaded:
             try:
                 df = get_batch_elevation_from_latlon(df, lat_column='LATITUDE', lon_column='LONGITUDE')
-                df.to_csv(os.path.join(elevation_basedir, f"lat_long_elev_{start_row_loc}.csv"), index=False)
-                start_row_loc += nb_rows
-                end_row_loc += nb_rows
+                df.to_csv(os.path.join(elevation_basedir, f"lat_long_elev_{start_row}.csv"), index=False)
+                start_row, end_row = increase_batch_numbers(start_row, end_row, batch_size, max_row)
             except RequestException:
+                # We most probably got an error from the API because of the number of requests we made.
+                # So we wait for a few minutes and try again.
                 print(f"Error occurred. Waiting for {wait_between_batches} minutes before trying again.")
                 time.sleep(wait_between_batches * 60)
     print("Downloads complete.")
