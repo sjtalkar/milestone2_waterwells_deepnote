@@ -177,6 +177,7 @@ class WsGeoDataset(BaseWsDataset):
 
     def preprocess_map_df(self, features_to_keep: List[str]):
         """This function should be used in child classes to perform dataset specific pre-processing of the map dataset.
+
         :param features_to_keep: the list of features (columns) to keep
         """
         # Keep only the requested features
@@ -222,29 +223,32 @@ class WsGeoDataset(BaseWsDataset):
     ####################################################################################################################
 
     def keep_only_sjv_data(self):
-        """This function keeps only the map_df data for the San Joaquin Valley and cut the map units by Township-Range.
-        Refer to the provided documentation "Overlaying San Joaquin Valley Township-Range Boundaries"
-        in ../doc/etl/township_overlay.md. The operation is done independently for every year in the dataset. The result
-        is saved in the self.map_df variable.
+        """This function keeps only the map_df data for the San Joaquin Valley. The result is saved in the self.map_df
+        attribute.
         """
         self.map_df = gpd.clip(self.map_df, self.sjv_boundaries.geometry[0])
         self.map_df.reset_index(inplace=True, drop=True)
 
-    def overlay_township_boundries(self):
-        """This function keeps only the map data for the San Joaquin Valley and cut the map units by Township-Range.
+    def overlay_township_boundaries(self, set_precision: bool = False):
+        """This function overlays the San Joaquin Valley Township-Range on top of the map_df geospatial data.
         Refer to the provided documentation "Overlaying San Joaquin Valley Township-Range Boundaries"
         in ../doc/etl/township_overlay.md. The operation is done independently for every year in the dataset. The result
         is saved in the self.map_df variable.
+
+        :param set_precision: whether to set the precision of the geometries to 1e-6 or not. This can prevent some
+        TopologyException errors when overlaying the Township boundaries on some datasets.
         """
         self.keep_only_sjv_data()
         new_map_df = gpd.GeoDataFrame()
         for i, year in enumerate(self.map_df["YEAR"].unique()):
             yearly_map_df = self.map_df[self.map_df["YEAR"] == year].copy()
             # Overlay the townships boundaries on the map data units to cut and explode them based on the townships
-            # We set the precision to avoid a "TopologyException: found non-noded intersection error from overlay"
-            # reference:https://github.com/geopandas/geopandas/issues/1724
-            yearly_map_df.geometry = pg.set_precision(yearly_map_df.geometry.values.data, 1e-6)
-            self.sjv_township_range_df.geometry = pg.set_precision(self.sjv_township_range_df.geometry.values.data, 1e-6)
+            if set_precision:
+                # We set the precision to avoid a "TopologyException: found non-noded intersection error from overlay"
+                # reference:https://github.com/geopandas/geopandas/issues/1724
+                yearly_map_df.geometry = pg.set_precision(yearly_map_df.geometry.values.data, 1e-6)
+                self.sjv_township_range_df.geometry = pg.set_precision(self.sjv_township_range_df.geometry.values.data,
+                                                                       1e-6)
             map_data_by_township_df = gpd.overlay(yearly_map_df, self.sjv_township_range_df, how='identity',
                                                   keep_geom_type=True)
             if i == 0:
@@ -360,19 +364,20 @@ class WsGeoDataset(BaseWsDataset):
         :param feature_name: the name of the original feature to use to compute the values for each new features
         """
         if "TOWNSHIP_RANGE" not in self.map_df.columns:
-            self.overlay_township_boundries()
+            self.overlay_township_boundaries()
         # Merge rows by TOWNSHIP , YEAR and feature_name
         self.map_df = self.map_df.dissolve(by=["TOWNSHIP_RANGE", "YEAR", feature_name]).reset_index()
         # Compute the area percentage of the feature in each TOWNSHIP for each year switch temporarily to a coordinate
         # systems based on linear units (meters) to compute area
-        self.map_df = self.map_df.set_crs(epsg=3347)
+        self.map_df = self.map_df.to_crs(epsg=3347)
         self.map_df["AREA"] = self.map_df.geometry.area
         self.map_df["AREA_PCT"] = self.map_df[["TOWNSHIP_RANGE", "YEAR", "AREA"]].\
             groupby(["TOWNSHIP_RANGE", "YEAR"])["AREA"].apply(lambda x: x / x.sum())
-        self.map_df = self.map_df.set_crs(epsg=4326)
+        self.map_df = self.map_df.to_crs(epsg=4326)
         self.map_df.drop(columns=["AREA"], inplace=True)
 
-    def return_yearly_normalized_township_feature(self, feature_name: str, normalize_method: str = "minmax"):
+    def return_yearly_normalized_township_feature(self, feature_name: str, normalize_method: str = "minmax") -> \
+            gpd.GeoDataFrame:
         """This function returns a dataframe with the feature values normalized by the "YEAR" column.
 
         :param feature_name: the name of the feature to normalize
@@ -418,12 +423,23 @@ class WsGeoDataset(BaseWsDataset):
         self.output_df = self.sjv_township_range_df.dissolve(by="TOWNSHIP_RANGE").reset_index().\
             merge(township_features_df, how="right", left_on="TOWNSHIP_RANGE", right_on="TOWNSHIP_RANGE")
 
+    def prepare_output_from_map_df(self, unwanted_features: List[str] = None):
+        """This functions, prepares the map_df Geospastial Dataframe to be written in the output file.
+        At the minimum, it removes the geospatial "geometry feature".
+
+        :param unwanted_features: additional list of features to drop."""
+        self.output_df = self.map_df.copy()
+        if (not unwanted_features) or ("geometry" not in unwanted_features):
+            self.output_df.drop(columns=["geometry"], errors="ignore", inplace=True)
+        if unwanted_features:
+            self.output_df.drop(columns=unwanted_features, errors="ignore", inplace=True)
+
     def drop_features(self, drop_rate: float = 0.0, unwanted_features: List[str] = None):
         """This function removes features (columns) from the self.output_df dataset in two ways. 1) it drops the
         features which cover a smaller land surface percentage of every Township-Range for any given year. 2) it drops
         unwanted features (e.g. the "Urban" class from the crops dataset).
 
-        :param drop_rate: any feature which does not appear more that the drop_rate in any of the Township-Range for
+        :param drop_rate: any feature which does not appear more than the drop_rate in any of the Township-Range for
         every year will be dropped. This is used to drop features which cover a very small amount of land surface in
         all the Township-Range. Warning: by dropping feature columns, the sum of the feature percentage in impacted
         Township-Range will not sum to 100%.
@@ -437,16 +453,6 @@ class WsGeoDataset(BaseWsDataset):
         if unwanted_features:
             self.output_df.drop(columns=unwanted_features, errors="ignore", inplace=True)
 
-    def prepare_output_from_map_df(self, unwanted_features: List[str] = None):
-        """This functions, prepares the map_df Geospastial Dataframe to be written in the output file.
-        At the minimum, it removes the geospatial "geometry feature".
-
-        :param unwanted_features: additional list of features to drop."""
-        self.output_df = self.map_df.copy()
-        if (not unwanted_features) or ("geometry" not in unwanted_features):
-            self.output_df.drop(columns=["geometry"], errors="ignore", inplace=True)
-        if unwanted_features:
-            self.output_df.drop(columns=unwanted_features, errors="ignore", inplace=True)
 
     def output_dataset_to_csv(self, output_filename: str):
         """This function writes the self.output_df dataframe into a CSV file.
