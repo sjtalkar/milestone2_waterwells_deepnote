@@ -7,6 +7,7 @@ import geopandas as gpd
 from typing import List
 from fiona.errors import DriverError
 from lib.wsdatasets import WsGeoDataset
+from lib.download import download_and_extract_zip_file
 
 
 class PopulationDataset(WsGeoDataset):
@@ -52,8 +53,7 @@ class PopulationDataset(WsGeoDataset):
             f.write(file_content)
         print("Downloading the geospatial data of the population census Tracts. Please wait...")
         tract_url = "https://www2.census.gov/geo/tiger/TIGER2019/TRACT/tl_2019_06_tract.zip"
-        self._download_and_extract_zip_file(url=tract_url,
-                                            extract_dir=os.path.dirname(tract_geofile))
+        download_and_extract_zip_file(url=tract_url, extract_dir=os.path.dirname(tract_geofile))
         print("Downloads complete.")
 
     def preprocess_map_df(self, features_to_keep: List[str]):

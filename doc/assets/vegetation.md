@@ -32,7 +32,7 @@ The `VegetationDataset` class in the `/lib/vegetation.py` custom library is desi
 datasets from the local `/assets/inputs/vegetation/` folder. If files are not found the data are downloaded from the
 [the USDA Forest Service data website](https://data.fs.usda.gov/geodata/edw/datasets.php?xmlKeyword=existing+vegetation)
 page. The custom vegetation cover-type-to-name mapping JSON file is downloaded from 
-[a dedicated Github repository](https://github.com/mlnrt/milestone2_waterwells_data) where we provide additional files.
+[a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) where we provide additional files.
 
 The 2 datasets are ESRI geodatabases which can be downloaded from [the USDA Forest Service data website](https://data.fs.usda.gov/geodata/edw/datasets.php?xmlKeyword=existing+vegetation)
 * [Existing Vegetation: Region 5 - Central Valley](https://data.fs.usda.gov/geodata/edw/edw_resources/fc/S_USA.EVMid_R05_CentralValley.gdb.zip)

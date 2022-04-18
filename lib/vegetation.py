@@ -6,6 +6,7 @@ import pandas as pd
 from typing import List
 from fiona.errors import DriverError
 from lib.wsdatasets import WsGeoDataset
+from lib.download import download_and_extract_zip_file
 
 
 class VegetationDataset(WsGeoDataset):
@@ -51,7 +52,7 @@ class VegetationDataset(WsGeoDataset):
         }
         for dataset_name, url in vegetation_datasets_urls.items():
             print(f"Downloading the vegetation geospatial dataset '{dataset_name}'. Please wait...")
-            self._download_and_extract_zip_file(url=url, extract_dir=os.path.join(input_geodir, dataset_name))
+            download_and_extract_zip_file(url=url, extract_dir=os.path.join(input_geodir, dataset_name))
         print("Downloading the vegetation cover-type-to-name mapping from GitHub repository. Please wait...")
         url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/vegetation/saf_cover_type_mapping.json"
         file_content = requests.get(url).text

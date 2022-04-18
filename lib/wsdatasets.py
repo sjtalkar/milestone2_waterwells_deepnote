@@ -2,16 +2,15 @@
 import abc
 import os
 import requests
-import zipfile
 import pandas as pd
 import pygeos as pg
 import geopandas as gpd
 
 from typing import List, Tuple
-from io import BytesIO
 from fiona.errors import DriverError
 from shapely.geometry import Polygon, MultiPolygon, MultiPoint
 from shapely.ops import voronoi_diagram
+from lib.download import download_and_extract_zip_file
 
 
 class BaseWsDataset(abc.ABC):
@@ -64,21 +63,6 @@ class WsGeoDataset(BaseWsDataset):
         self.ca_counties_df, self.ca_boundaries = self._preprocess_ca_shapefile(ca_shapefile)
         self.counties_and_trs_df = gpd.overlay(self.sjv_township_range_df, self.ca_counties_df, how='identity',
                                                keep_geom_type=True)
-
-    def _download_and_extract_zip_file(self, url: str, extract_dir: str):
-        # Download the dataset content
-        zipfile_content = requests.get(url).content
-        os.makedirs(extract_dir, exist_ok=True)
-        # extract the zip files directly from the content
-        with zipfile.ZipFile(BytesIO(zipfile_content)) as zf:
-            # For each members of the archive
-            for member in zf.infolist():
-                # If it's a directory, continue
-                if member.filename[-1] == "/": continue
-                # Else write its content to the dataset root folder
-                with open(os.path.join(extract_dir, os.path.basename(member.filename)),
-                          "wb") as outfile:
-                    outfile.write(zf.read(member))
 
     def _read_geospatial_file(self, filename: str):
         """Read a Geospatial dataframe and set the projection as WGS84 Latitude/Longitude ("EPSG:4326").
@@ -182,7 +166,7 @@ class WsGeoDataset(BaseWsDataset):
             ca_geodf = gpd.read_file(ca_shapefile).to_crs(epsg=4326)
         except (FileNotFoundError, DriverError):
             url = "https://data.ca.gov/dataset/e212e397-1277-4df3-8c22-40721b095f33/resource/b0007416-a325-4777-9295-368ea6b710e6/download/ca-county-boundaries.zip"
-            self._download_and_extract_zip_file(url, os.path.dirname(ca_shapefile))
+            download_and_extract_zip_file(url, os.path.dirname(ca_shapefile))
             ca_geodf = gpd.read_file(ca_shapefile).to_crs(epsg=4326)
         ca_counties = ca_geodf[["NAME", "geometry"]].copy()
         ca_counties.rename(columns={"NAME": "COUNTY"}, inplace=True)
