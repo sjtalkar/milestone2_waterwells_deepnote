@@ -17,6 +17,8 @@ This repository is organized following the below folder structure:
 
 ## Documentation Table of Contents
 * Datasets
+  * [Credits and List of Dataset Sources](doc/assets/credits.md)
+  * [General Information on Datasets Download](doc/assets/download.md) 
   * [The Crops Dataset](doc/assets/crops.md)
   * [The Groundwater Dataset](doc/assets/groundwater.md)
   * [The Population Dataset](doc/assets/population.md)

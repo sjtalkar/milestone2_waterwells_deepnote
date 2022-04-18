@@ -53,7 +53,7 @@ the local `/assets/inputs/crops/` folder. If files are not found, the data are a
 [Statewide Crop Mapping](https://data.cnra.ca.gov/dataset/statewide-crop-mapping) page, when running the 
 `/eda/crops_classes.ipynb` or `/eda/crops_detailed.ipynb` notebook. The custom crop name-to-type mapping JSON file is 
 likewise automatically downloaded from 
-[a dedicated Github repository](https://github.com/mlnrt/milestone2_waterwells_data) where we provide additional files.
+[a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) where we provide additional files.
 
 The datasets used for this analysis are the _Statewide Crop Mapping GIS Shapefiles_ datasets for the years 2014, 2016,
 2018. All the files can be directly downloaded from the 

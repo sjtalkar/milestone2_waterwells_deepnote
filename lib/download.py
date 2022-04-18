@@ -36,23 +36,24 @@ def download_and_extract_zip_file(url: str, extract_dir: str):
                 outfile.write(zf.read(member))
 
 
-def download_population_raw_data(input_datafile: str = "../assets/inputs/population/population.csv",
-                                 tract_geofile: str = "../assets/inputs/population/tracts_map/tl_2019_06_tract.shp"):
+def download_population_raw_data(apikey_file: str = "./assets/inputs/population/census_api_token.pickle",
+                                 input_datafile: str = "./assets/inputs/population/population.csv",
+                                 tract_geofile: str = "./assets/inputs/population/tracts_map/tl_2019_06_tract.shp"):
     """
     This functions downloads the raw data from the Census Bureau.
 
     :param input_datafile: the file where to store the yearly population estimates
     :param tract_geofile: the file were to store the Census Tracts geometries
     """
-    print("Data not found locally.")
     try:
-        with open(r"../assets/inputs/population/census_api_token.pickle", "rb") as token_file:
+        with open(apikey_file, "rb") as token_file:
             token = pickle.load(token_file)
     except FileNotFoundError:
-        print("""ERROR: No API token pickle file found in ../assets/inputs/population/census_api_token.pickle.
-                Please create a pickle file containing the Census API token.
-                Go to https://api.census.gov/data/key_signup.html to receive your own API token.""")
-        exit(1)
+        print("""ERROR: No API token pickle file found in ./assets/inputs/population/census_api_token.pickle.
+        Please create a pickle file containing the Census API token.
+        Go to https://api.census.gov/data/key_signup.html to receive your own API token.
+        Follow the Pickle documentation https://docs.python.org/3/library/pickle.html to create the pickle file.""")
+        return
     os.makedirs(os.path.dirname(input_datafile), exist_ok=True)
     population_df = pd.DataFrame()
     # The population estimates for 2021 is not available from the ACS estimates API yet.
@@ -275,8 +276,11 @@ def download_all_elevations(well_datafile: str = "./assets/inputs/wellcompletion
         # To avoid overloading the API service, we check if the batch has already been fully downloaded or not
         # The file must exist and contains 1500 rows. If it contains less than 1500 rows, we re-download it.
         try:
-            existing_df = pd.read_csv(os.path.join(elevation_basedir, f"lat_long_elev_{start_row}.csv"))
-            if len(existing_df) == batch_size:
+            existing_df = pd.read_csv(os.path.join(elevation_basedir, f"lat_lon_elev_{start_row}.csv"))
+            # If the existing file contains a number of rows equal to the batch size, or if it is the last batch
+            # and it contains a number of rows equal to the remaining rows in the last batch, then we skip the
+            # download
+            if (len(existing_df) == batch_size) or (end_row == max_row and len(existing_df) == (end_row % batch_size)):
                 part_already_downloaded = True
                 print(f"Skipping. Elevation data for {start_row} to {end_row} rows already fully downloaded.")
                 start_row, end_row = increase_batch_numbers(start_row, end_row, batch_size, max_row)
@@ -286,7 +290,7 @@ def download_all_elevations(well_datafile: str = "./assets/inputs/wellcompletion
         if not part_already_downloaded:
             try:
                 df = get_batch_elevation_from_latlon(df, lat_column='LATITUDE', lon_column='LONGITUDE')
-                df.to_csv(os.path.join(elevation_basedir, f"lat_long_elev_{start_row}.csv"), index=False)
+                df.to_csv(os.path.join(elevation_basedir, f"lat_lon_elev_{start_row}.csv"), index=False)
                 start_row, end_row = increase_batch_numbers(start_row, end_row, batch_size, max_row)
             except RequestException:
                 # We most probably got an error from the API because of the number of requests we made.

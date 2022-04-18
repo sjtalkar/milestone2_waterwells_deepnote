@@ -51,7 +51,7 @@ Citation information:
 The `PopulationDataset` class in the `/lib/population.py` custom library is designed to load pre-packaged total 
 population dataset from and the Tracts geospatial dataset from the local `/assets/inputs/population/` folder. If files 
 are not found, the data are automatically downloaded. As the Census Bureau API requires an API key, the
-total population from [a dedicated Github repository](https://github.com/mlnrt/milestone2_waterwells_data) where we 
+total population from [a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) where we 
 provide some prepackaged datasets. The Census Bureau's 2019 TIGER/Line Shapefiles dataset is downloaded directly
 from the [census bureau website](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html).
 
@@ -109,7 +109,7 @@ state-county-tract FIPS code. The population density was computed for every year
 Tract land area.
 
 The features generated and provided pre-packaged in the 
-[dedicated Github repository](https://github.com/mlnrt/milestone2_waterwells_data) are :
+[dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) are :
 
 | Feature Name | Description                                                                                |
 |--------------|--------------------------------------------------------------------------------------------|
