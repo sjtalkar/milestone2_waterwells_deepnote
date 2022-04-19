@@ -15,3 +15,4 @@
 - [Groundwater monitoring](https://www.countyofcolusa.org/DocumentCenter/View/4260/Series1Article4-GroundwaterLevelMonitoring?bidId=#:~:text=The%20elevation%20of%20the%20groundwater,groundwater%20flow%20can%20be%20determined.&text=Figure%201.)
 - [Shortage Dataset](https://data.cnra.ca.gov/dataset/household-water-supply-shortage-reporting-system-data)
 - [Soil Dataset](https://www.nrcs.usda.gov/wps/portal/nrcs/detail/soils/survey/geo/?cid=nrcs142p2_053629)
+- [Scikit-Learn pipeline](https://towardsdatascience.com/getting-the-most-out-of-scikit-learn-pipelines-c2afc4410f1a) 
