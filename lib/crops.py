@@ -112,22 +112,3 @@ class CropsDataset(WsGeoDataset):
         self.map_df = pd.concat([self.map_2014_df, self.map_2016_df, self.map_2018_df], axis=0)
         self.map_df.reset_index(inplace=True, drop=True)
 
-    def fill_missing_years(self):
-        """The Crops datasets contain data for the years 2014, 2016 and 2018. This function uses the 2014 data to fill
-        the 2015 data, the 2016 for 2017 and the 2018 for the years 2019~
-
-        :return: the function updates the self.map_df dataframe
-        """
-        # Use the 2014 data for 2015
-        map_2015_df = self.map_df[self.map_df["YEAR"] == 2014].copy()
-        map_2015_df["YEAR"] = 2015
-        # Use the 2016 data for 2017
-        map_2017_df = self.map_df[self.map_df["YEAR"] == 2016].copy()
-        map_2017_df["YEAR"] = 2017
-        self.map_df = pd.concat([self.map_df, map_2015_df, map_2017_df], axis=0)
-        # For years post 2018, use the 2018 data
-        for year in [2019, 2020, 2021]:
-            map_post_2018_df = self.map_df[self.map_df["YEAR"] == 2018].copy()
-            map_post_2018_df["YEAR"] = year
-            self.map_df = pd.concat([self.map_df, map_post_2018_df], axis=0)
-        self.map_df.reset_index(inplace=True, drop=True)

@@ -58,8 +58,8 @@ location information was similarly scraped with the page url used to retrieve th
 
 ## Features of interest
 The reservoir data is collected for each year at a weekly level and for each reservoir recording station for its 
-location. The average percentage of storage capacity over the year for every station is first
-computed.
+location. The average percentage of storage capacity over the year for every station is first computed.
+
 We have the station's latitude and longitude available to us. We use the strategy described in the 
 [California Well Completion Report Dataset documentation](/doc/well_completion_reports.md) and 
 [California Groundwater Dataset and Stations documentation](/doc/groundwater.md) to convert the latitude and longitude 
@@ -67,8 +67,11 @@ to point geometry and then through spatial join into Township-Range. Merge to th
 this Township-Range.
 
 The features extracted from the web scrapping (and stored into `/assets/inputs/reservoir/` folder) are:
-* `PCT_OF_CAPACITY` - the average percentage of storage capacity for a station
-* `geometry` - containing the latitude and longitude of the reservoir station 
+
+| Feature Name   | Description                                                          |
+|----------------|----------------------------------------------------------------------|
+| PCT_OF_CAPACITY | The average percentage of storage capacity for a station |
+| geometry | containing the latitude and longitude of the reservoir station  |
 
 ## Mapping at the Township-Range level
 The strategy in the project is:
@@ -81,3 +84,4 @@ as a geometry while creating the GeoDataFrame.
 PLSS GeoJSON to map to the closest Township-Range using sjoin method in geopandas.
 
 ## Potential issues
+None identified.

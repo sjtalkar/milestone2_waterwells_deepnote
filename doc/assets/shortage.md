@@ -67,10 +67,11 @@ Based on the above features we compute the below features per Township-Range and
 To compute well shortage count per Township-Range we use the following approach:
 1. We overlay the Township-Ranges boundaries on the well geolocation information and group wells by Township-Range.
 2. We count the number of wells per Township-Range and year in the WELL_COUNT feature.
-3Township-Ranges without any new well completion reported get a value of 0 for all the WELL_COUNT features 
+3. Township-Ranges without any new well completion reported get a value of 0 for all the WELL_COUNT features 
 
 ## Potential issues
 ### Description
-As mentioned above, reporting this data is voluntary and abscence of shortage for a county does not represent due absence of shortage
-The data is in its raw form and has to be cleaned to make it usable.
+1. As mentioned above, reporting this data is voluntary and abscence of shortage for a county does not represent due 
+absence of shortage.
 ### How did we remediate the issues?
+1. This is not an issue we can fix. The project will be based on the reported well shortages.

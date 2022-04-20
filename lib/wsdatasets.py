@@ -48,17 +48,18 @@ class WsGeoDataset(BaseWsDataset):
         # geospatial data. It is meant to be exported in a file for the downstream analysis.
         self.output_df = pd.DataFrame()
         self.__merging_keys = merging_keys
-
+        # Load the geospatial data if provided
         if input_geofiles:
             self.map_df = self._read_geospatial_file(input_geofiles[0])
             if len(input_geofiles) > 1:
                 for input_shapefile in input_geofiles[1:]:
                     self.map_df = pd.concat([self.map_df, self._read_geospatial_file(input_shapefile)], axis=0)
                 self.map_df.reset_index(inplace=True, drop=True)
-
+        # Load the separate feature dataset file if provided
         if input_datafile:
             self.data_df = self._read_input_datafile(input_datafile, input_datafile_format)
-
+        # Generate the California counties and state boundaries and the San Joaquin Valley and Township-Ranges
+        # boundaries
         self.sjv_township_range_df, self.sjv_boundaries = self._preprocess_sjv_shapefile(sjv_shapefile)
         self.ca_counties_df, self.ca_boundaries = self._preprocess_ca_shapefile(ca_shapefile)
         self.counties_and_trs_df = gpd.overlay(self.sjv_township_range_df, self.ca_counties_df, how='identity',
@@ -106,6 +107,7 @@ class WsGeoDataset(BaseWsDataset):
         :param shape: Input shapely Polygon or Multipolygon to close
         :return: the encapsulating closed Polygon
         """
+        # If the geomatry is a multi-polygon,
         if isinstance(shape, MultiPolygon):
             # Extract all the points from the MultiPolygon
             points = []
@@ -137,7 +139,8 @@ class WsGeoDataset(BaseWsDataset):
             with open(sjv_shapefile, "wb") as f:
                 f.write(geofile_content)
             sjv_plss_df = gpd.read_file(sjv_shapefile)
-        # Combine the map units at the Township-Range level
+        # We use GeoPandas dissolve function to dissolve all the geometries in Township-Ranges as one to get only one
+        # geometry (i.e. one row in the GeoPandas DataFrame) per Township-Range
         sjv_township_range_df = sjv_plss_df.dissolve(by='TownshipRange').reset_index()
         # Keep only the 'TownshipRange' and 'geometry' columns
         sjv_township_range_df = sjv_township_range_df[["TownshipRange", "geometry"]]
@@ -148,6 +151,8 @@ class WsGeoDataset(BaseWsDataset):
         # Create an artificial column with a unique value to merge all the Polygons together
         sjv_polygon = sjv_township_range_df.copy()
         sjv_polygon["merge"] = 0
+        # We use GeoPandas dissolve function to dissolve all the Township-Ranges geometries as one to get only the San
+        # Joaquin Valley boundaries
         sjv_polygon = sjv_polygon.dissolve(by="merge")
         # Fill in any potential holes within the shape. This is important when clipping the San Joaquin Valley
         # polygon over a dataset containing data for the entire state of California. Otherwise it would also clip
@@ -162,16 +167,21 @@ class WsGeoDataset(BaseWsDataset):
         :param ca_shapefile: the path to the shapefile containing the California counties polygons
         :return: A Shapely Polygon of the California boundaries
         """
+        # Try to read the California Counties geospatial data on the local filesystem. If the file is not there,
+        # download it first
         try:
             ca_geodf = gpd.read_file(ca_shapefile).to_crs(epsg=4326)
         except (FileNotFoundError, DriverError):
-            url = "https://data.ca.gov/dataset/e212e397-1277-4df3-8c22-40721b095f33/resource/b0007416-a325-4777-9295-368ea6b710e6/download/ca-county-boundaries.zip"
+            url = "https://data.ca.gov/dataset/e212e397-1277-4df3-8c22-40721b095f33/resource/b0007416-a325-4777-9295-" \
+                  "368ea6b710e6/download/ca-county-boundaries.zip"
             download_and_extract_zip_file(url, os.path.dirname(ca_shapefile))
             ca_geodf = gpd.read_file(ca_shapefile).to_crs(epsg=4326)
         ca_counties = ca_geodf[["NAME", "geometry"]].copy()
         ca_counties.rename(columns={"NAME": "COUNTY"}, inplace=True)
         # Create an artificial column with a unique value to merge all the Polygons together
         ca_geodf["merge"] = 0
+        # We use GeoPandas dissolve function to dissolve all the counties geometries as one to get the California
+        # state boundaries
         ca_boundaries = ca_geodf.dissolve(by="merge")
         return ca_counties, ca_boundaries
 
@@ -191,11 +201,15 @@ class WsGeoDataset(BaseWsDataset):
         :param dropkeys: whether to drop the map and data keys from the final map dataset.
         :param dropna: whether to drop rows with missing values in the data dataset.
         """
+        # Id there are feature data to merge with the geospatial data
         if self.data_df is not None:
+            # Merge the feature data with the geospatial data based on the provided merging keys
             self.map_df = self.map_df.merge(self.data_df, how=how, left_on=self.__merging_keys[0],
                                             right_on=self.__merging_keys[1])
+            # Whether to drop the keys or not from the final dataset
             if dropkeys:
                 self.map_df.drop(self.__merging_keys, axis=1, inplace=True)
+        # Whether to drop rows with missing values in the final data dataset
         if dropna:
             self.map_df.dropna(inplace=True)
 
@@ -207,15 +221,22 @@ class WsGeoDataset(BaseWsDataset):
         "CROP_TYPE").
         :param feature_value: the value to fill the feature with (e.g. "X", "Unclassified", or 0).
         """
+        # Get the list of the Township-Ranges in the San Joaquin Valley
         all_townships = set(self.sjv_township_range_df["TOWNSHIP_RANGE"].unique())
+        # For all the years in the dataset
         for year in self.map_df["YEAR"].unique():
             year_df = self.map_df[self.map_df["YEAR"] == year]
+            # Get the list of the Township-Ranges with no data for that year
             missing_townships = all_townships - set(year_df["TOWNSHIP_RANGE"].unique())
+            # Get the geospatial data of the missing Township-Ranges
             missing_townships_df = self.sjv_township_range_df[self.sjv_township_range_df["TOWNSHIP_RANGE"].isin(
                 missing_townships)].copy()
+            # Add the year column to the missing Township-Ranges
             missing_townships_df["YEAR"] = year
+            # Add feature values to the missing Township-Ranges
             for feature in features_to_fill:
                 missing_townships_df[feature] = feature_value
+            # Add the new rows to the final dataset
             self.map_df = pd.concat([self.map_df, missing_townships_df], axis=0)
 
     ####################################################################################################################
@@ -226,6 +247,8 @@ class WsGeoDataset(BaseWsDataset):
         """This function keeps only the map_df data for the San Joaquin Valley. The result is saved in the self.map_df
         attribute.
         """
+        # Cut the geospatial data in map_df with the boundaries of the San Joaquin Valley to keep only the geometries
+        # within the San Joaquin Valley boundaries
         self.map_df = gpd.clip(self.map_df, self.sjv_boundaries.geometry[0])
         self.map_df.reset_index(inplace=True, drop=True)
 
@@ -297,7 +320,8 @@ class WsGeoDataset(BaseWsDataset):
         :param group_by_features: the features to group by
         :param aggfunc: the aggregation function to use
         """
-        # Aggregate the areas within the townships
+        # To aggregate the areas within the townships we use GeoPandas dissolve function to dissolve geometries in the
+        # same group as one geometry
         new_map_df = self.map_df.dissolve(by=group_by_features, aggfunc=aggfunc).reset_index()
         # There's a bug in the GeoPandas dissolve function which can convert years in floats
         new_map_df["YEAR"] = new_map_df["YEAR"].astype(int)
@@ -333,25 +357,41 @@ class WsGeoDataset(BaseWsDataset):
         :return: a GeoDataFrame with the aggregated features
         """
         features_to_keep = by + features_to_aggregate
+        # We need to keep the geometry feature so if it is not in the list we add it
         if "geometry" not in features_to_keep:
             features_to_keep.append("geometry")
+        # perform a spatial join to group the data points by the columns in the "by" list
         geodf = self._get_geodata_grouped_by_township()[features_to_keep]
+        # Use GeoPandas dissolve function to dissolve geometries in the same group as one geometry
         agg_township_df = geodf.dissolve(by=by, aggfunc=aggfunc).reset_index()
+        # Add the prefix to the new feature name
         if new_feature_suffix:
             for feature_name in features_to_aggregate:
                 agg_township_df.rename(columns={feature_name: feature_name + new_feature_suffix}, inplace=True)
+        # Fill the NaN values with 0 if requested to do so
         if fill_na_with_zero:
             agg_township_df = agg_township_df.fillna(0)
         return agg_township_df
 
     def _get_category_count_by_township(self, by: List[str], feature_name: str, feature_prefix: str = None
                                         ) -> gpd.GeoDataFrame:
+        """This feature counts the number of points (e.g. wells) in each Township-Range for each year.
+
+        :param by: the list of features to use to merge the points
+        :param feature_name: the feature to count
+        :param feature_prefix: the prefix to add to the aggregated feature name
+        :return: a GeoDataFrame with the feature count
+        """
         features_to_keep = by.copy()
         features_to_keep.append(feature_name)
+        # perform a spatial join to group the data points by the columns in the "by" list
         geodf = self._get_geodata_grouped_by_township()[features_to_keep]
+        # Count the number of points in each category
         category_count_df = geodf.groupby(features_to_keep, as_index=False).size()
+        # Pivot the dataframe to transform each category into a column and have the count as a value
         category_count_df = pd.pivot_table(category_count_df, index=by, columns=[feature_name], values="size",
                                            fill_value=0).reset_index()
+        # Rename the columns by adding the prefix
         category_count_df.columns = [
             f"{feature_prefix.replace(' ', '_').strip('_').upper()}_{c.upper().replace(' ', '_')}"
             if c not in {"TOWNSHIP_RANGE", "YEAR"} else c for c in category_count_df.columns]
