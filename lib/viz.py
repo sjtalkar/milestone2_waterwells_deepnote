@@ -250,3 +250,47 @@ def display_data_on_map(gdf: gpd.GeoDataFrame, feature: str = None, year: int = 
         return gdf[gdf.YEAR == year].explore(feature)
     else:
         return gdf.explore(feature)
+
+def draw_corr_heatmap( df:pd.DataFrame,
+                       drop_columns:list
+):
+    """
+    Function to generate a heatmap for a dataframe
+    
+    :params df   : pd.Dataframe Dataframe with features
+    :param drop_columns: Category columns that are not included in the correlation map
+    :return    Altair heatmap chart
+      
+    """
+    
+    alt.data_transformers.disable_max_rows()
+   
+    cor_data = (df.drop(columns=drop_columns)
+              .corr().stack()
+              .reset_index()     # The stacking results in an index on the correlation values, we need the index as normal columns for Altair
+              .rename(columns={0: 'correlation', 'level_0': 'feature_1', 'level_1': 'feature_2'}))
+    cor_data['correlation_label'] = cor_data['correlation'].map('{:.2f}'.format)  # Round to 2 decimal
+    
+    base = (
+        alt.Chart(cor_data)
+              .encode(x= alt.X("feature_1:N", 
+                          #sort=neworder
+                     ),
+                     y=alt.Y("feature_2:N",
+                        #sort = neworder
+                     ),
+                     tooltip=[alt.Tooltip("feature_1:N", title='feature_1'),
+                             alt.Tooltip("feature_2:N", title='feature_2'),
+                             alt.Tooltip("correlation_label:Q", title='Correlation Value')
+                             ]
+               ).properties(width=alt.Step(10), height=alt.Step(10))
+    )
+
+
+    rects = (base.mark_rect().encode(
+                            color=  alt.Color('correlation_label:Q',
+                                              scale=alt.Scale(scheme ="lightgreyteal"))
+                            ).properties(width=1000, height=1000)
+            )
+        
+    return(rects)
