@@ -30,39 +30,43 @@ prepackaged in [a dedicated GitHub repository](https://github.com/mlnrt/mileston
 also automatically downloaded. 
 
 The elevation data were collected using APIs from the 
-[The National Map - Elevation Point Query Service](https://nationalmap.gov/epqs/). You can refer to the code in the
-`/lib/get_elevation.py` Python script for the code used to collect the elevation data. These data are prepackaged and
-provided to you in [a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) we create to
-ease the collection of the data and the repeatability of the analysis.
+[The National Map - Elevation Point Query Service](https://nationalmap.gov/epqs/) as shown in the code sample below. 
 
 ```Python
 import requests
-url = 'https://nationalmap.gov/epqs/pqs.php?'  
 
-def elevation_function(df, lat_column, lon_column):
-    """Query service using lat, lon. add the elevation values as a new column."""
-    elevations = []
-    for lat, lon in zip(df[lat_column], df[lon_column]):
+def get_elevation_from_latlon(lat: float, lon: float) -> float:
+    """
+    This function queries the National Map service to retrieve the elevation of a point based on its latitude and
+    longitude.
 
-        # define rest query params
-        params = {
-            'output': 'json',
-            'x': lon,
-            'y': lat,
-            'units': 'Meters'
-        }
-
-        # format query string and return query value
-        result = requests.get((url + urllib.parse.urlencode(params)))
-        elevations.append(result.json()['USGS_Elevation_Point_Query_Service']['Elevation_Query']['Elevation'])
-
-    df['elev_meters'] = elevations
-    return df
+    :param lat: latitude of the point
+    :param lon: longitude of the point
+    :return: elevation of the point
+    """
+    url = r"https://nationalmap.gov/epqs/pqs.php?"
+    params = {
+        "output": "json",
+        "x": lon,
+        "y": lat,
+        "units": "Meters"
+    }
+    # Query the national map service
+    result = requests.get(url, params=params).json()
+    elevation = result["USGS_Elevation_Point_Query_Service"]["Elevation_Query"]["Elevation"]
+    return elevation
 ```
 
+You can refer to the code in the `/lib/download.py` Python script for the code used to collect the elevation data and
+the corresponding [download documentation](doc/assets/download.md). These data are prepackaged and provided to you in 
+[a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) we create to ease the collection 
+of the data and the repeatability of the analysis.
+
 **Note:**
-The public dataset site offers [Data API access](https://data.cnra.ca.gov/api/1/util/snippet/api_info.html?resource_id=8da7b93b-4e69-495d-9caa-335691a1896b) along with examples that show how to retrieve filtered
-data. For instance, it provides the following example for Python, which was employed to gather the data programatically. 
+The public dataset site offers 
+[Data API access](https://data.cnra.ca.gov/api/1/util/snippet/api_info.html?resource_id=8da7b93b-4e69-495d-9caa-335691a1896b) 
+along with examples that show how to retrieve filtered  data. For instance, it provides the following example for 
+Python, which was employed to gather the data programmatically. 
 
 ```Python
 import json

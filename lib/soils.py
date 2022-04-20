@@ -82,14 +82,3 @@ class SoilsDataset(WsGeoDataset):
         self.data_df = self.data_df.loc[self.data_df.groupby("mukey")["comppct_r"].idxmax()].reset_index(drop=True)
         self.data_df.drop(["comppct_r"], axis=1, inplace=True)
         self.data_df.rename(columns={"SOIL_TYPE": "DOMINANT_SOIL_TYPE"}, inplace=True)
-
-    def fill_missing_years(self):
-        """The Soils dataset only contains data from the 2016 soil survey. As we don't expect the soil nature to
-        change from year to year, the 2016 data are copied to all the other years from 2015. The function updates the
-        self.map_df dataframe.
-        """
-        for year in [2014, 2015, 2017, 2018, 2019, 2020, 2021]:
-            map_other_year_df = self.map_df[self.map_df["YEAR"] == 2016].copy()
-            map_other_year_df["YEAR"] = year
-            self.map_df = pd.concat([self.map_df, map_other_year_df], axis=0)
-        self.map_df.reset_index(inplace=True, drop=True)

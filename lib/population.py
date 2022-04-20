@@ -1,6 +1,5 @@
 import requests
 import os
-import pickle
 import pandas as pd
 import geopandas as gpd
 
@@ -91,17 +90,6 @@ class PopulationDataset(WsGeoDataset):
         missing_2020_df["TOTAL_POPULATION"] = round(missing_2020_df["TREND"] * missing_2020_df["TOTAL_POPULATION"])
         missing_2020_df.drop(columns=["TREND"], inplace=True)
         self.data_df = pd.concat([self.data_df, missing_2020_df], axis=0)
-        # We are missing the 2021 data. We approximate them as follow:
-        # For every Tract, we take the trend of the population density of the previous year and use that
-        # to estimate the population density of 2021 from 2020.
-        trend_df = get_trend(self.data_df, year=2020)
-        year_2021_df = self.data_df[self.data_df["YEAR"] == 2020].copy()
-        year_2021_df["YEAR"] = 2021
-        year_2021_df = year_2021_df.merge(trend_df[["TRACT_ID", "TREND"]], on="TRACT_ID")
-        year_2021_df["TOTAL_POPULATION"] = round(year_2021_df["TREND"] * year_2021_df["TOTAL_POPULATION"])
-        year_2021_df.drop(columns=["TREND"], inplace=True)
-        self.data_df = pd.concat([self.data_df, year_2021_df], axis=0)
-        self.data_df.reset_index(inplace=True, drop=True)
         # Now that we have all data we compute the population density per year and tract
         self.data_df["POPULATION_DENSITY"] = self.data_df["TOTAL_POPULATION"] / self.data_df["LAND_AREA"]
         self.data_df = self.data_df[["TRACT_ID", "POPULATION_DENSITY", "YEAR"]]
