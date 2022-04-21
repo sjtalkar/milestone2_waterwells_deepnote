@@ -16,10 +16,7 @@ from requests import RequestException
 from bs4 import BeautifulSoup
 
 
-########################################################################################################################
-# Data Download Functions
-########################################################################################################################
-
+# Data Download Functions 
 def download_and_extract_zip_file(url: str, extract_dir: str):
     """
     This function downloads a zip file and extracts it to the specified directory.
@@ -305,21 +302,22 @@ def download_all_elevations(well_datafile: str = "./assets/inputs/wellcompletion
                 time.sleep(wait_between_batches * 60)
     print("Downloads complete.")
 
-########################################################################################################################
-# We Scrapping Functions
-########################################################################################################################
+
+
+# Web Scraping with BeautifulSoup 
 
 def download_reservoir_stations_geospatial_data(stationfile: str = "./assets/inputs/reservoir/map/reservoir_stations.shp"):
     """This function retrieves all the precipitation stations geospatial data and saves them locally in a Shapefile.
-    It scraps the web for precipitation data at daily and monthly level and extracts the latitude and longitude of all
+    It scrapes the web for precipitation data at daily and monthly level and extracts the latitude and longitude of all
     stations and saves it in a Geospatial Shapefile.
 
     :param stationfile: the file where to store the reservoir geospatial data
     """
-    print("Scrapping reservoir geospatial data from the web. Please wait...")
+    print("Scraping reservoir geospatial data from the web. Please wait...")
     # Make a GET request to fetch the raw HTML content
     html_content = requests.get("https://cdec.water.ca.gov/reportapp/javareports?name=DailyRes").text
     # Parse the html content
+    #Note: Developer tools in Chrome will inform you of the element type and element names to be retrieved.
     soup = BeautifulSoup(html_content, "lxml")
     station_table = soup.find("table", attrs={"id": "DailyRes_LIST", "class": "data"})
     all_rows_list = []
@@ -352,6 +350,7 @@ def scrape_reservoir_data_per_date(a_date: str):
     # Make a GET request to fetch the raw HTML content
     html_content = requests.get(url).text
     # Parse the html content
+    #Note: Developer tools in Chrome will inform you of the element type and element names to be retrieved.
     soup = BeautifulSoup(html_content, "lxml")
     reservoir_table = soup.find("table", attrs={"id": "RES", "class": "data"})
     if reservoir_table is None:
@@ -436,6 +435,7 @@ def scrape_precipitation_data_per_year(year: int) -> pd.DataFrame:
     # Make a GET request to fetch the raw HTML content
     html_content = requests.get(url).text
     # Parse the html content
+    #Note: Developer tools in Chrome will inform you of the element type and element names to be retrieved.
     soup = BeautifulSoup(html_content, "lxml")
     precipitation_table = soup.find("table", attrs={"id": "data", "class": "data"})
 
@@ -476,7 +476,7 @@ def download_monthly_precipitation_data(precipitation_datafile: str = "./assets/
     """
     all_years_precipitation_data = pd.DataFrame()
     current_year = datetime.now().year
-    print(f"Scrapping the {year_start}-{current_year-1} precipitation measurements data from the web. Please wait...")
+    print(f"Scraping the {year_start}-{current_year-1} precipitation measurements data from the web. Please wait...")
     # We use threading to load the data in parallel
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
         precipitations = list(tqdm(executor.map(scrape_precipitation_data_per_year, range(year_start, current_year)),
@@ -498,7 +498,7 @@ def scrape_precipitation_station_data(level: str, station_features: List[str]):
     geospatial data of the stations
     :return: the precipitation stations geospatial data
     """
-    print(f"Scrapping the {level} precipitation stations data from the web. Please wait...")
+    print(f"Scraping the {level} precipitation stations data from the web. Please wait...")
     if level == "daily":
         url = f"https://cdec.water.ca.gov/reportapp/javareports?name=DailyStations"
     else:
@@ -506,6 +506,7 @@ def scrape_precipitation_station_data(level: str, station_features: List[str]):
     # Make a GET request to fetch the raw HTML content
     html_content = requests.get(url).text
     # Parse the html content
+    #Note: Developer tools in Chrome will inform you of the element type and element names to be retrieved.
     soup = BeautifulSoup(html_content, "lxml")
 
     if level == "daily":
@@ -530,7 +531,7 @@ def scrape_precipitation_station_data(level: str, station_features: List[str]):
     return station_table
 
 def download_precipitation_stations_geospatial_data(precipitation_stationfile: str = "./assets/inputs/precipitation/map/precipitation_stations.shp"):
-    """This function retrieves all the precipitation stations geospatial data and stores them locally. It scraps the web
+    """This function retrieves all the precipitation stations geospatial data and stores them locally. It scrapes the web
     for precipitation data at daily and monthly level and extracts the latitude and longitude of all stations and
     stores it in a Geospatial Shapefile.
 
