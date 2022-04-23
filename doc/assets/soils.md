@@ -105,4 +105,5 @@ value set to the `compname` value (e.g. Urban Land, Beaches, Glaciers, Dune land
 then merged to the map dataset giving one `dominant_soil_type` per map unit.
 3. To split the soil survey map per townships from the TRS land survey system we use the same method described in the 
 documentation [Overlaying San Joaquin Valley Township Boundaries](doc/etl/township_overlay.md).
-4. As we do not expect the soil type to change from year, the 2016 soil data are used for all the other years.
+4. As we do not expect the soil type to change from year, the 2016 soil data are used for all the other years. The 
+scikit-learn column transformer will populate missing years data for all township ranges from the data for 2016

@@ -62,4 +62,4 @@ Please refer to this documentation [Overlaying San Joaquin Valley Township Bound
 the Central Valley.
 ### How did we remediate these issues?
 1. We made the assumption that forests do not change their tree type coverage on a yearly basis. Based on this 
-assumption, we used those data for all the years between 2015 to 2021.
+assumption, we used those data for all the years between 2015 to 2021. The scikit-learn column transformer will populate missing years data for all township ranges from the data for 2014.
