@@ -294,3 +294,71 @@ def draw_corr_heatmap( df:pd.DataFrame,
             )
         
     return(rects)
+
+
+def draw_components_variance_chart(
+    pca
+):
+    """
+    This function creates a scree plot. A scree plot plots the explained variance against number of components
+    and helps determine the number of components to pick.
+
+    params: pca: pca object fit to the data
+    returns:  Dataframe with NaNs replaced for vegetation and crops columns
+    """
+    
+    
+    df = pd.DataFrame({'n_components' : range(1,pca.n_components_ + 1), 'explained_variance':pca.explained_variance_ratio_})
+    
+    return alt.Chart(df
+    ).mark_line(
+    ).encode(
+    x='n_components:O',
+    y='explained_variance:Q')
+
+
+def biplot(score, coeff, maxdim, pcax, pcay, labels=None):
+    """
+      This function uses 
+      score - the transformed data returned by pca - data as expressed according to the new axis
+      coeff - the loadings from the pca_components_
+      
+      For the feaures we are interested in, it plots the correlation between the original features and the PCAs.
+      Use cosine similarity and angle measures between axes.
+      
+      It shows how the data is related to the ORIGINAL features in the positive and negative direction.
+      
+    """
+    zoom = 0.5
+    pca1=pcax-1
+    pca2=pcay-1
+    xs = score[:,pca1]
+    ys = score[:,pca2]
+    n = min(coeff.shape[0], maxdim)
+    width = 2.0 * zoom
+    scalex = width/(xs.max()- xs.min())
+    scaley = width/(ys.max()- ys.min())
+    text_scale_factor = 1.3
+        
+    fig = plt.gcf()
+    fig.set_size_inches(9, 9)
+    
+    plt.scatter(xs*scalex, ys*scaley, s=9)
+    for i in range(n):
+        plt.arrow(0, 0, coeff[i,pca1], coeff[i,pca2],
+                  color='b',alpha=0.9, head_width = 0.03 * zoom) 
+        if labels is None:
+            plt.text(coeff[i,pca1]* text_scale_factor, 
+                     coeff[i,pca2] * text_scale_factor, 
+                     "Var"+str(i+1), color='g', ha='center', va='center')
+        else:
+            plt.text(coeff[i,pca1]* text_scale_factor, 
+                     coeff[i,pca2] * text_scale_factor, 
+                     labels[i], color='g', ha='center', va='center')
+    
+    plt.xlim(-zoom,zoom)
+    plt.ylim(-zoom,zoom)
+    plt.xlabel("PC{}".format(pcax))
+    plt.ylabel("PC{}".format(pcay))
+    plt.grid()
+    return plt
