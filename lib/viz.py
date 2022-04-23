@@ -1,8 +1,9 @@
 import altair as alt
 import pandas as pd
 import geopandas as gpd
-from datetime import datetime
 from typing import List
+import matplotlib.pyplot as plt
+from datetime import datetime
 
 def draw_missing_data_chart(df: pd.DataFrame):
     """This function charts the percentage missing data in the data file read in
@@ -13,6 +14,8 @@ def draw_missing_data_chart(df: pd.DataFrame):
     missing_value_df = pd.DataFrame({'column_name': df.columns,
                                      'percent_missing': percent_missing})
     missing_value_df.sort_values('percent_missing', ascending=False, inplace=True)
+
+    color_for_bars = '#6e0a1e' #'orange'
 
     sort_list = list(missing_value_df['column_name'])
     chart = alt.Chart(missing_value_df
@@ -327,6 +330,11 @@ def biplot(score, coeff, maxdim, pcax, pcay, labels=None):
       Use cosine similarity and angle measures between axes.
       
       It shows how the data is related to the ORIGINAL features in the positive and negative direction.
+
+      :param: score is the value of data points as per the linear combination of the principal axes
+      :param:coeff: are the eigen values of the eigen vectors
+      :param:pcax: The horizontal X-axis
+      :param:pcay: The vertical y-axis 
       
     """
     zoom = 0.5
@@ -341,7 +349,9 @@ def biplot(score, coeff, maxdim, pcax, pcay, labels=None):
     text_scale_factor = 1.3
         
     fig = plt.gcf()
-    fig.set_size_inches(9, 9)
+    #fig.set_size_inches(9, 9)
+    fig.set_size_inches(16, 16)
+    
     
     plt.scatter(xs*scalex, ys*scaley, s=9)
     for i in range(n):
@@ -362,3 +372,19 @@ def biplot(score, coeff, maxdim, pcax, pcay, labels=None):
     plt.ylabel("PC{}".format(pcay))
     plt.grid()
     return plt
+
+def draw_feature_importance(feature_list: list, importance_list: list):
+    """This function charts the percentage missing data in the data file read in
+
+    :param feature_list: The list of features for which the regressor provides importance values
+    :param importance_list: Values of feature importance
+
+    """
+    df = pd.DataFrame({"Feature Name": feature_list, "Importance": importance_list})
+    feature_imp_chart = (
+        alt.Chart(df)
+        .mark_bar(color="#6e0a1e")
+        .encode(x=alt.X("Feature Name:N", sort="-y"), y="Importance:Q")
+    )
+    return feature_imp_chart
+
