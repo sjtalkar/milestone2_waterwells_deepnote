@@ -1,12 +1,13 @@
 import numpy as np
 import pandas as pd
 
+from typing import Tuple
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
-from sklearn.utils.validation import check_is_fitted
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import FunctionTransformer, MinMaxScaler
+from sklearn.model_selection import GroupShuffleSplit, TimeSeriesSplit
 
 
 def fill_veg_from_prev_year(df: pd.DataFrame):
@@ -256,3 +257,24 @@ def create_transformation_pipelines(X:pd.DataFrame):
     columns = columns_to_transform["used"] + remainder_cols
     impute_pipeline = make_pipeline(cols_transformer)
     return impute_pipeline, columns
+
+def group_train_test_split(X: pd.DataFrame, random_seed=42) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    tr_splitter = GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=random_seed)
+    X_no_index = X.reset_index(drop=False)
+    split = tr_splitter.split(X_no_index, groups=X_no_index["TOWNSHIP_RANGE"])
+    train_idx, test_idx = next(split)
+    X_train = X_no_index.loc[train_idx].set_index(['TOWNSHIP_RANGE', 'YEAR'], drop=True)
+    X_test = X_no_index.loc[test_idx].set_index(['TOWNSHIP_RANGE', 'YEAR'], drop=True)
+    return X_train, X_test
+
+def time_train_test_split(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    X = df.copy()
+    X.reset_index(inplace=True)
+    X.sort_values(by=["YEAR"], ascending=True, inplace=True, ignore_index=True)
+    tr_splitter = TimeSeriesSplit(n_splits=2, test_size=len(X["TOWNSHIP_RANGE"].unique()))
+    split = tr_splitter.split(X)
+    next(split)
+    train_idx, test_idx = next(split)
+    X_train = X.loc[train_idx].set_index(['TOWNSHIP_RANGE', 'YEAR'], drop=True)
+    X_test = X.loc[test_idx].set_index(['TOWNSHIP_RANGE', 'YEAR'], drop=True)
+    return X_train, X_test
