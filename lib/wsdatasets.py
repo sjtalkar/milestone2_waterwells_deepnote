@@ -498,5 +498,6 @@ class WsGeoDataset(BaseWsDataset):
         """This function writes the self.output_df dataframe into a CSV file.
         :param output_filename: the name of the file with the relative path
         """
+        os.makedirs(os.path.dirname(output_filename), exist_ok=True)
         if not self.output_df.empty:
             self.output_df.to_csv(output_filename, index=False)
