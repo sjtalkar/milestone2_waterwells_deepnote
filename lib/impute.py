@@ -194,8 +194,11 @@ def create_transformation_cols(X:pd.DataFrame):
     ]
     pct_cols = ["PCT_OF_CAPACITY"]
     gse_cols = ["GROUNDSURFACEELEVATION_AVG"]
+    other_cols = list(set(X.columns) - set(wcr_cols + veg_soils_crops_cols + population_cols + pct_cols + gse_cols) -
+                      {"SHORTAGE_COUNT", "GSE_GWE"})
 
     # Set the columns that go through the ColumnTransformation pipeline
+    #list_cols_used = wcr_cols + veg_soils_crops_cols + population_cols + pct_cols + gse_cols + other_cols
     list_cols_used = wcr_cols + veg_soils_crops_cols + population_cols + pct_cols + gse_cols
     columns_to_transform = {
         "wcr": wcr_cols,
@@ -203,6 +206,7 @@ def create_transformation_cols(X:pd.DataFrame):
         "pop": population_cols,
         "pct": pct_cols,
         "gse": gse_cols,
+        "other": other_cols,
         "used": list_cols_used
     }
     return columns_to_transform
@@ -248,7 +252,8 @@ def create_transformation_pipelines(X:pd.DataFrame):
             ("veg", veg_soil_crops_trans, columns_to_transform["veg_soils_crops"]),
             ("pop", pop_trans, columns_to_transform["pop"]),
             ("pct_capacity", pct_trans, columns_to_transform["pct"]),
-            ("gse", gse_trans, columns_to_transform["gse"])
+            ("gse", gse_trans, columns_to_transform["gse"]),
+#            ("scaler", MinMaxScaler(), columns_to_transform["other"])
         ],
         remainder=MinMaxScaler(),
     )
