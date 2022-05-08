@@ -6,7 +6,6 @@ from sklearn.compose import ColumnTransformer
 from sklearn.utils.validation import check_is_fitted
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline, make_pipeline
-from sklearn.compose import make_column_selector
 from sklearn.preprocessing import FunctionTransformer, MinMaxScaler
 
 
@@ -49,6 +48,7 @@ def fill_veg_from_prev_year(df: pd.DataFrame):
     crops_ffill_df.ffill(inplace=True)
 
     result = pd.merge(value_df, crops_ffill_df, how="inner", left_index=True, right_index=True)
+    # Just make sure that rows are sorted in the original order
     result.sort_index(level=["TOWNSHIP_RANGE", "YEAR"], inplace=True)
     return result
 
@@ -90,6 +90,7 @@ def estimate_pop_from_prev_year(df: pd.DataFrame):
         value_name="POPULATION_DENSITY",
     )
     pop_pivot_df.set_index(["TOWNSHIP_RANGE", "YEAR"], inplace=True, drop=True)
+    # Just make sure that rows are sorted in the original order
     pop_pivot_df.sort_index(level=["TOWNSHIP_RANGE", "YEAR"], inplace=True)
     return pop_pivot_df
 
@@ -134,42 +135,36 @@ class GroupImputer(BaseEstimator, TransformerMixin):
 
     def fit(self, X, y=None):
         # y parameter is present to maintain compatibility with other scikit-learn packages
-
-        impute_for_col = self.impute_for_col
-        impute_group_map = X.groupby(self.group_by_cols)[[self.impute_for_col]].agg(self.aggregation_func)
-
-        ## In the case of GROUNDSURFACELEVATION_AVG, there can be township ranges where
-        ## wells construction reports have never been filed, When the map has empty values, fill it
-        ## with the "aggregation_func" value of the entire map TBD!!!
-        if self.aggregation_func == "mean":
-            impute_group_map[impute_for_col].fillna(
-                impute_group_map[impute_for_col].mean(), inplace=True
-            )
-        elif self.aggregation_func == "median":
-            impute_group_map[impute_for_col].fillna(
-                impute_group_map[impute_for_col].median(), inplace=True
-            )
-        elif self.aggregation_func == "min":
-            impute_group_map[impute_for_col].fillna(
-                impute_group_map[impute_for_col].min(), inplace=True
-            )
-        elif self.aggregation_func == "max":
-            impute_group_map[impute_for_col].fillna(
-                impute_group_map[impute_for_col].max(), inplace=True
-            )
-
-        self.impute_group_map_ = impute_group_map
         self.columns = X.columns
 
         # fit method should always return self!!
         return self
 
     def transform(self, X, y=None):
-        # make sure that the imputer was fitted
-        check_is_fitted(self, "impute_group_map_")
+        impute_group_map = X.groupby(self.group_by_cols)[[self.impute_for_col]].agg(self.aggregation_func)
+
+        ## In the case of GROUNDSURFACELEVATION_AVG, there can be township ranges where
+        ## wells construction reports have never been filed, When the map has empty values, fill it
+        ## with the "aggregation_func" value of the entire map TBD!!!
+        if self.aggregation_func == "mean":
+            impute_group_map[self.impute_for_col].fillna(
+                impute_group_map[self.impute_for_col].mean(), inplace=True
+            )
+        elif self.aggregation_func == "median":
+            impute_group_map[self.impute_for_col].fillna(
+                impute_group_map[self.impute_for_col].median(), inplace=True
+            )
+        elif self.aggregation_func == "min":
+            impute_group_map[self.impute_for_col].fillna(
+                impute_group_map[self.impute_for_col].min(), inplace=True
+            )
+        elif self.aggregation_func == "max":
+            impute_group_map[self.impute_for_col].fillna(
+                impute_group_map[self.impute_for_col].max(), inplace=True
+            )
         # Do not modify the original source data.
         return_df = X.copy()
-        for index, row in self.impute_group_map_.iterrows():
+        for index, row in impute_group_map.iterrows():
             return_df.loc[index, self.impute_for_col].fillna(row.values[0], inplace=True)
         return return_df
 
