@@ -224,7 +224,7 @@ def view_year_side_by_side(gdf: gpd.GeoDataFrame, feature: str, title: str, colo
     return chart
 
 
-def visualize_seasonality_by_month(gdf: gpd.GeoDataFrame, feature: str):
+def visualize_seasonality_by_month(gdf: gpd.GeoDataFrame, feature: List[str]):
     """ This function visualizes the seasonality of the data by month
 
     :param gdf: the geodataframe to visualize
@@ -254,9 +254,7 @@ def display_data_on_map(gdf: gpd.GeoDataFrame, feature: str = None, year: int = 
     else:
         return gdf.explore(feature)
 
-def draw_corr_heatmap( df:pd.DataFrame,
-                       drop_columns:list
-):
+def draw_corr_heatmap(df: pd.DataFrame, drop_columns: List[str] = None):
     """
     Function to generate a heatmap for a dataframe
     
@@ -267,11 +265,14 @@ def draw_corr_heatmap( df:pd.DataFrame,
     """
     
     alt.data_transformers.disable_max_rows()
+    if drop_columns:
+        chart_df = df.drop(columns=drop_columns)
+    else:
+        chart_df = df
    
-    cor_data = (df.drop(columns=drop_columns)
-              .corr().stack()
-              .reset_index()     # The stacking results in an index on the correlation values, we need the index as normal columns for Altair
-              .rename(columns={0: 'correlation', 'level_0': 'feature_1', 'level_1': 'feature_2'}))
+    cor_data = (chart_df.corr().stack()
+                .reset_index()     # The stacking results in an index on the correlation values, we need the index as normal columns for Altair
+                .rename(columns={0: 'correlation', 'level_0': 'feature_1', 'level_1': 'feature_2'}))
     cor_data['correlation_label'] = cor_data['correlation'].map('{:.2f}'.format)  # Round to 2 decimal
     
     base = (
