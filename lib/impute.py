@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from typing import Tuple
+from typing import List, Tuple
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -17,9 +17,6 @@ def fill_veg_from_prev_year(df: pd.DataFrame):
     Parameters
     ----------
     df             : Dataframe with columns to impute
-    year_with_data : int
-        Year containing data to borrow for rest of the years. This is used only for POPULATION_DENSITY and
-        ignored for all other columns.
 
     Returns
     -------
@@ -52,6 +49,7 @@ def fill_veg_from_prev_year(df: pd.DataFrame):
     # Just make sure that rows are sorted in the original order
     result.sort_index(level=["TOWNSHIP_RANGE", "YEAR"], inplace=True)
     return result
+
 
 def estimate_pop_from_prev_year(df: pd.DataFrame):
     """
@@ -94,6 +92,7 @@ def estimate_pop_from_prev_year(df: pd.DataFrame):
     # Just make sure that rows are sorted in the original order
     pop_pivot_df.sort_index(level=["TOWNSHIP_RANGE", "YEAR"], inplace=True)
     return pop_pivot_df
+
 
 class PandasSimpleImputer(SimpleImputer):
     """A wrapper around `SimpleImputer` to return data frames with columns."""
@@ -169,7 +168,8 @@ class GroupImputer(BaseEstimator, TransformerMixin):
             return_df.loc[index, self.impute_for_col].fillna(row.values[0], inplace=True)
         return return_df
 
-def create_transformation_cols(X:pd.DataFrame):
+
+def create_transformation_cols(X: pd.DataFrame):
 
     """This function creates a list of columns that will undergo column transformation
 
@@ -198,7 +198,7 @@ def create_transformation_cols(X:pd.DataFrame):
                       {"SHORTAGE_COUNT", "GSE_GWE"})
 
     # Set the columns that go through the ColumnTransformation pipeline
-    #list_cols_used = wcr_cols + veg_soils_crops_cols + population_cols + pct_cols + gse_cols + other_cols
+    # list_cols_used = wcr_cols + veg_soils_crops_cols + population_cols + pct_cols + gse_cols + other_cols
     list_cols_used = wcr_cols + veg_soils_crops_cols + population_cols + pct_cols + gse_cols
     columns_to_transform = {
         "wcr": wcr_cols,
@@ -211,7 +211,8 @@ def create_transformation_cols(X:pd.DataFrame):
     }
     return columns_to_transform
 
-def create_transformation_pipelines(X:pd.DataFrame):
+
+def create_transformation_pipelines(X: pd.DataFrame):
     """This function creates pipelines that will be applied on the train and test datasets
 
         :param X: dataframe to be  transformed
@@ -263,23 +264,36 @@ def create_transformation_pipelines(X:pd.DataFrame):
     impute_pipeline = make_pipeline(cols_transformer)
     return impute_pipeline, columns
 
-def group_train_test_split(X: pd.DataFrame, random_seed=42) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    tr_splitter = GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=random_seed)
-    X_no_index = X.reset_index(drop=False)
-    split = tr_splitter.split(X_no_index, groups=X_no_index["TOWNSHIP_RANGE"])
+
+def group_train_test_split(df: pd.DataFrame, index: List[str], group: str, random_seed=42) -> \
+        Tuple[pd.DataFrame, pd.DataFrame]:
+    group_splitter = GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=random_seed)
+    X_no_index = df.reset_index(drop=False)
+    split = group_splitter.split(X_no_index, groups=X_no_index[group])
     train_idx, test_idx = next(split)
-    X_train = X_no_index.loc[train_idx].set_index(['TOWNSHIP_RANGE', 'YEAR'], drop=True)
-    X_test = X_no_index.loc[test_idx].set_index(['TOWNSHIP_RANGE', 'YEAR'], drop=True)
+    X_train = X_no_index.loc[train_idx].set_index(index, drop=True)
+    X_test = X_no_index.loc[test_idx].set_index(index, drop=True)
     return X_train, X_test
 
-def time_train_test_split(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    X = df.copy()
-    X.reset_index(inplace=True)
-    X.sort_values(by=["YEAR"], ascending=True, inplace=True, ignore_index=True)
-    tr_splitter = TimeSeriesSplit(n_splits=2, test_size=len(X["TOWNSHIP_RANGE"].unique()))
-    split = tr_splitter.split(X)
+
+def time_train_test_split(df: pd.DataFrame, index: List[str], group: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    Xy = df.copy()
+    Xy.reset_index(inplace=True)
+    Xy.sort_values(by=["YEAR"], ascending=True, inplace=True, ignore_index=True)
+    tr_splitter = TimeSeriesSplit(n_splits=2, test_size=len(Xy[group].unique()))
+    split = tr_splitter.split(Xy)
     next(split)
     train_idx, test_idx = next(split)
-    X_train = X.loc[train_idx].set_index(['TOWNSHIP_RANGE', 'YEAR'], drop=True)
-    X_test = X.loc[test_idx].set_index(['TOWNSHIP_RANGE', 'YEAR'], drop=True)
-    return X_train, X_test
+    X = Xy.loc[train_idx].set_index(index, drop=True)
+    X.sort_index(level=index, inplace=True)
+    y = Xy.loc[test_idx].set_index(index, drop=True)
+    y.sort_index(level=index, inplace=True)
+    return X, y
+
+
+def timeseries_train_test_split(df: pd.DataFrame, index: List[str], group: str, random_seed=42) -> \
+        Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    Xy_train, Xy_test = group_train_test_split(df, index=index, group=group, random_seed=random_seed)
+    X_train, y_train = time_train_test_split(Xy_train, index=index, group=group)
+    X_test, y_test = time_train_test_split(Xy_test, index=index, group=group)
+    return X_train, X_test, y_train, y_test
