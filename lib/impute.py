@@ -260,7 +260,7 @@ def create_transformation_pipelines(X: pd.DataFrame) -> Tuple[Pipeline, List[str
     return impute_pipeline, columns
 
 
-def group_train_test_split(df: pd.DataFrame, index: List[str], group: str, random_seed=42) -> \
+def train_test_group_split(df: pd.DataFrame, index: List[str], group: str, random_seed=42) -> \
         Tuple[pd.DataFrame, pd.DataFrame]:
     """This function splits the dataframe into train and test sets based on the group column
     some group time series will be in the train set and others in the test set.
@@ -280,7 +280,7 @@ def group_train_test_split(df: pd.DataFrame, index: List[str], group: str, rando
     return X_train, X_test
 
 
-def time_train_test_split(df: pd.DataFrame, index: List[str], group: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+def train_test_time_split(df: pd.DataFrame, index: List[str], group: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """This function splits the timeseries dataframe into X and y value based on time. The last time point is used
     as the y value and the rest is used as the X value.
 
@@ -303,7 +303,7 @@ def time_train_test_split(df: pd.DataFrame, index: List[str], group: str) -> Tup
     return X, y
 
 
-def timeseries_train_test_split(df: pd.DataFrame, index: List[str], group: str, random_seed=42) -> \
+def train_test_group_time_split(df: pd.DataFrame, index: List[str], group: str, random_seed=42) -> \
         Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """This function splits the timeseries dataframe into train and test sets and X and y data based on the group column
      and time. Based on the group column, some group time series will be in the train set and others in the test set
@@ -315,7 +315,7 @@ def timeseries_train_test_split(df: pd.DataFrame, index: List[str], group: str, 
     :param random_seed: random seed to be used for the split
     :return: X_train, X_test, y_train, y_test dataframes
     """
-    Xy_train, Xy_test = group_train_test_split(df, index=index, group=group, random_seed=random_seed)
-    X_train, y_train = time_train_test_split(Xy_train, index=index, group=group)
-    X_test, y_test = time_train_test_split(Xy_test, index=index, group=group)
+    Xy_train, Xy_test = train_test_group_split(df, index=index, group=group, random_seed=random_seed)
+    X_train, y_train = train_test_time_split(Xy_train, index=index, group=group)
+    X_test, y_test = train_test_time_split(Xy_test, index=index, group=group)
     return X_train, X_test, y_train, y_test
