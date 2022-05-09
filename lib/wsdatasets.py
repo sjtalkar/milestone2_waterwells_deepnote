@@ -327,8 +327,10 @@ class WsGeoDataset(BaseWsDataset):
         new_map_df["YEAR"] = new_map_df["YEAR"].astype(int)
         self.map_df = new_map_df
 
-    def _get_geodata_grouped_by_township(self):
-        """This function returns the geodata grouped by township using the GeoPandas spatial join (SJOIN) operation"""
+    def _get_geodata_grouped_by_township(self) -> gpd.GeoDataFrame:
+        """This function returns the geodata grouped by township using the GeoPandas spatial join (SJOIN) operation
+
+        :return: the geodata grouped by township"""
         features_to_keep = self.map_df.columns.tolist()
         # If TOWNSHIP_RANGE is already in the map_df dataset we get rid of it because we will get it from the sjoin with
         # the township boundaries
