@@ -11,16 +11,10 @@ from sklearn.model_selection import GroupShuffleSplit, TimeSeriesSplit
 
 
 def fill_veg_from_prev_year(df: pd.DataFrame):
-    """
-    This function fills the vegetation and crops columns with the values from the year 2014
+    """This function fills the vegetation, crops and soils columns with the values from the previous existing years. E.g. It fills 2015 data from 2014 and 2017 data from 2016.
 
-    Parameters
-    ----------
-    df             : Dataframe with columns to impute
-
-    Returns
-    -------
-    result : Dataframe with NaNs replaced for columns in the cols_to_impute list
+    :param df: dataframe to be imputed
+    :return: imputed dataframe with NaNs values estimated from previous year values
     """
     # Separate out the Crops, Vegetation and Soils columns since they have a very specific set of column to borrow from
     # and conditional columns to fill into
@@ -52,16 +46,10 @@ def fill_veg_from_prev_year(df: pd.DataFrame):
 
 
 def estimate_pop_from_prev_year(df: pd.DataFrame):
-    """
-    This function estimates teh population based on the previous year's value and trend
+    """ This function estimates teh population based on the previous year's value and trend
 
-    Parameters
-    ----------
-    df             : Dataframe with columns to impute
-
-    Returns
-    -------
-    result : Dataframe with NaNs replaced for columns in the cols_to_impute list
+    :param df: dataframe to be imputed
+    :return: imputed dataframe with NaNs values estimated from previous year values
     """
     # For population, we capture the trend over the past years 2019 to 2020 and add that to 2020 value
     # This gives us the imputed 2021 value
@@ -98,49 +86,59 @@ class PandasSimpleImputer(SimpleImputer):
     """A wrapper around `SimpleImputer` to return data frames with columns."""
 
     def fit(self, X, y=None):
+        """This function fits the group imputer on the data. In this case, it does nothing.
+
+        :param X: The dataframe to fit on
+        :param y: The target values. The y parameter is present to maintain compatibility with other scikit-learn
+        packages
+        :return: the parent class fit method
+        """
         self.columns = X.columns
         return super().fit(X, y)
 
-    def transform(self, X):
+    def transform(self, X, y=None):
+        """This function imputes the missing values in the dataframe.
+
+        :param X: The dataframe to impute on
+        :param y: The target values. The y parameter is present to maintain compatibility with other scikit-learn
+        :return: The imputed dataframe
+        """
         return pd.DataFrame(super().transform(X), columns=self.columns)
 
 
 # This class uses the base classes from scikit-learn and implements fit-transform
 class GroupImputer(BaseEstimator, TransformerMixin):
-    """
-    Class used for imputing missing values in a pd.DataFrame using either mean or median of a group.
+    """Class used for imputing missing values in a pd.DataFrame using either mean or median of a group.
 
-    Parameters
-    ----------
-    group_by_cols : list
-        List of columns used for calculating the aggregated value
-    impute_for_col : str
-        The name of the column to impute
-    aggregation_func : str
-        The aggregation function to be used to calculate value to replace nulls with,
-        can be one of ['mean', 'median', 'min', 'max']
-    Returns
-    -------
-    df_col : array-like
-        The array with imputed values in the impute_for_col column
+    :param group_by_cols: List of columns used for calculating the aggregated value
+    :param impute_for_col: The column to impute
+    :param aggregation_func: The aggregation function to use
     """
 
-    def __init__(
-            self, group_by_cols: list, impute_for_col: str, aggregation_func="mean"
-    ):
-
+    def __init__(self, group_by_cols: List[str], impute_for_col: str, aggregation_func="mean"):
         self.group_by_cols = group_by_cols
         self.impute_for_col = impute_for_col
         self.aggregation_func = aggregation_func
 
     def fit(self, X, y=None):
-        # y parameter is present to maintain compatibility with other scikit-learn packages
-        self.columns = X.columns
+        """This function fits the group imputer on the data. In this case, it does nothing.
 
+        :param X: The dataframe to fit on
+        :param y: The target values. The y parameter is present to maintain compatibility with other scikit-learn
+        packages
+        :return: self
+        """
+        self.columns = X.columns
         # fit method should always return self!!
         return self
 
     def transform(self, X, y=None):
+        """This function imputes the missing values in the dataframe.
+
+        :param X: The dataframe to impute on
+        :param y: The target values. The y parameter is present to maintain compatibility with other scikit-learn
+        :return: The imputed dataframe
+        """
         impute_group_map = X.groupby(self.group_by_cols)[[self.impute_for_col]].agg(self.aggregation_func)
 
         ## In the case of GROUNDSURFACELEVATION_AVG, there can be township ranges where
@@ -169,14 +167,12 @@ class GroupImputer(BaseEstimator, TransformerMixin):
         return return_df
 
 
-def create_transformation_cols(X: pd.DataFrame):
-
+def create_transformation_cols(X: pd.DataFrame) -> dict:
     """This function creates a list of columns that will undergo column transformation
 
-        :param X: dataframe to be  transformed
-        :output(s): a dictionary of the list of columns per transformer on which ColumnTransformation is to be applied
+    :param X: dataframe to be  transformed
+    :return: a dictionary of the list of columns per transformer on which ColumnTransformation is to be applied
     """
-
     # Set column lists for each transformer to work on
 
     veg_cols = [col for col in X.columns if col.startswith("VEGETATION_")]
@@ -212,13 +208,12 @@ def create_transformation_cols(X: pd.DataFrame):
     return columns_to_transform
 
 
-def create_transformation_pipelines(X: pd.DataFrame):
+def create_transformation_pipelines(X: pd.DataFrame) -> Tuple[Pipeline, List[str]]:
     """This function creates pipelines that will be applied on the train and test datasets
 
-        :param X: dataframe to be  transformed
-        :output(s):
-            impute_pipeline: a pipeline that imputes missing values
-            columns: the ordered list of column names of the numpy array after transformation
+    :param X: dataframe to be  transformed
+    :return: a tuple of the pipelines that imputes missing values and he ordered list of column names of the numpy
+    array after transformation
     """
     columns_to_transform = create_transformation_cols(X)
     # Transformations through transformers
@@ -267,6 +262,15 @@ def create_transformation_pipelines(X: pd.DataFrame):
 
 def group_train_test_split(df: pd.DataFrame, index: List[str], group: str, random_seed=42) -> \
         Tuple[pd.DataFrame, pd.DataFrame]:
+    """This function splits the dataframe into train and test sets based on the group column
+    some group time series will be in the train set and others in the test set.
+
+    :param df: dataframe to be split
+    :param index: list of index columns
+    :param group: the group column name to be used to split the dataframe
+    :param random_seed: random seed to be used for the split
+    :return: train and test dataframes
+    """
     group_splitter = GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=random_seed)
     X_no_index = df.reset_index(drop=False)
     split = group_splitter.split(X_no_index, groups=X_no_index[group])
@@ -277,6 +281,14 @@ def group_train_test_split(df: pd.DataFrame, index: List[str], group: str, rando
 
 
 def time_train_test_split(df: pd.DataFrame, index: List[str], group: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """This function splits the timeseries dataframe into X and y value based on time. The last time point is used
+    as the y value and the rest is used as the X value.
+
+    :param df: dataframe to be split
+    :param index: list of index columns
+    :param group: the group column name
+    :return: train and test dataframes
+    """
     Xy = df.copy()
     Xy.reset_index(inplace=True)
     Xy.sort_values(by=["YEAR"], ascending=True, inplace=True, ignore_index=True)
@@ -293,6 +305,16 @@ def time_train_test_split(df: pd.DataFrame, index: List[str], group: str) -> Tup
 
 def timeseries_train_test_split(df: pd.DataFrame, index: List[str], group: str, random_seed=42) -> \
         Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """This function splits the timeseries dataframe into train and test sets and X and y data based on the group column
+     and time. Based on the group column, some group time series will be in the train set and others in the test set
+     The last time point is used as the y value and the rest is used as the X value.
+
+    :param df: dataframe to be split
+    :param index: list of index columns
+    :param group: the group column name to be used to split the dataframe
+    :param random_seed: random seed to be used for the split
+    :return: X_train, X_test, y_train, y_test dataframes
+    """
     Xy_train, Xy_test = group_train_test_split(df, index=index, group=group, random_seed=random_seed)
     X_train, y_train = time_train_test_split(Xy_train, index=index, group=group)
     X_test, y_test = time_train_test_split(Xy_test, index=index, group=group)
