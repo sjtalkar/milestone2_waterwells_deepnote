@@ -35,15 +35,15 @@ def create_transformation_cols(X:pd.DataFrame):
     # Set column lists for each transformer to work on
 
     veg_cols = [
-        col for col in X.columns if "VEGETATION_" in col
+        col for col in X.columns col.startswith("VEGETATION_")
     ]  
 
     soil_cols = [
-        col for col in X.columns if "SOIL_" in col
+        col for col in X.columns col.startswith("SOIL_")
     ]  
 
     crops_cols = [
-        col for col in X.columns if "CROP_" in col and col not in soil_cols
+        col for col in X.columns if col.startswith("CROP_")
     ]  
     population_cols = ['POPULATION_DENSITY']
 

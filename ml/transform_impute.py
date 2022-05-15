@@ -186,7 +186,7 @@ def fill_from_prev_year(df: pd.DataFrame, cols_to_impute: list):
     # Separate out the Crops, Vegetation and Soils columns since they have a very specific set of column to borrow from
     # and conditional columns to fill into
 
-    veg_soil_cols = [col for col in df.columns if "VEGETATION" in col or "SOIL" in col]
+    veg_soil_cols = [col for col in df.columns if col.startswith("VEGETATION_") or col.startswith("SOIL_")]
 
     crops_cols = [
         col for col in numeric_cols if "CROP_" in col and col not in veg_soil_cols
