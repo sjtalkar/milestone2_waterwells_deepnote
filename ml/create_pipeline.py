@@ -35,19 +35,20 @@ def create_transformation_cols(X:pd.DataFrame):
     # Set column lists for each transformer to work on
 
     veg_cols = [
-        col for col in X.columns col.startswith("VEGETATION_")
+        col for col in X.columns if col.startswith("VEGETATION_")
     ]  
 
     soil_cols = [
-        col for col in X.columns col.startswith("SOIL_")
+        col for col in X.columns if col.startswith("SOIL_")
     ]  
 
     crops_cols = [
         col for col in X.columns if col.startswith("CROP_")
     ]  
+
     population_cols = ['POPULATION_DENSITY']
 
-    veg_soils_crops_pop_cols = ["TOWNSHIP_RANGE", "YEAR"] + veg_cols + crops_cols + soil_cols +  population_cols
+    veg_soils_crops_pop_cols =  veg_cols + soil_cols + crops_cols + population_cols
 
     wcr_cols = [
         "TOTALDRILLDEPTH_AVG",
@@ -58,20 +59,23 @@ def create_transformation_cols(X:pd.DataFrame):
         "TOTALCOMPLETEDDEPTH_AVG",
     ]
 
-    pct_cols = ["TOWNSHIP_RANGE", "PCT_OF_CAPACITY"]
+    pct_cols = ["PCT_OF_CAPACITY"]
 
-    gse_cols = ["TOWNSHIP_RANGE", "GROUNDSURFACEELEVATION_AVG"]
+    gse_cols = ["GROUNDSURFACEELEVATION_AVG"]
 
-    # Note that this list depends on the transformation steps preceding the drop and the order in which transformers are called
-    drop_cols = [
-        "gse_TOWNSHIP_RANGE",
-        "pct_capacity_TOWNSHIP_RANGE",
-    ]
 
     #Set the columns that go through the ColumnTransformation pipeline
     list_cols_used = wcr_cols + veg_soils_crops_pop_cols + pct_cols + gse_cols
 
-    return veg_soils_crops_pop_cols, wcr_cols, pct_cols, gse_cols, drop_cols, list_cols_used
+    columns_to_transform = {
+        "wcr_cols": wcr_cols,
+        "veg_soils_crops_pop_cols": veg_soils_crops_pop_cols,
+        "pct_cols": pct_cols,
+        "gse_cols": gse_cols,
+        "list_cols_used": list_cols_used
+    }
+
+    return columns_to_transform
 
 
 
@@ -83,7 +87,12 @@ def create_transformation_pipelines(X:pd.DataFrame):
         :output(s): 
     """
 
-    veg_soils_crops_pop_cols, wcr_cols, pct_cols, gse_cols, drop_cols, list_cols_used =  create_transformation_cols(X)
+    columns_to_transform =  create_transformation_cols(X)
+    wcr_cols = columns_to_transform["wcr_cols"]
+    veg_soils_crops_pop_cols =  columns_to_transform["veg_soils_crops_pop_cols"]
+    pct_cols = columns_to_transform["pct_cols"]
+    gse_cols = columns_to_transform["gse_cols"]
+    list_cols_used = columns_to_transform["list_cols_used"]
        
     #Transformations through transformers
     wcr_simple_trans = PandasSimpleImputer(missing_values=np.nan, strategy="constant", fill_value=0)
@@ -134,7 +143,7 @@ def create_transformation_pipelines(X:pd.DataFrame):
                 "back_to_pandas",
                 FunctionTransformer(
                     func=lambda X_new: convert_back_df(
-                        X_new, cols_transformer, X, list_cols_used, drop_cols
+                        X_new, cols_transformer, X, list_cols_used
                     )
                 ),
             )
@@ -158,6 +167,7 @@ def create_transformation_pipelines(X:pd.DataFrame):
         remainder="passthrough",
     )
 
+    
     impute_pipe = make_pipeline(cols_transformer, back_to_df_trans)
     impute_scale_pipe = make_pipeline(cols_transformer, back_to_df_trans, minmax_scaler_preprocessor)
 

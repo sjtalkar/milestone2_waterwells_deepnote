@@ -67,6 +67,8 @@ def read_and_join_output_file(start_year:int=2014,
     #As see above, TOWNSHIP_RANGE and YEAR are columns for the joins and are essentially 'categorical' columns
     left_df['TOWNSHIP_RANGE'] = left_df['TOWNSHIP_RANGE'].astype('str')
     left_df['YEAR'] = left_df['YEAR'].astype(int).astype('str')
+    left_df.set_index(['TOWNSHIP_RANGE', 'YEAR'], drop=True, inplace=True)
+    left_df.sort_index(level=["TOWNSHIP_RANGE", "YEAR"], inplace=True)
     
     return feature_df_dict, left_df
 

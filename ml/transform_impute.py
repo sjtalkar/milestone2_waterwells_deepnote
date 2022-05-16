@@ -14,14 +14,13 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 # The functions in this file are applied on the dataframe to clean and impute missing values
 
-
 # Functions  for transformations
 def convert_scaled_array_to_df(
     X_impute_scaled: np.ndarray,
     cols_transformer: ColumnTransformer,
     X: pd.DataFrame,
-    list_cols_used: list,
-    drop_cols: list,
+    list_cols_used: list
+    
 ):
     """
     This function creates a list of column names to apply to the dataframe created from the numpy array
@@ -36,9 +35,7 @@ def convert_scaled_array_to_df(
         Original datafram before transformation containing original column names
     list_cols_used: list
           A list of all the columns that were passed to the column transformer
-    drop_cols: list
-          Columns that were used for grouping but were dropped from the result of the transformation to avoid duplication
-
+    
     Returns
     -------
     result : Dataframe with NaNs replaced for vegetation and crops columns
@@ -47,18 +44,14 @@ def convert_scaled_array_to_df(
     new_col_names = get_column_names_after_transform(
         cols_transformer,
         X,
-        list_cols_used,
-        drop_cols,
+        list_cols_used
     )
-    last_cols = ["TOWNSHIP_RANGE", "YEAR"]
-    scaled_list = [col for col in new_col_names if col not in last_cols]
-    df_col_list = scaled_list + last_cols
-    X_scaled_df = pd.DataFrame(X_impute_scaled, columns=df_col_list)
-    # rearrange the column within dataframe
-    X_scaled_df = X_scaled_df[last_cols + scaled_list]
+    
 
+    X_scaled_df = pd.DataFrame(X_impute_scaled, index = X.index, columns=new_col_names)
+   
     # Make sure the scaled columns are set as numeric
-    X_scaled_df[scaled_list] = X_scaled_df[scaled_list].apply(pd.to_numeric)
+    X_scaled_df[new_col_names] = X_scaled_df[new_col_names].apply(pd.to_numeric)
 
     return X_scaled_df
 
@@ -66,8 +59,7 @@ def convert_scaled_array_to_df(
 def get_column_names_after_transform(
     cols_transformer: ColumnTransformer,
     X: pd.DataFrame,
-    list_cols_used: list,
-    drop_cols: list,
+    list_cols_used: list  
 ):
     """
     This function creates a list of column names to apply to the dataframe created from the numpy array
@@ -81,9 +73,7 @@ def get_column_names_after_transform(
         Original datafram before transformation containing original column names
     list_cols_used: list
           A list of all the columns that were passed to the column transformer
-    drop_cols: list
-          Columns that were used for grouping but were dropped from the result of the transformation to avoid duplication
-
+    
     Returns
     -------
     result : Dataframe with NaNs replaced for vegetation and crops columns
@@ -94,9 +84,7 @@ def get_column_names_after_transform(
             cols_transformer.transformers[i][0] + "_" + s
             for s in cols_transformer.transformers[i][2]
         ]
-    # First remove the cols we do not have in the dataframe
-    [new_col_names.remove(col) for col in drop_cols if col in new_col_names]
-
+  
     # Then update the column names
     new_col_names = [
         col.split("_", 1)[1] if ("TOWNSHIP_RANGE" in col) or ("YEAR" in col) else col
@@ -115,8 +103,7 @@ def convert_back_df(
     X_new: np.ndarray,
     cols_transformer: ColumnTransformer,
     X: pd.DataFrame,
-    list_cols_used: list,
-    drop_cols: list,
+    list_cols_used: list
 ):
 
     """
@@ -134,19 +121,17 @@ def convert_back_df(
         Original datafram before transformation containing original column names
     list_cols_used: list
           A list of all the columns that were passed to the column transformer
-    drop_cols: list
-          Columns that were used for grouping but were dropped from the result of the transformation to avoid duplication
-
+  
     Returns
     -------
     result : Dataframe with NaNs replaced for vegetation columns
     """
 
     new_col_names = get_column_names_after_transform(
-        cols_transformer, X, list_cols_used, drop_cols
+        cols_transformer, X, list_cols_used
     )
 
-    X_new_df = pd.DataFrame(X_new, columns=new_col_names)
+    X_new_df = pd.DataFrame(X_new, index = X.index, columns=new_col_names)
 
     cat_cols = ["TOWNSHIP_RANGE", "YEAR"]
     num_cols = [col for col in X_new_df.columns if col not in cat_cols]
@@ -156,7 +141,7 @@ def convert_back_df(
     return X_new_df
 
 
-def fill_from_prev_year(df: pd.DataFrame, cols_to_impute: list):
+def fill_from_prev_year(df: pd.DataFrame, cols_to_impute:list):
     """
     This function fills the vegetation and crops columns with the values from the year 2014
 
@@ -177,61 +162,47 @@ def fill_from_prev_year(df: pd.DataFrame, cols_to_impute: list):
     # create a copy of the dataframe
     result = df.copy()
 
-    numeric_cols = [
-        col
-        for col in cols_to_impute
-        if ("TOWNSHIP_RANGE" not in col) and ("YEAR" not in col)
-    ]
-
     # Separate out the Crops, Vegetation and Soils columns since they have a very specific set of column to borrow from
     # and conditional columns to fill into
 
-    veg_soil_cols = [col for col in df.columns if col.startswith("VEGETATION_") or col.startswith("SOIL_")]
+    veg_soil_cols = [col for col in result.columns if col.startswith("VEGETATION_") or col.startswith("SOIL_")]
 
     crops_cols = [
-        col for col in numeric_cols if "CROP_" in col and col not in veg_soil_cols
+        col for col in result.columns if col.startswith("CROP_") and col not in veg_soil_cols
     ]
     population_cols = ["POPULATION_DENSITY"]
     # Crops and population are filled from the previous year's value and hence they are trated in a similar fashion
     # Vegetation and Soil on the other hand have a specific year that the vaule is non-null which has to be
     # used to fill the rest of the years.
 
-    subset_df = result[["TOWNSHIP_RANGE", "YEAR"] + veg_soil_cols].copy()
+    subset_df = result[veg_soil_cols].copy()
     mean_df = subset_df.groupby(["TOWNSHIP_RANGE"])[veg_soil_cols].mean().reset_index()
-    year_df = pd.DataFrame({"YEAR": subset_df["YEAR"].unique()})
+    year_df = pd.DataFrame({"YEAR": subset_df.index.unique(level="YEAR")})
 
     mean_df["key"] = 0
     year_df["key"] = 0
 
     mean_df = mean_df.merge(year_df, on="key", how="outer")
     mean_df.drop(columns=["key"], inplace=True)
+    mean_df.set_index(['TOWNSHIP_RANGE', 'YEAR'], drop=True, inplace=True)
 
     result.drop(columns=veg_soil_cols, inplace=True)
-    result = result.merge(mean_df, how="inner", on=["TOWNSHIP_RANGE", "YEAR"])
-
+    result = result.merge(mean_df, how="inner", left_index = True, right_index = True)
+    
     # The crops values can be forward filled once the years are sorted
-    crops_ffill_df = result[["YEAR", "TOWNSHIP_RANGE"] + crops_cols].copy()
-    crops_ffill_df.sort_values(by=["YEAR", "TOWNSHIP_RANGE"], inplace=True)
-    crops_ffill_df = (
-        crops_ffill_df.groupby(["TOWNSHIP_RANGE", "YEAR"])[crops_cols]
-        .mean()
-        .ffill()
-        .reset_index()
-    )
+    crops_ffill_df = result[crops_cols].copy()
+    crops_ffill_df.ffill(inplace=True)
 
     # Drop the original column and get all filled values from the new dataframe
     result.drop(columns=crops_cols, inplace=True)
-    result = result.merge(crops_ffill_df, how="inner", on=["TOWNSHIP_RANGE", "YEAR"])
+    result = result.merge(crops_ffill_df, how="inner", left_index = True, right_index = True)
 
     # For population, we capture the trend over the past years 2019 to 2020 and add that to 2020 value
     # This gives us the imputed 2021 value
-    all_years = list(result["YEAR"].unique())
+    all_years = list(result.index.unique(level="YEAR"))
     all_years_trend = [f"{year}_trend" for year in all_years]
-    pop_df = result[result["YEAR"].isin(all_years)][
-        ["TOWNSHIP_RANGE", "YEAR", "POPULATION_DENSITY"]
-    ]
     # Pivot the dataframe so that the TOWNSHIP_RANGE forms the index and years are along the columns
-    pop_pivot_df = pop_df.pivot(
+    pop_pivot_df = result["POPULATION_DENSITY"].reset_index().pivot(
         index=["TOWNSHIP_RANGE"], columns=["YEAR"], values=["POPULATION_DENSITY"]
     )
 
@@ -242,7 +213,7 @@ def fill_from_prev_year(df: pd.DataFrame, cols_to_impute: list):
     pop_pivot_df = pop_pivot_df.droplevel(level=0, axis=1)
     pop_pivot_df = pop_pivot_df.merge(
         diff_df, how="inner", on=["TOWNSHIP_RANGE"]
-    ).reset_index()
+    ).reset_index(drop=True)
     # Add the trend to past year value for 2021
     pop_pivot_df["2021"] = pop_pivot_df["2020"] + pop_pivot_df["2020_trend"]
 
@@ -253,11 +224,12 @@ def fill_from_prev_year(df: pd.DataFrame, cols_to_impute: list):
         var_name="YEAR",
         value_name="POPULATION_DENSITY",
     )
-
+    pop_pivot_df.set_index(["TOWNSHIP_RANGE", "YEAR"], inplace=True, drop=True)
     # Get all the POPULATION_DENSITY values from the POPULATION_DENSITY column of new dataframe
     result.drop(columns=population_cols, inplace=True)
-    result = result.merge(pop_pivot_df, how="inner", on=["TOWNSHIP_RANGE", "YEAR"])
+    result = result.merge(pop_pivot_df, how="inner", left_index=True, right_index=True)
 
+    result.sort_index(level=["TOWNSHIP_RANGE", "YEAR"], inplace=True)
     return result
 
 
@@ -307,27 +279,26 @@ class GroupImputer(BaseEstimator, TransformerMixin):
         impute_group_map = (
             X.groupby(self.group_by_cols)[self.impute_for_col]
             .agg(self.aggregation_func)
-            .reset_index(drop=False)
         )
 
         ## In the case of GROUNDSURFACELEVATION_AVG, there can be township ranges where
         ## wells construction reports have never been filed, When the map has empty values, fill it
         ## with the "aggregation_func" value of the entire map TBD!!!
         if self.aggregation_func == "mean":
-            impute_group_map[impute_for_col].fillna(
-                impute_group_map[impute_for_col].mean(), inplace=True
+            impute_group_map.fillna(
+                impute_group_map.mean(), inplace=True
             )
         elif self.aggregation_func == "median":
-            impute_group_map[impute_for_col].fillna(
-                impute_group_map[impute_for_col].median(), inplace=True
+            impute_group_map.fillna(
+                impute_group_map.median(), inplace=True
             )
         elif self.aggregation_func == "min":
-            impute_group_map[impute_for_col].fillna(
-                impute_group_map[impute_for_col].min(), inplace=True
+            impute_group_map.fillna(
+                impute_group_map.min(), inplace=True
             )
         elif self.aggregation_func == "max":
-            impute_group_map[impute_for_col].fillna(
-                impute_group_map[impute_for_col].max(), inplace=True
+            impute_group_map.fillna(
+                impute_group_map.max(), inplace=True
             )
 
         self.impute_group_map_ = impute_group_map
@@ -344,16 +315,7 @@ class GroupImputer(BaseEstimator, TransformerMixin):
         # Do not modify the original source data.
         X = X.copy()
 
-        for index, row in self.impute_group_map_.iterrows():
-            ind = (X[self.group_by_cols] == row[self.group_by_cols]).all(axis=1)
-            X.loc[ind, self.impute_for_col] = X.loc[ind, self.impute_for_col].fillna(
-                row[self.impute_for_col]
-            )
-
-        # return df.values-----use this if you want to be consistent and return an ndarray
-
-        # Remove the TOWNSHIP_RANGE grouping column
-        return_df = pd.DataFrame(X, columns=self.columns)
-        # replace TOWNSHIP_RANGE by self.group_by_cols
-        return_df.drop(columns=["TOWNSHIP_RANGE"], inplace=True)
-        return return_df
+        for index, value in self.impute_group_map_.iteritems():
+            X.loc[index, self.impute_for_col].fillna(value, inplace=True)
+          
+        return X
