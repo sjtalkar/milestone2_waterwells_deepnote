@@ -150,10 +150,7 @@ def fill_from_prev_year(df: pd.DataFrame, cols_to_impute:list):
     df             : Dataframe with columns to impute
     cols_to_impute:  list
                      column names in a list of columns that need to be imputed from the year provided
-    year_with_data : int
-        Year containing data to borrow for rest of the years. This is used only for POPULATION_DENSITY and
-        ignored for all other columns.
-
+  
     Returns
     -------
     result : Dataframe with NaNs replaced for columns in the cols_to_impute list
@@ -170,7 +167,6 @@ def fill_from_prev_year(df: pd.DataFrame, cols_to_impute:list):
     crops_cols = [
         col for col in result.columns if col.startswith("CROP_") and col not in veg_soil_cols
     ]
-    population_cols = ["POPULATION_DENSITY"]
     # Crops and population are filled from the previous year's value and hence they are trated in a similar fashion
     # Vegetation and Soil on the other hand have a specific year that the vaule is non-null which has to be
     # used to fill the rest of the years.
@@ -186,17 +182,35 @@ def fill_from_prev_year(df: pd.DataFrame, cols_to_impute:list):
     mean_df.drop(columns=["key"], inplace=True)
     mean_df.set_index(['TOWNSHIP_RANGE', 'YEAR'], drop=True, inplace=True)
 
-    result.drop(columns=veg_soil_cols, inplace=True)
-    result = result.merge(mean_df, how="inner", left_index = True, right_index = True)
-    
+   
     # The crops values can be forward filled once the years are sorted
     crops_ffill_df = result[crops_cols].copy()
     crops_ffill_df.ffill(inplace=True)
 
-    # Drop the original column and get all filled values from the new dataframe
-    result.drop(columns=crops_cols, inplace=True)
-    result = result.merge(crops_ffill_df, how="inner", left_index = True, right_index = True)
+    result = pd.merge(mean_df, crops_ffill_df, how="inner", left_index=True, right_index=True)
+    # Just make sure that rows are sorted in the original order
+    result.sort_index(level=["TOWNSHIP_RANGE", "YEAR"], inplace=True)
+    return result
 
+  
+def fill_pop_from_prev_year(df: pd.DataFrame):
+    """
+    This function fills the population values for 2021 from 2020
+
+    Parameters
+    ----------
+    df             : Dataframe with columns to impute
+  
+    Returns
+    -------
+    result : Dataframe with NaNs replaced for columns in the cols_to_impute list
+    """
+  
+    # create a copy of the dataframe
+    result = df.copy()
+  
+    population_cols = ["POPULATION_DENSITY"]
+    
     # For population, we capture the trend over the past years 2019 to 2020 and add that to 2020 value
     # This gives us the imputed 2021 value
     all_years = list(result.index.unique(level="YEAR"))
@@ -231,6 +245,11 @@ def fill_from_prev_year(df: pd.DataFrame, cols_to_impute:list):
 
     result.sort_index(level=["TOWNSHIP_RANGE", "YEAR"], inplace=True)
     return result
+
+
+
+
+
 
 
 class PandasSimpleImputer(SimpleImputer):
