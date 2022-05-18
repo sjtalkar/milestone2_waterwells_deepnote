@@ -19,8 +19,27 @@ class MultiPage:
     def run(self):
         # Drodown to select the page to run
         page = st.sidebar.selectbox(
-            "App Navigation", self.pages, format_func=lambda page: page["title"]
+            "Groundwater Shortage Exploration", self.pages, format_func=lambda page: page["title"]
         )
+               
+        st.sidebar.subheader("About Groundwater Shortage")
+        st.sidebar.markdown("")
+        st.sidebar.markdown('##')
+        st.sidebar.subheader("Contributors")
+        st.sidebar.markdown("Simi Talkar and Matthieu Lienart")
+        st.sidebar.markdown('##')
+        st.sidebar.markdown('##')
+        
+        url_git = 'https://github.com/sjtalkar/milestone2_waterwells_deepnote'
+        st.sidebar.markdown(f"Source Code on [Github]({url_git})")
+        
+        predict_choice = st.sidebar.radio(
+             "Choose view:",
+             ('Predict Shortage', 'Predict Groundwater Level'))
 
+        
         # run the app function
         page["function"]()
+    
+
+

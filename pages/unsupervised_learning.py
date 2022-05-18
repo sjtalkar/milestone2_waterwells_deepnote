@@ -23,6 +23,8 @@ def app():
     """
         This function in this page is run when the page is invoked in the sidebar
     """
+    project_image = load_image("page_header.jpg")
+    st.image(project_image, use_column_width=True)
     st.subheader(
         "Unsupervised Learning",
         anchor="unsupervised_learning",

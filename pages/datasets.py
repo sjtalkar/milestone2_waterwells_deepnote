@@ -23,7 +23,8 @@ def app():
     """
         This function in this page is run when the page is invoked in the sidebar
     """    
-
+    project_image = load_image("page_header.jpg")
+    st.image(project_image, use_column_width=True)
     st.subheader(
         "Datasets",
         anchor="datasets"
@@ -31,8 +32,6 @@ def app():
     )
 
     dataset_image = load_image("groundwater_modeling.png")
-
     st.image(dataset_image, use_column_width=True)
-
     st.markdown("""---""")
 
