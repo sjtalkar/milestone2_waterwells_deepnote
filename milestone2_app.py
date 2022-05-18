@@ -17,26 +17,20 @@ sys.path.append('..')
 from lib.multiapp import MultiPage
 from lib.page_functions import load_image
 
-from pages import motivation, datasets, supervised_learning, unsupervised_learning
+from pages import motivation, datasets, supervised_learning, unsupervised_learning, project_proposal
 
 DataFolder = Path("./assets/")
 
 # Set streamlit page to wide format
 st.set_page_config(layout="wide")
 
-#Replace this with a common themed image for all pages  
-# st.header(
-#         """
-#         Groundwater Shortage
-#     """
-# )
 
-#The header above will be foloowed by each page
+#The header above will be followed by each page
 app = MultiPage()
 
 #Every page is a py file and has a function app()
 app.add_page("Motivation", motivation.app)
-#app.add_page("Project Proposal", project_proposal.app)
+app.add_page("Project Proposal", project_proposal.app)
 app.add_page("Datasets", datasets.app)
 app.add_page("Supervised Learning", supervised_learning.app)
 app.add_page("Unsupervised Learning", unsupervised_learning.app)
