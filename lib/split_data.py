@@ -1,6 +1,9 @@
 import numpy as np
 import pandas as pd
 
+import random
+from itertools import islice
+
 from typing import List, Tuple
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
@@ -8,6 +11,43 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import FunctionTransformer, MinMaxScaler
 from sklearn.model_selection import GroupShuffleSplit, TimeSeriesSplit
+
+
+def group_split(list_to_split:str, split_ratio:float=0.8, random_seed=42):
+    """This function splits a list into two parts as per split ratio
+    """
+
+    random.seed(random_seed)
+    random.shuffle(list_to_split)
+    list_len = len(list_to_split)
+    train_len, remainder = divmod(list_len, 1/split_ratio)
+    test_len = list_len-train_len
+    split_lengths =  [train_len, test_len]
+
+    # Using islice
+    output_lists = [list(islice(list(list_to_split), int(elem))) for elem in [train_len, test_len]]
+
+    return output_lists
+
+
+def train_test_split_single_level_index (df: pd.DataFrame, index_to_split:str='TOWNSHIP_RANGE', split_ratio:float=0.8, random_seed:int=42):
+    """This function splits the dataframe into train and test sets based on one index level of a multi-level index.
+
+    :param df: dataframe to be split
+    :param index_to_split: index column name to base the split on
+    :param split_ratio: the ratio ito which the test and train datasets need to be split
+    :param random_seed: random seed to be used for the split
+    :return: train and test dataframes
+    """
+
+    townshiprange_list = list(df.index.get_level_values(level=index_to_split).unique().sort_values().values)
+    train_list, test_list  = group_split(townshiprange_list, split_ratio, random_seed)
+
+    train_df = df.loc[train_list, :].copy()
+    test_df = df.loc[test_list, :].copy()
+    train_df.sort_index(level=["TOWNSHIP_RANGE", "YEAR"], inplace=True)
+    test_df.sort_index(level=["TOWNSHIP_RANGE", "YEAR"], inplace=True)
+    return train_df, test_df
 
 
 def train_test_group_split(df: pd.DataFrame, index: List[str], group: str, random_seed=42) -> \

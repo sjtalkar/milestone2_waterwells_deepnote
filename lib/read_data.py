@@ -70,5 +70,5 @@ def read_and_join_output_file(start_year:int=2014,
     left_df.set_index(['TOWNSHIP_RANGE', 'YEAR'], drop=True, inplace=True)
     left_df.sort_index(level=["TOWNSHIP_RANGE", "YEAR"], inplace=True)
     
-    return feature_df_dict, left_df
+    return left_df
 
