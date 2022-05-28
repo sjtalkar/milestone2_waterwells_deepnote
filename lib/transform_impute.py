@@ -125,16 +125,12 @@ def convert_back_df(
     """
     orig_cols = X.columns
     new_col_names = []
-    list_used_cols = []
     for i in range(len(cols_transformer.transformers)):
         new_col_names += [
-            cols_transformer.transformers[i][0] + "_" + s
-            for s in cols_transformer.transformers[i][2]
+             s for s in cols_transformer.transformers[i][2]
         ]
-        list_used_cols += [
-            s for s in cols_transformer.transformers[i][2]
-        ]
-    passthrough_cols = [col for col in X.columns if col not in list_used_cols]
+
+    passthrough_cols = [col for col in X.columns if col not in new_col_names]
     new_col_names += passthrough_cols
     return pd.DataFrame(X_new, index = X.index, columns=new_col_names)
 
