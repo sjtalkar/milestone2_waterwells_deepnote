@@ -103,7 +103,6 @@ def convert_back_df(
     X_new: np.ndarray,
     cols_transformer: ColumnTransformer,
     X: pd.DataFrame,
-    list_cols_used: list
 ):
 
     """
@@ -119,26 +118,25 @@ def convert_back_df(
         The column transformer that generated the X_new array
     X     : pd.Dataframe
         Original datafram before transformation containing original column names
-    list_cols_used: list
-          A list of all the columns that were passed to the column transformer
   
     Returns
     -------
     result : Dataframe with NaNs replaced for vegetation columns
     """
-
-    new_col_names = get_column_names_after_transform(
-        cols_transformer, X, list_cols_used
-    )
-
-    X_new_df = pd.DataFrame(X_new, index = X.index, columns=new_col_names)
-
-    cat_cols = ["TOWNSHIP_RANGE", "YEAR"]
-    num_cols = [col for col in X_new_df.columns if col not in cat_cols]
-
-    X_new_df[num_cols] = X_new_df[num_cols].apply(pd.to_numeric)
-
-    return X_new_df
+    orig_cols = X.columns
+    new_col_names = []
+    list_used_cols = []
+    for i in range(len(cols_transformer.transformers)):
+        new_col_names += [
+            cols_transformer.transformers[i][0] + "_" + s
+            for s in cols_transformer.transformers[i][2]
+        ]
+        list_used_cols += [
+            s for s in cols_transformer.transformers[i][2]
+        ]
+    passthrough_cols = [col for col in X.columns if col not in list_used_cols]
+    new_col_names += passthrough_cols
+    return pd.DataFrame(X_new, index = X.index, columns=new_col_names)
 
 
 def fill_from_prev_year(df: pd.DataFrame, cols_to_impute:list):
@@ -247,11 +245,6 @@ def fill_pop_from_prev_year(df: pd.DataFrame):
     return result
 
 
-
-
-
-
-
 class PandasSimpleImputer(SimpleImputer):
     """A wrapper around `SimpleImputer` to return data frames with columns."""
 
@@ -271,7 +264,7 @@ class GroupImputer(BaseEstimator, TransformerMixin):
     Parameters
     ----------
     group_by_cols : list
-        List of columns used for calculating the aggregated value
+        List of columns used for calculating the aggregated value. We will be grouping by TOWNSHIP_RANGE alone
     impute_for_col : str
         The name of the column to impute
     aggregation_func : str
@@ -284,7 +277,7 @@ class GroupImputer(BaseEstimator, TransformerMixin):
     """
 
     def __init__(
-        self, group_by_cols: list, impute_for_col: str, aggregation_func="mean"
+        self, group_by_cols: list, impute_for_col: str, aggregation_func="median"
     ):
 
         self.group_by_cols = group_by_cols
@@ -329,12 +322,20 @@ class GroupImputer(BaseEstimator, TransformerMixin):
     def transform(self, X, y=None):
 
         # make sure that the imputer was fitted
-        check_is_fitted(self, "impute_group_map_")
+        #check_is_fitted(self, "impute_group_map_")
 
         # Do not modify the original source data.
-        X = X.copy()
+        X_new = X.reset_index().copy()
 
-        for index, value in self.impute_group_map_.iteritems():
-            X.loc[index, self.impute_for_col].fillna(value, inplace=True)
-          
-        return X
+        # for index, value in self.impute_group_map_.iteritems():
+        #     X.loc[index, self.impute_for_col].fillna(value, inplace=True)
+        impute_group_map = self.impute_group_map_.reset_index()
+         
+        for index, row in impute_group_map.iterrows():
+            ind = (X_new[self.group_by_cols] == row[self.group_by_cols]).all(axis=1)
+            X_new.loc[ind, self.impute_for_col] = X_new.loc[ind, self.impute_for_col].fillna(
+                row[self.impute_for_col]
+            )
+        X_new = X_new.set_index(['TOWNSHIP_RANGE', 'YEAR'], drop=True)
+        X_new.sort_index(level=["TOWNSHIP_RANGE", "YEAR"], inplace=True)
+        return X_new

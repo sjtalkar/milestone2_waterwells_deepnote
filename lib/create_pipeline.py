@@ -69,9 +69,9 @@ def create_transformation_cols(X:pd.DataFrame):
 
 
 
-def create_transformation_pipelines(X:pd.DataFrame):
+def create_impute_transformation_pipeline(X:pd.DataFrame):
 
-    """This function creates pipelines that will be applied on the train and test datasets
+    """This function creates pipelines that will be applied on the train and test datasets This pipeline only imputes values
       
         :param X: dataframe to be  transformed
         :output(s): 
@@ -88,7 +88,7 @@ def create_transformation_pipelines(X:pd.DataFrame):
     #Transformations through transformers
     wcr_simple_trans = Pipeline(steps=[
         ("imputer", PandasSimpleImputer(missing_values=np.nan, strategy="constant", fill_value=0))
-        ,("scaler", MinMaxScaler())
+        #,("scaler", MinMaxScaler())
     ])
 
     # vegetation column transformer
@@ -97,7 +97,7 @@ def create_transformation_pipelines(X:pd.DataFrame):
 
     pop_trans = Pipeline(steps=[
         ("imputer", FunctionTransformer(fill_pop_from_prev_year))
-        ,("scaler", MinMaxScaler())
+        #,("scaler", MinMaxScaler())
     ])                                             
 
     # pct_of_capacity of a resevoir is set as minimum of future years data per township range
@@ -105,7 +105,7 @@ def create_transformation_pipelines(X:pd.DataFrame):
         ("imputer", GroupImputer(group_by_cols=["TOWNSHIP_RANGE"],
                                  impute_for_col="PCT_OF_CAPACITY",
                                  aggregation_func="min"))
-        ,("scaler", MinMaxScaler())
+        #,("scaler", MinMaxScaler())
     ])
 
 
@@ -114,7 +114,7 @@ def create_transformation_pipelines(X:pd.DataFrame):
         ("imputer", GroupImputer(group_by_cols=["TOWNSHIP_RANGE"],
                                  impute_for_col="GROUNDSURFACEELEVATION_AVG",
                                  aggregation_func="median"))
-        ,("scaler", MinMaxScaler())
+        #,("scaler", MinMaxScaler())
     ])
    
     #Start applying the transformers created above
@@ -124,7 +124,7 @@ def create_transformation_pipelines(X:pd.DataFrame):
     # NUMPY NDARRAY and DATAFRAME CHALLENGES
 
     #Processor 1 
-    cols_transformer = ColumnTransformer(
+    impute_cols_transformer = ColumnTransformer(
         transformers=[
             # This will return the wcr_cols as the first cols followed by the rest
             ("wcr", wcr_simple_trans, wcr_cols)
@@ -133,39 +133,7 @@ def create_transformation_pipelines(X:pd.DataFrame):
             ,("pct_capacity", pct_trans, pct_cols)
             ,("gse", gse_trans, gse_cols)
         ],
-        remainder=MinMaxScaler(),
-    )
-
-    #Processor 2  This transformer converts a numpy matrix to dataframe
-    back_to_df_trans = Pipeline(
-        [
-            (
-                "back_to_pandas",
-                FunctionTransformer(
-                    func=lambda X_new: convert_back_df(
-                        X_new, cols_transformer, X, list_cols_used
-                    )
-                ),
-            )
-        ]
-    )
-
-    #Processor 3 Scales numeric features 
-    std_scaler_preprocessor = ColumnTransformer(
-        transformers=[
-            ("numerical", StandardScaler(), make_column_selector(dtype_include=np.number))
-        ],
         remainder="passthrough",
     )
 
-    minmax_scaler_preprocessor = ColumnTransformer(
-        transformers=[
-            ("numerical", MinMaxScaler()
-            ,make_column_selector(dtype_include=np.number)
-            )
-        ],
-        remainder="passthrough",
-    )
-    
-    impute_pipe = make_pipeline(cols_transformer, back_to_df_trans)
-    return  impute_pipe
+    return  impute_cols_transformer
