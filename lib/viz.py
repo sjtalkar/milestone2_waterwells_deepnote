@@ -1,4 +1,5 @@
 import altair as alt
+import numpy as np
 import pandas as pd
 import geopandas as gpd
 from typing import List
@@ -389,3 +390,30 @@ def draw_feature_importance(feature_list: list, importance_list: list):
     )
     return feature_imp_chart
 
+def draw_histogram(df: pd.DataFrame, col_name:str ):
+    """This function charts the percentage missing data in the data file read in
+
+    :param df: Dataframe in which resides the column for which histogram is to be plotted
+    :param col_name: Name of column for which histogram is to be plotted
+    """
+    x_mean = np.round(df[col_name].mean(), 2)
+    x_median = np.round(df[col_name].median(), 2)
+    base = alt.Chart(df)
+
+    mean_df = pd.DataFrame({'x': [x_mean, x_median], 'y':[1000, 1100], 'value':[f"Mean = {x_mean}", f"Median = {x_median}"]})
+
+    txt_chart = alt.Chart(mean_df).mark_text(
+        align='left', 
+        fontSize=15,
+        color="black"
+    ).encode(
+        y='y:Q',
+        text=alt.Text('value:N'),
+    )
+
+    hist = base.mark_bar(color="#6e0a1e").encode(
+                    alt.X(f"{col_name}:Q", bin=True),
+                    y='count()',
+                )
+    return (txt_chart + hist).configure_axis( grid=False )
+      

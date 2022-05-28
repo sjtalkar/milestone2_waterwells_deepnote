@@ -65,6 +65,10 @@ def read_and_join_output_file(start_year:int=2014,
                                 indicator=indicator)
         
     #As see above, TOWNSHIP_RANGE and YEAR are columns for the joins and are essentially 'categorical' columns
+    #introduce a feature as a proxy for distance from start of time 
+    min_year = np.int32(left_df.YEAR.min())
+    left_df['DURATION'] = left_df['YEAR'].astype('int') - min_year
+    
     left_df['TOWNSHIP_RANGE'] = left_df['TOWNSHIP_RANGE'].astype('str')
     left_df['YEAR'] = left_df['YEAR'].astype(int).astype('str')
     left_df.set_index(['TOWNSHIP_RANGE', 'YEAR'], drop=True, inplace=True)
