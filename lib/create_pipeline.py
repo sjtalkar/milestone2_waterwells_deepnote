@@ -69,11 +69,13 @@ def create_transformation_cols(X:pd.DataFrame):
 
 
 
-def create_impute_transformation_pipeline(X:pd.DataFrame):
+def create_transformation_pipeline(X:pd.DataFrame, scaler):
 
     """This function creates pipelines that will be applied on the train and test datasets This pipeline only imputes values
       
         :param X: dataframe to be  transformed
+        :param scaler: MinMaxScaler/StandardScaler function
+        
         :output(s): 
     """
 
@@ -88,7 +90,7 @@ def create_impute_transformation_pipeline(X:pd.DataFrame):
     #Transformations through transformers
     wcr_simple_trans = Pipeline(steps=[
         ("imputer", PandasSimpleImputer(missing_values=np.nan, strategy="constant", fill_value=0))
-        #,("scaler", MinMaxScaler())
+        ,("scaler", scaler)
     ])
 
     # vegetation column transformer
@@ -97,7 +99,7 @@ def create_impute_transformation_pipeline(X:pd.DataFrame):
 
     pop_trans = Pipeline(steps=[
         ("imputer", FunctionTransformer(fill_pop_from_prev_year))
-        #,("scaler", MinMaxScaler())
+        ,("scaler", scaler)
     ])                                             
 
     # pct_of_capacity of a resevoir is set as minimum of future years data per township range
@@ -105,7 +107,7 @@ def create_impute_transformation_pipeline(X:pd.DataFrame):
         ("imputer", GroupImputer(group_by_cols=["TOWNSHIP_RANGE"],
                                  impute_for_col="PCT_OF_CAPACITY",
                                  aggregation_func="min"))
-        #,("scaler", MinMaxScaler())
+        ,("scaler", scaler)
     ])
 
 
@@ -114,7 +116,7 @@ def create_impute_transformation_pipeline(X:pd.DataFrame):
         ("imputer", GroupImputer(group_by_cols=["TOWNSHIP_RANGE"],
                                  impute_for_col="GROUNDSURFACEELEVATION_AVG",
                                  aggregation_func="median"))
-        #,("scaler", MinMaxScaler())
+        ,("scaler", scaler)
     ])
    
     #Start applying the transformers created above
@@ -133,7 +135,7 @@ def create_impute_transformation_pipeline(X:pd.DataFrame):
             ,("pct_capacity", pct_trans, pct_cols)
             ,("gse", gse_trans, gse_cols)
         ],
-        remainder="passthrough",
+        remainder=scaler,
     )
 
     return  impute_cols_transformer
