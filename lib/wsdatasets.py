@@ -3,7 +3,7 @@ import abc
 import os
 import requests
 import pandas as pd
-import pygeos as pg
+import pygeos
 import geopandas as gpd
 
 from typing import List, Tuple
@@ -269,8 +269,8 @@ class WsGeoDataset(BaseWsDataset):
             if set_precision:
                 # We set the precision to avoid a "TopologyException: found non-noded intersection error from overlay"
                 # reference:https://github.com/geopandas/geopandas/issues/1724
-                yearly_map_df.geometry = pg.set_precision(yearly_map_df.geometry.values.data, 1e-6)
-                self.sjv_township_range_df.geometry = pg.set_precision(self.sjv_township_range_df.geometry.values.data,
+                yearly_map_df.geometry = pygeos.set_precision(yearly_map_df.geometry.values.data, 1e-6)
+                self.sjv_township_range_df.geometry = pygeos.set_precision(self.sjv_township_range_df.geometry.values.data,
                                                                        1e-6)
             map_data_by_township_df = gpd.overlay(yearly_map_df, self.sjv_township_range_df, how='identity',
                                                   keep_geom_type=True)
