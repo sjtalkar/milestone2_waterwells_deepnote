@@ -40,3 +40,32 @@ For the imputation:
 -  We recombine the train and test (or just use the full dataset).
 -  We transform the test dataset (we only have forward fills and so data from the future is leaking into the past)
 -  Split the full set imputed and extract out the test set.
+
+##### Issue 2
+The scores for linear regression models and decision tree are neagtive for the test set.
+
+The singular vector machine with a radial base kernel performed slightly better than the linear and decision tree regressors.
+The KNN performed marginally better too.
+
+I tried to fit a Polynomial function on the train and test but ran out of memory.
+
+**Status:**
+Unresolved
+
+**Ideas**
+- Drop features and check if that impacts scores
+- Have tried with different scalers
+- Check if dimensionality reduction techniques applied work such as PCA
+- Check if K Means clustering applied to the dataset works
+
+##### Issue 3
+
+PyCaret takes a long time to load
+
+**Status:**
+Unresolved
+**Ideas**
+- Check if by using the already split train and test we can have another requirements files that contains 
+PyCaret and sklearn 0.23.0 as in the local environment
+
+
