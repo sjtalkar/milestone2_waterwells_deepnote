@@ -61,7 +61,8 @@ We do not make use of the below features from the table of soil orders:
 | musym            | the column which contains in both datasets a symbol identifying a map unit, because each map unit have a unique `musym` and `mukey` to identify it. So using either of the two is sufficient to identify a map unit |
 
 ### What are Soil Orders?
-Soil Orders is the most general level of classification in the USDA system of Soil Taxonomy. Using this Order classes,
+Soil Orders is the most general level of classification in the USDA system of 
+[Soil Taxonomy](https://www.nrcs.usda.gov/wps/portal/nrcs/main/soils/survey/class/taxonomy/). Using this Order classes,
 all the soils in the world can be assigned one of the 12 orders.
 
 Soil orders are described as follow.

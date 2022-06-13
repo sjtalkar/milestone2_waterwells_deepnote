@@ -5,6 +5,16 @@ import geopandas as gpd
 from typing import List
 import matplotlib.pyplot as plt
 from datetime import datetime
+from matplotlib.colors import LinearSegmentedColormap
+
+sjv_brown = "#A9784F"
+sjv_blue = "#3586BD"
+sjv_error = "#DF77D1"
+sjv_color_range_9 = ["#3586BD", "#4485B0", "#5283A2", "#618194", "#6F7F86", "#7E7E79", "#8C7C6B", "#9B7A5D", "#A9784F"]
+sjv_color_range_17 =["#3586BD", "#3D86B7", "#4485B0", "#4B84A9", "#5283A2", "#5A829B", "#618194", "#68808D", "#6F7F86",
+                     "#777F80", "#7E7E79", "#857D72", "#8C7C6B", "#947B64", "#9B7A5D", "#A27956", "#A9784F"]
+sjv_cmap = LinearSegmentedColormap.from_list("sjv_cmap", [sjv_blue, sjv_brown])
+
 
 def draw_missing_data_chart(df: pd.DataFrame):
     """This function charts the percentage missing data in the data file read in
@@ -133,7 +143,7 @@ def simple_geodata_viz(gdf: gpd.GeoDataFrame, feature:str, title: str, year: int
     """This function creates a simple visualization of a single feature of a geodataframe.
 
     :param gdf: the geodataframe to visualize
-    :param feature: the feature to visualize
+    :param feature: the name of the feature to visualize
     :param title: the title of the visualization
     :param year: the year to visualize
     :param color_scheme: the color scheme to use for the visualization
@@ -145,16 +155,37 @@ def simple_geodata_viz(gdf: gpd.GeoDataFrame, feature:str, title: str, year: int
         area_df.drop(columns=['points'], inplace=True)
     if year:
         area_df = area_df[area_df['YEAR'] == year]
-    area_df['YEAR'] = area_df['YEAR'].astype(str)
+    if "YEAR" in list(area_df.columns):
+        area_df['YEAR'] = area_df['YEAR'].astype(str)
+    # Set the color scale depending on the parameters
+    if color_scheme == "sjv" or color_scheme == "sjv_with_error":
+        color_scale = alt.Scale(range=[sjv_blue, sjv_brown])
+        # If the variable is ordinal we extract the required number of colors
+        nb_features = len(area_df[feature].unique())
+        # If we want to reserve a color for error values we reduce the number of features by one
+        if color_scheme == "sjv_with_error":
+            nb_features -= 1
+        if area_df[feature].dtype == 'object' and 2 < nb_features < len(sjv_color_range_17):
+            color_range = sjv_color_range_17[0::len(sjv_color_range_17)//(nb_features-1)]
+            color_range[-1] = sjv_brown
+            # If we want to reserve a color for error we add the error color at teh beginning
+            # Negative values are error values
+            if color_scheme == "sjv_with_error":
+                color_range = [sjv_error] + color_range
+            color_scale = alt.Scale(range=color_range)
+    else:
+        color_scale = alt.Scale(scheme=color_scheme)
+    # Set the feature type
     if area_df[feature].dtype == 'object':
         feature = f"{feature}:N"
     else:
         feature = f"{feature}:Q"
     tooltip_columns = list(set(area_df.columns) - {"geometry", "points"})
+
     if draw_stations:
         base = alt.Chart(area_df)
         feature_chart = base.mark_geoshape(stroke='darkgray').encode(
-            color=alt.Color(feature, scale=alt.Scale(scheme=color_scheme)),
+            color=alt.Color(feature, scale=color_scale),
             tooltip=tooltip_columns,
         ).properties(
             width=850,
@@ -166,7 +197,7 @@ def simple_geodata_viz(gdf: gpd.GeoDataFrame, feature:str, title: str, year: int
         chart.properties(title=title)
     else:
         chart = alt.Chart(area_df).mark_geoshape(stroke='darkgray').encode(
-            color=alt.Color(feature, scale=alt.Scale(scheme=color_scheme)),
+            color=alt.Color(feature, scale=color_scale),
             tooltip=tooltip_columns,
         ).properties(
             width=850,
@@ -175,12 +206,12 @@ def simple_geodata_viz(gdf: gpd.GeoDataFrame, feature:str, title: str, year: int
         )
     return chart
 
-def view_year_side_by_side(gdf: gpd.GeoDataFrame, feature: str, title: str, color_scheme: str = 'blues',
+def view_year_side_by_side(gdf: pd.DataFrame, feature: str, title: str, color_scheme: str = 'blues',
                            draw_stations: bool = False):
     """ This function creates a side by side Altair visualization of the data per year for a given feature
 
     :param gdf: the geodataframe to be visualized
-    :param feature: the feature to be visualized
+    :param feature: the name of the feature to visualize
     :param title: the title of the visualization
     :param color_scheme: the color scheme to be used
     :param draw_stations: if True, the stations will be drawn on each sur chart
@@ -191,9 +222,36 @@ def view_year_side_by_side(gdf: gpd.GeoDataFrame, feature: str, title: str, colo
         area_df.drop(columns=['points'], inplace=True)
     area_df['YEAR'] = area_df['YEAR'].astype(str)
     tooltip_columns = list(set(area_df.columns) - {"geometry", "points"})
+    # Set the color scale depending on the parameters
+    if color_scheme == "sjv" or color_scheme == "sjv_with_error":
+        color_scale = alt.Scale(range=[sjv_blue, sjv_brown])
+        # If the variable is ordinal we extract the required number of colors
+        nb_features = len(area_df[feature].unique())
+        # If we want to reserve a color for error values we reduce the number of features by one
+        if color_scheme == "sjv_with_error":
+            nb_features -= 1
+        if area_df[feature].dtype == 'object' and 2 < nb_features < len(sjv_color_range_17):
+            color_range = sjv_color_range_17[0::len(sjv_color_range_17)//(nb_features-1)]
+            color_range[-1] = sjv_brown
+            # If we want to reserve a color for error we add the error color at teh beginning
+            # Negative values are error values
+            if color_scheme == "sjv_with_error":
+                color_range = [sjv_error] + color_range
+            color_scale = alt.Scale(range=color_range)
+    else:
+        color_scale = alt.Scale(scheme=color_scheme)
+    # Set the feature type
+    feature_name = feature
+    if area_df[feature].dtype == 'object':
+        feature = f"{feature}:N"
+    else:
+        feature = f"{feature}:Q"
+
     if draw_stations:
         base = alt.Chart(area_df).mark_geoshape(stroke='darkgray').encode(
-            color=alt.Color(f'{feature}:Q', scale=alt.Scale(scheme=color_scheme)),
+            color=alt.Color(feature, scale=color_scale,
+                            legend=alt.Legend(title=feature_name, orient="bottom",
+                                              labelFontSize=12, titleFontSize=14)),
             tooltip=tooltip_columns,
         ).properties(
             width=350,
@@ -212,7 +270,7 @@ def view_year_side_by_side(gdf: gpd.GeoDataFrame, feature: str, title: str, colo
         # - Vega-Lite: https://github.com/vega/vega-lite/issues/3729
         chart = alt.concat(*(
                 alt.Chart(area_df[area_df.YEAR == year]).mark_geoshape(stroke='darkgray').encode(
-                    color=alt.Color(f'{feature}:Q', scale=alt.Scale(scheme=color_scheme)),
+                    color=alt.Color(feature, scale=color_scale),
                     tooltip=tooltip_columns
                 ).properties(
                     width=350, height=350,
@@ -224,6 +282,83 @@ def view_year_side_by_side(gdf: gpd.GeoDataFrame, feature: str, title: str, colo
         ).properties(title=title)
     return chart
 
+def view_trs_side_by_side(gdf: pd.DataFrame, feature: str, value: str, title: str, color_scheme: str = 'blues',
+                          draw_stations: bool = False):
+    """ This function creates a side by side Altair visualization of the Township-Ranges for the given feature
+
+    :param gdf: the geodataframe to be visualized
+    :param feature: the name of the DataFrame column used for the small multiples facets
+    :param value: the name of the DataFrame column containing the Township-Ranges values
+    :param title: the title of the visualization
+    :param color_scheme: the color scheme to be used
+    :param draw_stations: if True, the stations will be drawn on each sur chart
+    :return: the Altair visualization
+    """
+    area_df = gdf.copy()
+    if "points" in list(area_df.columns):
+        area_df.drop(columns=['points'], inplace=True)
+    if area_df[feature].dtype != str:
+        area_df[feature] = area_df[feature].astype(str)
+    tooltip_columns = list(set(area_df.columns) - {"geometry", "points"})
+    # Set the color scale depending on the parameters
+    if color_scheme == "sjv" or color_scheme == "sjv_with_error":
+        color_scale = alt.Scale(range=[sjv_blue, sjv_brown])
+        # If the variable is ordinal we extract the required number of colors
+        nb_values = len(area_df[value].unique())
+        # If we want to reserve a color for error values we reduce the number of features by one
+        if color_scheme == "sjv_with_error":
+            nb_values -= 1
+        if area_df[value].dtype == 'object' and 2 < nb_values < len(sjv_color_range_17):
+            color_range = sjv_color_range_17[0::len(sjv_color_range_17)//(nb_values-1)]
+            color_range[-1] = sjv_brown
+            # If we want to reserve a color for error we add the error color at teh beginning
+            # Negative values are error values
+            if color_scheme == "sjv_with_error":
+                color_range = [sjv_error] + color_range
+            color_scale = alt.Scale(range=color_range)
+    else:
+        color_scale = alt.Scale(scheme=color_scheme)
+    # Set the feature type
+    feature_name = value
+    if area_df[value].dtype == 'object':
+        value = f"{value}:N"
+    else:
+        value = f"{value}:Q"
+
+    if draw_stations:
+        base = alt.Chart(area_df).mark_geoshape(stroke='darkgray').encode(
+            color=alt.Color(value, scale=color_scale,
+                            legend=alt.Legend(title=feature_name, orient="bottom",
+                                              labelFontSize=12, titleFontSize=14)),
+            tooltip=tooltip_columns,
+        ).properties(
+            width=350,
+            height=350
+        )
+        stations_chart = get_stations_chart(gdf, tooltip_columns)
+        chart = alt.layer(base, stations_chart, data=area_df).facet(
+            facet=f"{feature}:N",
+            columns=3,
+            title=title
+        )
+    else:
+        # There is a bug in Vega-Lite and simple facet charts don't work with GeoPandas
+        # References
+        # - Altair: https://github.com/altair-viz/altair/issues/2369
+        # - Vega-Lite: https://github.com/vega/vega-lite/issues/3729
+        chart = alt.concat(*(
+            alt.Chart(area_df[area_df[feature] == feature_]).mark_geoshape(stroke='darkgray').encode(
+                color=alt.Color(value, scale=color_scale),
+                tooltip=tooltip_columns
+            ).properties(
+                width=350, height=350,
+                title=feature_
+            )
+            for feature_ in sorted(area_df[feature].unique())
+        ),
+                           columns=3
+                           ).properties(title=title)
+    return chart
 
 def visualize_seasonality_by_month(gdf: gpd.GeoDataFrame, feature: List[str]):
     """ This function visualizes the seasonality of the data by month
@@ -242,18 +377,31 @@ def visualize_seasonality_by_month(gdf: gpd.GeoDataFrame, feature: List[str]):
     return chart
 
 
-def display_data_on_map(gdf: gpd.GeoDataFrame, feature: str = None, year: int = None):
+def display_data_on_map(gdf: gpd.GeoDataFrame, feature: str, year: int = None, categorical: bool = False,
+                        color_scheme: str = "viridis"):
     """Use GeoPandas explore() function based on Folium to display the Geospatial data on a map.
 
     :param gdf: the GeoDataFrame to be displayed
     :param feature: the feature to be displayed
     :param year: the year to be displayed
+    :param categorical: whether the data are categorical or not
     :return: the Folium map
     """
-    if year:
-        return gdf[gdf.YEAR == year].explore(feature)
+    if color_scheme == "sjv":
+        nb_categories = gdf[feature].unique()
+        if categorical and 2 < len(nb_categories) < len(sjv_color_range_17):
+            cmap = sjv_color_range_17[0::len(sjv_color_range_17)//(nb_categories-1)]
+            cmap[-1] = sjv_brown
+        if categorical and len(nb_categories) == 2:
+            cmap = [sjv_blue, sjv_brown]
+        else:
+            cmap = sjv_cmap
     else:
-        return gdf.explore(feature)
+        cmap = color_scheme
+    if year:
+        return gdf[gdf.YEAR == year].explore(feature, cmap=cmap)
+    else:
+        return gdf.explore(feature, cmap=cmap)
 
 def draw_corr_heatmap(df: pd.DataFrame, drop_columns: List[str] = None):
     """
@@ -416,4 +564,187 @@ def draw_histogram(df: pd.DataFrame, col_name:str ):
                     y='count()',
                 )
     return (txt_chart + hist).configure_axis( grid=False )
-      
+
+def draw_two_lines_with_two_axis(df: pd.DataFrame, x:str, y1:str, y2:str,
+                                 title: str, x_title: str, y1_title: str, y2_title):
+    """This function plots two lines on the same chart with independant y-axis
+    :param df: the Dataframe with the data to be plotted
+    :param x: the column name of the x-axis
+    :param y1: the column name of the first line
+    :param y2: the column name of the second line
+    :param title: the title of the chart
+    :param x_title: the title of the x-axis
+    :param y1_title: the title of the first line
+    :param y2_title: the title of the second line
+    :return: the Altair visualization
+    """
+    x_values = list(df[x].values)
+    base = alt.Chart(df).encode(
+        x=alt.X(x, axis=alt.Axis(title=x_title, values=x_values))
+    )
+    y1_line = base.mark_line(color=sjv_brown).encode(
+        y=alt.Y(y1, axis=alt.Axis(title=y1_title, titleColor=sjv_brown, titleAngle=0, titlePadding=50)),
+    )
+    y2_line = base.mark_line(color=sjv_blue).encode(
+        y=alt.Y(y2, axis=alt.Axis(title=y2_title, titleColor=sjv_blue, titleAngle=0, titlePadding=55)),
+    )
+    chart = (y1_line + y2_line).resolve_scale(y="independent")
+    if title:
+        chart = chart.properties(title=title)
+    return chart
+
+def draw_faceted_two_lines_with_two_axis(df: pd.DataFrame, x:str, y1:str, y2:str, facet: str,
+                                         title: str, x_title: str, y1_title: str, y2_title, facet_titles: List[str]):
+    """This function plots a chart of two lines on the same chart with independent y-axis, for each value in the
+    facet variable
+
+    :param df: the Dataframe with the data to be plotted
+    :param x: the column name of the x-axis
+    :param y1: the column name of the first line
+    :param y2: the column name of the second line
+    :param facet: the column name of the facet variable
+    :param title: the title of the chart
+    :param x_title: the title of the x-axis
+    :param y1_title: the title of the first line
+    :param y2_title: the title of the second line
+    :return: the Altair visualization
+    """
+    for i, facet_value in enumerate(list(df[facet].unique())):
+        chart_df = df[df[facet] == facet_value]
+        if i == 0:
+            chart = draw_two_lines_with_two_axis(chart_df, x=x, y1=y1, y2=y2, title=facet_titles[i], x_title=x_title,
+                                                 y1_title=y1_title, y2_title=y2_title)
+        else:
+            chart |= draw_two_lines_with_two_axis(chart_df, x=x, y1=y1, y2=y2, title=facet_titles[i], x_title=x_title,
+                                                  y1_title=y1_title, y2_title=y2_title)
+    chart = chart.properties(title=title)
+    return chart
+
+def draw_faceted_lines(df: pd.DataFrame, x:str, y:str, facet: str, title: str, x_title: str, y_title: str):
+    """This function plots a facet line-chart on the same chart with independent y-axis, for each value in the
+    facet variable
+
+    :param df: the Dataframe with the data to be plotted
+    :param x: the column name of the x-axis
+    :param y: the column name of the y-axis
+    :param facet: the column name of the facet variable
+    :param title: the title of the chart
+    :param x_title: the title of the x-axis
+    :param y_title: the title of the y-axis
+    :return: the Altair visualization
+    """
+    x_values = list(df[x].values)
+    # extract 1 color per facet from the custom sjv_color_range_17 color list
+    # at regular intervals
+    nb_facets = len(df[facet].unique())
+    if nb_facets > 2 and nb_facets < len(sjv_color_range_17):
+        color_range = sjv_color_range_17[0::len(sjv_color_range_17)//(nb_facets-1)]
+        color_range[-1] = sjv_brown
+    else:
+        color_range = [sjv_blue, sjv_brown]
+    chart = alt.Chart(df).mark_line().encode(
+        x=alt.X(
+            x,
+            axis=alt.Axis(title=x_title, values=x_values)
+        ),
+        y=alt.Y(
+            y,
+            axis=alt.Axis(
+                title=y_title,
+                titleAngle=0,
+                titlePadding=50)
+        ),
+        color=alt.Color(
+            f"{facet}:N",
+            scale=alt.Scale(range=color_range),
+            legend=None
+        ),
+    ).facet(
+        facet=alt.Facet(
+            f"{facet}:N",
+            header=alt.Header(title=None)
+        ),
+        columns=2
+    ).resolve_scale(y="independent").properties(title=title)
+    return chart
+
+def draw_small_multiples_bar_charts(df: pd.DataFrame, x:str, y:str, facet: str, facet_sort: List[str], title:str):
+    """This function generate small multiples bar charts
+
+    :param df: the Dataframe with the data to be plotted
+    :param x: the column name of the x-axis
+    :param y: the column name of the y-axis
+    :param facet: the column name of the facet variable
+    :param facet_sort: the order of the facet values
+    :param title: the title of the chart
+    """
+    # extract 1 color per facet from the custom sjv_color_range_17 color list
+    # at regular intervals
+    nb_x = len(df[x].unique())
+    if 2 < nb_x < len(sjv_color_range_17):
+        color_range = sjv_color_range_17[0::len(sjv_color_range_17)//(nb_x-1)]
+        color_range[-1] = sjv_brown
+    else:
+        color_range = [sjv_blue, sjv_brown]
+    chart = alt.Chart(df).mark_bar().encode(
+        x=alt.X(f"{x}:N", axis=None),
+        y=alt.Y(f"{y}:Q", axis=alt.Axis(grid=False)),
+        color=alt.Color(f"{x}:N", scale=alt.Scale(range=color_range)),
+    ).facet(
+        facet=alt.Facet(
+            f"{facet}:N",
+            sort=facet_sort,
+            header=alt.Header(title=None, labelOrient="bottom")
+        ),
+        columns=5,
+        spacing={"row": 30, "column": -10},
+    ).properties(title=title).configure_view(stroke="transparent")
+    return chart
+
+def draw_hierarchical_parameters_results(df: pd.DataFrame, x:str, y:str, facet: str, title: str, x_title: str, y_title: str):
+    """This function plots a faceted line chart for the results of the hierarcical clustering parameters search results
+
+    :param df: the Dataframe with the data to be plotted
+    :param x: the column name of the x-axis
+    :param y: the column name of the y-axis
+    :param facet: the column name of the facet variable
+    :param title: the title of the chart
+    :param x_title: the title of the x-axis
+    :param y_title: the title of the y-axis
+    :return: the Altair visualization
+    """
+    x_values = list(df[x].values)
+    # extract 1 color per facet from the custom sjv_color_range_17 color list
+    # at regular intervals
+    nb_facets = len(df[facet].unique())
+    if nb_facets > 2 and nb_facets < len(sjv_color_range_17):
+        color_range = sjv_color_range_17[0::len(sjv_color_range_17)//(nb_facets-1)]
+        color_range[-1] = sjv_brown
+    else:
+        color_range = [sjv_blue, sjv_brown]
+    chart = alt.Chart(df).mark_line().encode(
+        x=alt.X(
+            x,
+            sort="y",
+            axis=alt.Axis(title=x_title, values=x_values, labelAngle=-45, labelAlign="right")
+        ),
+        y=alt.Y(
+            y,
+            axis=alt.Axis(
+                title=y_title,
+                titleAngle=0,
+                titlePadding=50)
+        ),
+        color=alt.Color(
+            f"{facet}:N",
+            scale=alt.Scale(range=color_range),
+            legend=None
+        ),
+    ).facet(
+        facet=alt.Facet(
+            f"{facet}:N",
+            header=alt.Header(title=None)
+        ),
+        columns=2
+    ).resolve_scale(x="independent", y="independent").properties(title=title)
+    return chart

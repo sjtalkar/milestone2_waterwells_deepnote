@@ -89,8 +89,8 @@ def create_transformation_pipeline(X:pd.DataFrame, scaler):
        
     #Transformations through transformers
     wcr_simple_trans = Pipeline(steps=[
-        ("imputer", PandasSimpleImputer(missing_values=np.nan, strategy="constant", fill_value=0))
-        ,("scaler", scaler)
+        ("imputer", PandasSimpleImputer(missing_values=np.nan, strategy="constant", fill_value=0)),
+        ("scaler", scaler)
     ])
 
     # vegetation column transformer
@@ -98,16 +98,16 @@ def create_transformation_pipeline(X:pd.DataFrame, scaler):
                                                  kw_args={'cols_to_impute': veg_soils_crops_cols })
 
     pop_trans = Pipeline(steps=[
-        ("imputer", FunctionTransformer(fill_pop_from_prev_year))
-        ,("scaler", scaler)
+        ("imputer", FunctionTransformer(fill_pop_from_prev_year)),
+        ("scaler", scaler)
     ])                                             
 
     # pct_of_capacity of a resevoir is set as minimum of future years data per township range
     pct_trans = Pipeline(steps=[
         ("imputer", GroupImputer(group_by_cols=["TOWNSHIP_RANGE"],
                                  impute_for_col="PCT_OF_CAPACITY",
-                                 aggregation_func="min"))
-        ,("scaler", scaler)
+                                 aggregation_func="min")),
+        ("scaler", scaler)
     ])
 
 
@@ -115,8 +115,8 @@ def create_transformation_pipeline(X:pd.DataFrame, scaler):
     gse_trans = Pipeline(steps=[
         ("imputer", GroupImputer(group_by_cols=["TOWNSHIP_RANGE"],
                                  impute_for_col="GROUNDSURFACEELEVATION_AVG",
-                                 aggregation_func="median"))
-        ,("scaler", scaler)
+                                 aggregation_func="median")),
+        ("scaler", scaler)
     ])
    
     #Start applying the transformers created above
@@ -129,11 +129,11 @@ def create_transformation_pipeline(X:pd.DataFrame, scaler):
     impute_cols_transformer = ColumnTransformer(
         transformers=[
             # This will return the wcr_cols as the first cols followed by the rest
-            ("wcr", wcr_simple_trans, wcr_cols)
-            ,("veg", veg_soil_crops_trans, veg_soils_crops_cols)
-            ,("pop", pop_trans, population_cols)
-            ,("pct_capacity", pct_trans, pct_cols)
-            ,("gse", gse_trans, gse_cols)
+            ("wcr", wcr_simple_trans, wcr_cols),
+            ("veg", veg_soil_crops_trans, veg_soils_crops_cols),
+            ("pop", pop_trans, population_cols),
+            ("pct_capacity", pct_trans, pct_cols),
+            ("gse", gse_trans, gse_cols)
         ],
         remainder=scaler,
     )
