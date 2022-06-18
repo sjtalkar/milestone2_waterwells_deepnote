@@ -626,7 +626,7 @@ def draw_small_multiples_bar_charts(df: pd.DataFrame, x:str, y:str, facet: str, 
     return chart
 
 def draw_hierarchical_parameters_results(df: pd.DataFrame, x:str, y:str, facet: str, title: List[str], x_title: str,
-                                         y_title: str):
+                                         y_title: str, nb_facet_columns: int = 2):
     """This function plots a faceted line chart for the results of the hierarcical clustering parameters search results
 
     :param df: the Dataframe with the data to be plotted
@@ -636,6 +636,7 @@ def draw_hierarchical_parameters_results(df: pd.DataFrame, x:str, y:str, facet: 
     :param title: the title of the chart
     :param x_title: the title of the x-axis
     :param y_title: the title of the y-axis
+    :param nb_facet_columns: the number of columns in the facet
     :return: the Altair visualization
     """
     x_values = list(df[x].values)
@@ -670,6 +671,6 @@ def draw_hierarchical_parameters_results(df: pd.DataFrame, x:str, y:str, facet: 
             f"{facet}:N",
             header=alt.Header(title=None)
         ),
-        columns=2
+        columns=nb_facet_columns
     ).resolve_scale(x="independent", y="independent").properties(title=title)
     return chart

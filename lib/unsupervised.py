@@ -99,45 +99,48 @@ def dbscan_parameters_search(x: pd.DataFrame, eps_list: List[float], min_samples
     return dbscan_estimation_df
 
 
-def hierarchical_parameters_search(x: pd.DataFrame, affinity_list: List[str], linkage_list: List[str]) -> pd.DataFrame:
+def hierarchical_parameters_search(x: pd.DataFrame, n_clusters_list: List[int], affinity_list: List[str],
+                                   linkage_list: List[str]) -> pd.DataFrame:
     """This function estimates the Davies-Boudin, Caldinski-Harabasz and Silhouette scores of different affinity and
     linkage values for the given dataframe.
 
     :param x: dataframe to calculate the scores for different parameters values
+    :param n_clusters_list: the list of number of clusters to compute using hierarchical clustering
     :param affinity_list: list of values to try for the AgglomerativeClustering parameter affinity
     :param linkage_list: list of values to try for the AgglomerativeClustering parameter linkage
     :return: dataframe with the scores for different affinity and linkage values and metrics
     """
     hierarchical_estimation_df = pd.DataFrame(columns=["affinity", "linkage", "n_clusters", "davies_bouldin_score",
                                                        "calinski_harabasz_score", "silhouette_score"])
-    for affinity in affinity_list:
-        db_scores = []
-        ch_scores = []
-        s_scores = []
-        n_clusters = []
-        linkage_ = []
-        labels = []
-        for linkage in linkage_list:
-            #  If linkage is “ward”, only “euclidean” is accepted.
-            if not (linkage == "ward" and affinity != "euclidean"):
-                cls = AgglomerativeClustering(affinity=affinity, linkage=linkage).fit(x)
-                cluster_labels = cls.labels_
-                linkage_.append(linkage)
-                db_scores.append(davies_bouldin_score(x, cluster_labels))
-                ch_scores.append(calinski_harabasz_score(x, cluster_labels))
-                s_scores.append(silhouette_score(x, cluster_labels))
-                n_clusters.append(cls.n_clusters_)
-                labels.append(cluster_labels)
-        linkage_df = pd.DataFrame(data={
-            "affinity": affinity,
-            "linkage": linkage_,
-            "n_clusters": n_clusters,
-            "davies_bouldin_score": db_scores,
-            "calinski_harabasz_score": ch_scores,
-            "silhouette_score": s_scores,
-            "labels": labels
-        })
-        hierarchical_estimation_df = pd.concat([hierarchical_estimation_df, linkage_df], axis=0)
+    for n_clusters in n_clusters_list:
+        for affinity in affinity_list:
+            db_scores = []
+            ch_scores = []
+            s_scores = []
+            n_clusters_ = []
+            linkage_ = []
+            labels = []
+            for linkage in linkage_list:
+                #  If linkage is “ward”, only “euclidean” is accepted.
+                if not (linkage == "ward" and affinity != "euclidean"):
+                    cls = AgglomerativeClustering(n_clusters=n_clusters, affinity=affinity, linkage=linkage).fit(x)
+                    cluster_labels = cls.labels_
+                    linkage_.append(linkage)
+                    db_scores.append(davies_bouldin_score(x, cluster_labels))
+                    ch_scores.append(calinski_harabasz_score(x, cluster_labels))
+                    s_scores.append(silhouette_score(x, cluster_labels))
+                    n_clusters_.append(n_clusters)
+                    labels.append(cluster_labels)
+            linkage_df = pd.DataFrame(data={
+                "affinity": affinity,
+                "linkage": linkage_,
+                "n_clusters": n_clusters_,
+                "davies_bouldin_score": db_scores,
+                "calinski_harabasz_score": ch_scores,
+                "silhouette_score": s_scores,
+                "labels": labels
+            })
+            hierarchical_estimation_df = pd.concat([hierarchical_estimation_df, linkage_df], axis=0)
     hierarchical_estimation_df.reset_index(inplace=True, drop=True)
     return hierarchical_estimation_df
 
