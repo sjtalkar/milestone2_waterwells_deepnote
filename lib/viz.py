@@ -625,7 +625,8 @@ def draw_small_multiples_bar_charts(df: pd.DataFrame, x:str, y:str, facet: str, 
     ).properties(title=title).configure_view(stroke="transparent")
     return chart
 
-def draw_hierarchical_parameters_results(df: pd.DataFrame, x:str, y:str, facet: str, title: str, x_title: str, y_title: str):
+def draw_hierarchical_parameters_results(df: pd.DataFrame, x:str, y:str, facet: str, title: List[str], x_title: str,
+                                         y_title: str):
     """This function plots a faceted line chart for the results of the hierarcical clustering parameters search results
 
     :param df: the Dataframe with the data to be plotted
