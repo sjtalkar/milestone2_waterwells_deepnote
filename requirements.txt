@@ -1,5 +1,8 @@
 altair==4.2.0
+fiona==1.8.21
 beautifulsoup4==4.10.0
+graphviz==0.19.2
+pygeos==0.12.0
 geopandas==0.10.2
 gpdvega==0.1.1rc1
 graphviz==0.19.2
@@ -13,7 +16,5 @@ pillow==9.1.0
 plotly==4.4.1
 requests==2.27.1
 scikit-learn==0.24.2
-scikit-learn-extra==0.2.0
 streamlit==1.8.1
 tqdm==4.64.0
-pygeos==0.12.0
