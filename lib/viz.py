@@ -30,11 +30,11 @@ def draw_missing_data_chart(df: pd.DataFrame):
 
     sort_list = list(missing_value_df['column_name'])
     chart = alt.Chart(missing_value_df
-                      ).mark_bar(
+                      ).mark_bar(color = color_for_bars
     ).encode(
         y=alt.Y("sum(percent_missing)", stack="normalize", axis=alt.Axis(format='%')),
         x=alt.X('column_name:N', sort=sort_list),
-        color=alt.value("orange"),
+        color=alt.value(color_for_bars),
         tooltip=['column_name', 'percent_missing']
     )
 
