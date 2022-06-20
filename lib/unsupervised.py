@@ -23,20 +23,20 @@ def kmeans_parameters_search(x: pd.DataFrame, random_seed: int, max_k: int = 10)
     db_scores = []
     ch_scores = []
     s_scores = []
-    ssd = []
+    i_scores = []
     for k in k_range:
         cls = KMeans(n_clusters=k, init='k-means++', max_iter=100, n_init=1, random_state=random_seed).fit(x)
         cluster_labels = cls.labels_
         db_scores.append(davies_bouldin_score(x, cluster_labels))
         ch_scores.append(calinski_harabasz_score(x, cluster_labels))
         s_scores.append(silhouette_score(x, cluster_labels))
-        ssd.append(cls.inertia_)
+        i_scores.append(cls.inertia_)
     k_estimation_df = pd.DataFrame(data={
         "k": k_range,
         "davies_bouldin_score": db_scores,
         "calinski_harabasz_score": ch_scores,
         "silhouette_score": s_scores,
-        "sum_squared_distances": ssd
+        "inertia": i_scores
     })
     return k_estimation_df
 

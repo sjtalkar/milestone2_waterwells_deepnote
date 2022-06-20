@@ -23,8 +23,8 @@ class TownshipRanges(WsGeoDataset):
 
     def add_years_to_dataset(self):
         """This function adds the 2014-2021 years to the dataset"""
-        self.map_df["YEAR"] = 2014
-        for year in range(2015, 2022):
-            year_df = self.map_df[self.map_df.YEAR == 2014].copy()
-            year_df["YEAR"] = year
-            self.map_df = pd.concat([self.map_df, year_df], axis=0)
+        self.map_df["tmp"] = 1
+        year_df = pd.DataFrame({"YEAR": [year for year in range(2014, 2022)], "tmp": [1] * 8 })
+        self.map_df = self.map_df.merge(year_df, on="tmp")
+        self.map_df.drop(columns=["tmp"], inplace=True)
+        self.map_df = self.map_df.to_crs(epsg=4326)
