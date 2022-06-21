@@ -63,9 +63,33 @@ Unresolved
 PyCaret takes a long time to load
 
 **Status:**
-Unresolved
+PyCaret was installed inside the notebook with 
+```
+!pip install pycaret[full]
+```
+The notebook kernel should be restarted after this.
+PyCaret has several limitations arising out of dependencies of various packages being mismatched with the packages currently 
+in use in the project. 
+
 **Ideas**
 - Check if by using the already split train and test we can have another requirements files that contains 
 PyCaret and sklearn 0.23.0 as in the local environment
+
+##### Issue 4
+
+Low (as in 0.1-0.2) r-squared score with [SVM](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html) and
+ with PyCaret highlighte best algorithm [Extra Trees Regressor](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.ExtraTreesRegressor.html)
+
+**Status:**
+Tried adding clustering labels to the fetaures. This had an impact but imprived score by 0.01
+Made sure the target which is left skewed is normalized. This made a large impact. About 27% increase in R-squared.
+Tried out XGBoost and  hypertuned the parameters. This along with normalized target has brought the training score up
+to 95%, a huge increase but the test score is very low.
+
+
+**Ideas**
+- Check if by using the already split train and test we can have another requirements files that contains 
+PyCaret and sklearn 0.23.0 as in the local environment
+
 
 
