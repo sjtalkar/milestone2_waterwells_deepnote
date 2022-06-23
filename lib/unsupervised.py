@@ -221,14 +221,16 @@ def get_most_frequent_cluster_for_all_parameters(x: pd.DataFrame, search_result_
     return result_df
 
 
-def compute_hier_clusters_and_top_features(x: pd.DataFrame, affinity: str, linkage: str, nb_features: int = 10,
-                                           reverse_cluster: bool = False) -> Tuple[pd.DataFrame, List[tuple]]:
+def compute_hier_clusters_and_top_features(x: pd.DataFrame, n_clusters: int, affinity: str, linkage: str,
+                                           nb_features: int = 10, reverse_cluster: bool = False) \
+        -> Tuple[pd.DataFrame, List[tuple]]:
     """This function clusters the data and extracts for each cluster the most predominant nb_features features names and
     the cluster center value on that feature. The predominant features are defined as the top nb_features with the
     highest value for each cluster centroid in the feature vector space. The resulting dataframe contains only the
     predominant features.
 
     :param x: dataframe to be clustered
+    :param n_clusters: the number of clusters to compute using hierarchical clustering
     :param affinity: affinity to be used for the clustering
     :param linkage: linkage to be used for the clustering
     :param nb_features: number of features to be extracted
@@ -238,7 +240,8 @@ def compute_hier_clusters_and_top_features(x: pd.DataFrame, affinity: str, linka
     and a sorted list of the most predominant features of the two clusters
     """
     result_df = x.copy()
-    cls = AgglomerativeClustering(affinity=affinity, linkage=linkage, compute_distances=True).fit(x)
+    cls = AgglomerativeClustering(n_clusters=n_clusters, affinity=affinity, linkage=linkage,
+                                  compute_distances=True).fit(x)
     if reverse_cluster:
         result_df["cluster"] = ["0" if x == 1 else "1" for x in cls.labels_]
     else:

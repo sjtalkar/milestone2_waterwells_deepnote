@@ -679,13 +679,13 @@ def draw_hierarchical_parameters_results(df: pd.DataFrame, x:str, y:str, facet: 
     return chart
 
 def create_silhoutte_cluster_viz(X_train_impute: np.ndarray, random_seed):
-    """This function plots a pair of visualizations for every number of KMeans cluster chosen
+    """This function plots a pair of visualizations for every number of KMeans cluster chosen.
+    This code was taken for scikit-learn documentation
+    https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_analysis.html
 
     :param df: the Dataframe with the data to clustered
     :return: the pyplot visualization
     """
-
-
     range_n_clusters = [2, 3, 4, 5, 6]
 
     for n_clusters in range_n_clusters:
