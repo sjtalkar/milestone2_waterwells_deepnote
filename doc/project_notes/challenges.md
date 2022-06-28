@@ -92,4 +92,20 @@ to 95%, a huge increase but the test score is very low.
 PyCaret and sklearn 0.23.0 as in the local environment
 
 
+##### Issue 5
+
+- Transforming the target, poses challenges in using cross validation since you need to inverse_transform before
+  scoring
+
+**Status:**
+[Wrap the model in TransformedTargetRegressor](https://machinelearningmastery.com/how-to-transform-target-variables-for-regression-with-scikit-learn/)
+
+
+##### Issue 6
+Which score to use to evaluate model. Why the scitch from r-square to mean squared error or root mean sqaured 
+error was made.
+
+https://github.com/keras-team/keras/issues/14090
+https://stats.stackexchange.com/questions/83948/is-r-squared-value-appropriate-for-comparing-models
+https://www.bmc.com/blogs/mean-squared-error-r2-and-variance-in-regression-analysis/
 

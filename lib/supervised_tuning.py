@@ -1,13 +1,40 @@
 import pandas as pd
 import numpy as np
-from sklearn.linear_model import LinearRegression
+
+from math import sqrt
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import median_absolute_error, r2_score
 from sklearn import metrics
 from sklearn.cluster import KMeans
 from sklearn.dummy import DummyRegressor
 from sklearn.linear_model import Ridge, Lasso
+from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 
 
+def print_scores(reg, X:pd.DataFrame, y_true:pd.Series, name_of_regressor):
+
+    #Since the models are being wrapped in TransformedTargetRegressor,
+    # we do not have to perform inverse_transform 
+    y_hat = reg.predict(X)
+ 
+    r2 = r2_score(y_true, y_hat)
+    mse = mean_squared_error(y_true, y_hat)
+    print(f"Scores from {name_of_regressor} : R2 score:{r2};  MSE score:{mse}; RMSE score:{sqrt(mse)}")
+    
+
+
+def predict_mean_squared_error_regression(reg, X:pd.DataFrame, y_true:pd.Series, name_of_regressor):
+
+    #Since the models are being wrapped in TransformedTargetRegressor,
+    # we do not have to perform inverse_transform 
+    y_hat = reg.predict(X)
+ 
+    print(f"Prediction from {name_of_regressor} is : {y_hat}")
+    r2 = r2_score(y_true, y_hat)
+    mse = mean_squared_error(y_true, y_hat)
+    print(f"Scores from {name_of_regressor} : R2 score:{r2};  MSE score:{mse}; RMSE score:{sqrt(mse)}")
+    
 
 def predict_score_base_regressors(reg, X:pd.DataFrame, y:pd.Series, name_of_regressor:str):
     reg.fit(X,y)
