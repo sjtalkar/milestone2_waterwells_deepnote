@@ -78,13 +78,19 @@ PyCaret and sklearn 0.23.0 as in the local environment
 ##### Issue 4
 
 Low (as in 0.1-0.2) r-squared score with [SVM](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVR.html) and
- with PyCaret highlighte best algorithm [Extra Trees Regressor](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.ExtraTreesRegressor.html)
+ with PyCaret highlighted best algorithm [Extra Trees Regressor](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.ExtraTreesRegressor.html)
 
 **Status:**
-Tried adding clustering labels to the fetaures. This had an impact but imprived score by 0.01
+Tried adding clustering labels to the features. This had an impact but imprived score by 0.01
 Made sure the target which is left skewed is normalized. This made a large impact. About 27% increase in R-squared.
+
 Tried out XGBoost and  hypertuned the parameters. This along with normalized target has brought the training score up
 to 95%, a huge increase but the test score is very low.
+
+Other things to try :
+1. Reduction algorithm such as PCA to reduce number of correlated features
+2. Radical change: Try a different target variable, number of wells for instance.
+
 
 
 **Ideas**
@@ -92,4 +98,20 @@ to 95%, a huge increase but the test score is very low.
 PyCaret and sklearn 0.23.0 as in the local environment
 
 
+##### Issue 5
+
+- Transforming the target, poses challenges in using cross validation since you need to inverse_transform before
+  scoring
+
+**Status:**
+[Wrap the model in TransformedTargetRegressor](https://machinelearningmastery.com/how-to-transform-target-variables-for-regression-with-scikit-learn/)
+
+
+##### Issue 6
+Which score to use to evaluate model. Why the scitch from r-square to mean squared error or root mean sqaured 
+error was made.
+
+https://github.com/keras-team/keras/issues/14090
+https://stats.stackexchange.com/questions/83948/is-r-squared-value-appropriate-for-comparing-models
+https://www.bmc.com/blogs/mean-squared-error-r2-and-variance-in-regression-analysis/
 
