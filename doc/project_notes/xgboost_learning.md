@@ -16,7 +16,7 @@ It is Extreme Gradient Boosting best suited for large complicated datasets,
 
 #### STEP 1
 
-    1. Start with extremely weak learner (F1(x)) Say it is the mean. of the y targets
+    1. Start with extremely weak learner (F1(x)) Say it is the mean of the y targets
     2. This is the initial prediction.
     3. The residuals (sum of difference of each data point from the mean(the current mode) line) show how good or bad this initial prediction is.
 
@@ -34,12 +34,20 @@ It is Extreme Gradient Boosting best suited for large complicated datasets,
 
 #### STEP 2 DETAILED
     1. Start with all residuals in a leaf node
-    2. Calculate the Similarity Score for this leaf which is the Square of the Sum of the Residuals divided by (number of Residuals _ lambda)
+    2. Calculate the Similarity Score for this leaf which is the Square of the Sum of the Residuals 
+       divided by (number of Residuals + lambda). Lambda is the regularization parameter that minimizes dependence on any one feature.
        Note the residuals are not sqaured before summing.Some of the residuals might cancel each other out.
     3. Now the question is : Can we do a better job if we cluster resdiuals together in some manner.(create a line separating the clusters)
     4. We split the observations into two parts based on say an average of a feature. 
     5. Calculate the similarity score of each leaf node with residuals clustered into the two nodes.
-    6.    
+    6. The Gain is the sum of the similarity scores of these two leaf nodes minus the similarity score of the "root" node.
+    7. We keep the clusters that result in the largest Gain.     
+    8. Pruning trees. Set a threshold: Tree Complexity Parameter (gamma) to compare Gains against. If the Gain is greater than gamma, then the tree is not pruned. We start with the lowest tree.
+    9. Lambda, the regularization parameter when set to more than 0, also can cause tree pruning, since it reduces the Similarity Scores and hence the Gain (which is compared to the threshold Gamma)
+   10. Lambda has a greater effect on tree pruning than Gamma.
+   11. After the trees have been created, we calculate the Outcome.Outcome is the Sum of Residuals/(number of residuals + Lambda) 
+   12. Once we have the Outcomes we can make new predictions. Learning Rate = ETA 
+       = original prediction (typically mean) + Learning Rate x Output
 
 
 

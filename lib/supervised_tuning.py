@@ -10,6 +10,40 @@ from sklearn.dummy import DummyRegressor
 from sklearn.linear_model import Ridge, Lasso
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.compose import  TransformedTargetRegressor
+
+
+
+# Create a feature importance property for the the TransformedTargetRegressor
+class FeatureTTRegressor(TransformedTargetRegressor):
+    @property
+    def feature_importances_(self):
+        return self.regressor_.feature_importances_
+
+
+
+# Define a function that compares all final models DO THIS FOR SVM and XGBOOST
+def final_comparison(models, test_features, test_labels):
+    """This function create a dataframe to compare models based on mean absolute error,
+        mean squared error. root mean squared error, and r-squared
+
+    :param models: list of models with tuned parameters
+    :param test_features: dataframe or numpy array with features
+    :param test_labels: target labels
+    :return: dataframe with the scores for different models
+    """
+    
+    scores = pd.DataFrame()
+    for model in models:
+        predictions = model.predict(test_features)
+        mae = round(mean_absolute_error(test_labels, predictions), 4)
+        mse = round(mean_squared_error(test_labels, predictions), 4)
+        rmse = round(np.sqrt(mean_squared_error(test_labels, predictions), 4))
+        r2 = round(r2_score(test_labels, predictions), 4)
+
+        scores[str(model)] = [mae, mse, r2, rmse]
+    scores.index = ['Mean Absolute Error', 'Mean Squared Error', 'R^2', 'RMSE']
+    return scores
 
 
 def print_scores(reg, X:pd.DataFrame, y_true:pd.Series, name_of_regressor):

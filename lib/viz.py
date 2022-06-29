@@ -29,7 +29,7 @@ def draw_missing_data_chart(df: pd.DataFrame):
                                      'percent_missing': percent_missing})
     missing_value_df.sort_values('percent_missing', ascending=False, inplace=True)
 
-    color_for_bars = '#6e0a1e' #'orange'
+    color_for_bars = '#6e0a1e' 
 
     sort_list = list(missing_value_df['column_name'])
     chart = alt.Chart(missing_value_df
