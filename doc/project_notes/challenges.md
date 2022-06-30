@@ -115,3 +115,13 @@ https://github.com/keras-team/keras/issues/14090
 https://stats.stackexchange.com/questions/83948/is-r-squared-value-appropriate-for-comparing-models
 https://www.bmc.com/blogs/mean-squared-error-r2-and-variance-in-regression-analysis/
 
+
+##### Issue 7
+
+- Major difference in number of components when the data is scaled using StandardScaler versus MinMaxScaler
+- I split up the research into MinMaxScaler and StandardScaler notebooks. The variations in the algorithmic evaluation and PCA is so radical that these two scaling methods have to be differentiated.
+With Standard Scaling, the Biplot does not look awesome, but the components make total sense.
+- The Silhouette score is better with StandardScaler
+- The evaluation metrics for testing are better
+- With MinMaxScaling, the Silhouette Score does not show as much negative area for the first three clusters
+
