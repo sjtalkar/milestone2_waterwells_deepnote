@@ -1,6 +1,9 @@
 /assets/
 
-.idea
+.idea/
+.neptune/
+keras_tuner/
+mlruns/
 *__pycache__
-*.ipynb_checkpoints
+*.ipynb_checkpoints/
 neptune.pkl

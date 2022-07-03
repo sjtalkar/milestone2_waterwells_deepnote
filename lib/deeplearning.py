@@ -7,7 +7,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import FunctionTransformer, MinMaxScaler
-from sklearn.model_selection import GroupShuffleSplit, TimeSeriesSplit
+from tensorflow import keras
 
 
 def fill_veg_from_prev_year(df: pd.DataFrame):
@@ -258,3 +258,16 @@ def create_transformation_pipelines(X: pd.DataFrame) -> Tuple[Pipeline, List[str
     columns = columns_to_transform["used"] + remainder_cols
     impute_pipeline = make_pipeline(cols_transformer)
     return impute_pipeline, columns
+
+
+def evaluate_forecast(y_test_inverse, yhat_inverse):
+    mse_ = keras.metrics.MeanSquaredError()
+    mae_ = keras.metrics.MeanAbsoluteError()
+    rmse_ = keras.metrics.RootMeanSquaredError()
+    mae = mae_(y_test_inverse,yhat_inverse)
+    print('mae:', mae)
+    mse = mse_(y_test_inverse,yhat_inverse)
+    print('mse:', mse)
+    rmse = rmse_(y_test_inverse,yhat_inverse)
+    print('rmse:', rmse)
+    return mae, mse, rmse

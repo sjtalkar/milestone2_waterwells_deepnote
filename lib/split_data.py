@@ -13,7 +13,7 @@ from sklearn.preprocessing import FunctionTransformer, MinMaxScaler
 from sklearn.model_selection import GroupShuffleSplit, TimeSeriesSplit
 
 
-def group_split(list_to_split:str, split_ratio:float=0.8, random_seed=42):
+def group_split(list_to_split: str, split_ratio: float = 0.8, random_seed: int = 42):
     """This function splits a list into two parts as per split ratio
     """
 
@@ -30,18 +30,19 @@ def group_split(list_to_split:str, split_ratio:float=0.8, random_seed=42):
     return output_lists
 
 
-def train_test_split_single_level_index (df: pd.DataFrame, index_to_split:str='TOWNSHIP_RANGE', split_ratio:float=0.8, random_seed:int=42):
+def train_test_split_single_level_index(df: pd.DataFrame, index_to_split: str = 'TOWNSHIP_RANGE',
+                                        split_ratio: float = 0.8, random_seed: int = 42):
     """This function splits the dataframe into train and test sets based on one index level of a multi-level index.
 
     :param df: dataframe to be split
     :param index_to_split: index column name to base the split on
-    :param split_ratio: the ratio ito which the test and train datasets need to be split
+    :param split_ratio: the ratio to which the test and train datasets need to be split
     :param random_seed: random seed to be used for the split
     :return: train and test dataframes
     """
 
     townshiprange_list = list(df.index.get_level_values(level=index_to_split).unique().sort_values().values)
-    train_list, test_list  = group_split(townshiprange_list, split_ratio, random_seed)
+    train_list, test_list = group_split(townshiprange_list, split_ratio, random_seed)
 
     train_df = df.loc[train_list, :].copy()
     test_df = df.loc[test_list, :].copy()
@@ -50,18 +51,19 @@ def train_test_split_single_level_index (df: pd.DataFrame, index_to_split:str='T
     return train_df, test_df
 
 
-def train_test_group_split(df: pd.DataFrame, index: List[str], group: str, random_seed=42) -> \
-        Tuple[pd.DataFrame, pd.DataFrame]:
+def train_test_group_split(df: pd.DataFrame, index: List[str], group: str, test_size: float = 0.2,
+                           random_seed: int = 42) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """This function splits the dataframe into train and test sets based on the group column
     some group time series will be in the train set and others in the test set.
 
     :param df: dataframe to be split
     :param index: list of index columns
     :param group: the group column name to be used to split the dataframe
+    :param test_size: the size in percentage of the test set (e.g. 0.2 f0r 20%)
     :param random_seed: random seed to be used for the split
     :return: train and test dataframes
     """
-    group_splitter = GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=random_seed)
+    group_splitter = GroupShuffleSplit(n_splits=1, test_size=test_size, random_state=random_seed)
     X_no_index = df.reset_index(drop=False)
     split = group_splitter.split(X_no_index, groups=X_no_index[group])
     train_idx, test_idx = next(split)
@@ -93,8 +95,8 @@ def train_test_time_split(df: pd.DataFrame, index: List[str], group: str) -> Tup
     return X, y
 
 
-def train_test_group_time_split(df: pd.DataFrame, index: List[str], group: str, random_seed=42) -> \
-        Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def train_test_group_time_split(df: pd.DataFrame, index: List[str], group: str, test_size: float = 0.2,
+                                random_seed: int = 42) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """This function splits the timeseries dataframe into train and test sets and X and y data based on the group column
      and time. Based on the group column, some group time series will be in the train set and others in the test set
      The last time point is used as the y value and the rest is used as the X value.
@@ -102,10 +104,12 @@ def train_test_group_time_split(df: pd.DataFrame, index: List[str], group: str, 
     :param df: dataframe to be split
     :param index: list of index columns
     :param group: the group column name to be used to split the dataframe
+    :param test_size: the size in percentage of the test set (e.g. 0.2 f0r 20%)
     :param random_seed: random seed to be used for the split
     :return: X_train, X_test, y_train, y_test dataframes
     """
-    Xy_train, Xy_test = train_test_group_split(df, index=index, group=group, random_seed=random_seed)
+    Xy_train, Xy_test = train_test_group_split(df, index=index, group=group, test_size= test_size,
+                                               random_seed=random_seed)
     X_train, y_train = train_test_time_split(Xy_train, index=index, group=group)
     X_test, y_test = train_test_time_split(Xy_test, index=index, group=group)
     return X_train, X_test, y_train, y_test
