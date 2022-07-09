@@ -19,6 +19,85 @@ sjv_color_range_17 =["#3586BD", "#3D86B7", "#4485B0", "#4B84A9", "#5283A2", "#5A
 sjv_cmap = LinearSegmentedColormap.from_list("sjv_cmap", [sjv_blue, sjv_brown])
 
 
+
+def create_correlation_scatters(df:pd.DataFrame, colName:str, targetName:str, variable):
+    """
+        This function creates a scatter chart and a line that is a regression line between the two numerical columns passed to it
+        It prints out the correlation values as well
+
+    """
+
+
+    corr = df[targetName].corr(df[colName])
+    source = df
+
+    base = alt.Chart(source)
+
+    chart = base.mark_circle().encode(
+        alt.X(f"{colName}:Q", axis=alt.Axis(title=variable)),
+        alt.Y(f"{targetName}:Q"),
+        color="YEAR:N"
+    ).properties(
+        width=300,
+        height=150
+    )
+    text = base.mark_text(
+                            align="left", baseline="top"
+                        ).encode(
+                        x=alt.value(5),  # pixels from left
+                        y=alt.value(5),  # pixels from top
+                        text=alt.value(f"corr: {corr:.3f}"),
+                        )
+
+    return chart + text+ chart.transform_regression(colName, targetName).mark_line(color='darkblue').encode(color=alt.value('blue'))
+    
+
+
+def chart_feature_target_relation(x_df:pd.DataFrame, y:pd.Series, variable:str):
+    """This function returns the correlation coefficient of each feature
+       with respect to target
+
+    :param X_df: The fetaures DataFrame 
+    :param y_target: Series containing target
+    :param target: Name of target
+    """
+    feature_to_target_df_year = x_df.reset_index()
+    y_year = pd.DataFrame(y).reset_index()
+
+    #normalize the target   
+    y_year ['GSE_GWE']= np.sqrt(y_year['GSE_GWE'])
+
+    total_df  = pd.concat([feature_to_target_df_year, y_year[['GSE_GWE']]], axis=1)
+    total_chart_df =pd.melt(total_df, id_vars=['TOWNSHIP_RANGE', 'YEAR', 'GSE_GWE'])
+    total_chart_df = total_chart_df[total_chart_df['variable'] == variable]
+    return create_correlation_scatters(total_chart_df, "value", 'GSE_GWE', variable)
+
+
+
+def get_feature_target_correlation(X_df:pd.DataFrame, y_target:pd.Series, target:str='GSE_GWE'):
+    """This function returns the correlation coefficient of each feature
+       with respect to target
+
+    :param X_df: The features DataFrame 
+    :param y_target: Series containing target
+    :param target: Name of target
+    """
+   
+    variable_corr_dict = {}
+    y_df = pd.DataFrame(y_target)
+
+    #normalize the target   
+    y_df[target]= np.sqrt(y_df[target])
+
+    full_df = pd.concat([X_df,y_df], axis=1)
+    for col in full_df.columns:
+        corr = full_df[target].corr(full_df[col])
+        variable_corr_dict[col] = corr
+    corr_df = pd.DataFrame.from_dict(variable_corr_dict, orient='index', columns=[ 'Correlation_Coefficient'])
+    corr_df['sort_coeff'] = np.abs(corr_df['Correlation_Coefficient'])
+    corr_df =  corr_df.sort_values(['sort_coeff'], ascending=False)
+    return corr_df.drop(columns=['sort_coeff'])
+
 def draw_missing_data_chart(df: pd.DataFrame):
     """This function charts the percentage missing data in the data file read in
 
