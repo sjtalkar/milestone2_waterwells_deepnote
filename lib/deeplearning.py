@@ -260,7 +260,14 @@ def create_transformation_pipelines(X: pd.DataFrame) -> Tuple[Pipeline, List[str
     return impute_pipeline, columns
 
 
-def evaluate_forecast(y_test_inverse, yhat_inverse):
+def evaluate_forecast(y_test_inverse: np.ndarray, yhat_inverse: np.ndarray) -> Tuple[float, float, float]:
+    """This function evaluates the forecasted values against the actual values and returns the following metrics:
+    mean absolute error, mean squared error, root mean squared error
+
+    :param y_test_inverse: actual values
+    :param yhat_inverse: forecasted values
+    :return: a tuple of the mean absolute error, mean squared error, root mean squared error
+    """
     mse_ = keras.metrics.MeanSquaredError()
     mae_ = keras.metrics.MeanAbsoluteError()
     rmse_ = keras.metrics.RootMeanSquaredError()
@@ -271,3 +278,27 @@ def evaluate_forecast(y_test_inverse, yhat_inverse):
     rmse = rmse_(y_test_inverse,yhat_inverse)
     print('rmse:', rmse)
     return mae, mse, rmse
+
+def reshape_data_to_3d(datasets: List[pd.DataFrame]) -> Tuple[np.ndarray, np.ndarray]:
+    """This function reshapes the input pandas Dataframes to 3D (samples, time, features) numpy arrays
+
+    :param datasets: list of pandas Dataframe
+    :return: a tuple of the reshaped datasets as numpy arrays
+    """
+    for i, dataset in enumerate(datasets):
+        datasets[i] = dataset.values.reshape(len(dataset.index.get_level_values(0).unique()),
+                                         len(dataset.index.get_level_values(1).unique()),
+                                         dataset.shape[1])
+    return datasets
+
+def get_sets_shapes(training: np.ndarray, test: np.ndarray) -> pd.DataFrame:
+    """This function returns a dataframe with the shapes of the datasets
+
+    :param training: the training dataset numpy array
+    :param test: the test dataset numpy array
+    :return: dataframe with the shapes of the datasets
+    """
+    shapes = [training.shape, test.shape]
+    shapes = pd.DataFrame(shapes, index=["training dataset", "test dataset"],
+                          columns=["nb_items", "nb_timestamps", "nb_features"])
+    return shapes
