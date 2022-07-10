@@ -8,6 +8,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import FunctionTransformer, MinMaxScaler
 from tensorflow import keras
+from lib.split_data import train_test_group_time_split
 
 
 def fill_veg_from_prev_year(df: pd.DataFrame):
@@ -260,23 +261,20 @@ def create_transformation_pipelines(X: pd.DataFrame) -> Tuple[Pipeline, List[str
     return impute_pipeline, columns
 
 
-def evaluate_forecast(y_test_inverse: np.ndarray, yhat_inverse: np.ndarray) -> Tuple[float, float, float]:
+def evaluate_forecast(y_test: np.ndarray, yhat: np.ndarray) -> Tuple[float, float, float]:
     """This function evaluates the forecasted values against the actual values and returns the following metrics:
     mean absolute error, mean squared error, root mean squared error
 
-    :param y_test_inverse: actual values
-    :param yhat_inverse: forecasted values
+    :param y_test: actual values
+    :param yhat: forecasted values
     :return: a tuple of the mean absolute error, mean squared error, root mean squared error
     """
     mse_ = keras.metrics.MeanSquaredError()
     mae_ = keras.metrics.MeanAbsoluteError()
     rmse_ = keras.metrics.RootMeanSquaredError()
-    mae = mae_(y_test_inverse,yhat_inverse)
-    print('mae:', mae)
-    mse = mse_(y_test_inverse,yhat_inverse)
-    print('mse:', mse)
-    rmse = rmse_(y_test_inverse,yhat_inverse)
-    print('rmse:', rmse)
+    mae = mae_(y_test, yhat).numpy()
+    mse = mse_(y_test, yhat).numpy()
+    rmse = rmse_(y_test, yhat).numpy()
     return mae, mse, rmse
 
 def reshape_data_to_3d(datasets: List[pd.DataFrame]) -> Tuple[np.ndarray, np.ndarray]:
@@ -285,11 +283,12 @@ def reshape_data_to_3d(datasets: List[pd.DataFrame]) -> Tuple[np.ndarray, np.nda
     :param datasets: list of pandas Dataframe
     :return: a tuple of the reshaped datasets as numpy arrays
     """
+    np_datasets = []
     for i, dataset in enumerate(datasets):
-        datasets[i] = dataset.values.reshape(len(dataset.index.get_level_values(0).unique()),
-                                         len(dataset.index.get_level_values(1).unique()),
-                                         dataset.shape[1])
-    return datasets
+        np_datasets.append(dataset.values.reshape(len(dataset.index.get_level_values(0).unique()),
+                                                  len(dataset.index.get_level_values(1).unique()),
+                                                  dataset.shape[1]))
+    return np_datasets
 
 def get_sets_shapes(training: np.ndarray, test: np.ndarray) -> pd.DataFrame:
     """This function returns a dataframe with the shapes of the datasets
@@ -302,3 +301,44 @@ def get_sets_shapes(training: np.ndarray, test: np.ndarray) -> pd.DataFrame:
     shapes = pd.DataFrame(shapes, index=["training dataset", "test dataset"],
                           columns=["nb_items", "nb_timestamps", "nb_features"])
     return shapes
+
+def get_train_test_datasets(X: pd.DataFrame, target_variable: str, test_size: int, random_seed: int = 0) -> \
+        Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, MinMaxScaler]:
+    """This function splits the input pandas Dataframe into training and test datasets, applies the impute pipeline
+    transformation and reshapes the datasets to 3D (samples, time, features) numpy arrays. The function also returns the
+     mpute pipeline fit on the training dataset and the scaler used to transform the target variable.
+
+    :param X: dataframe to be split into training and test datasets
+    :param target_variable: the name of the target variable
+    :param test_size: size of the test dataset
+    :param random_seed: random seed for the train_test_split
+    :return: a tuple of the training, test, training_labels, test_labels datasets as numpy arrays, the impute pipeline
+    fit on the training dataset and the scaler used to transform the target variable"""
+    X_train_df, X_test_df, y_train_df, y_test_df = train_test_group_time_split(X, index=["TOWNSHIP_RANGE", "YEAR"],
+        group="TOWNSHIP_RANGE", test_size=test_size, random_seed=random_seed)
+    # Create, fit and apply the data imputation pipeline to the training and test sets
+    impute_pipeline, columns = create_transformation_pipelines(X_train_df)
+    X_train_impute = impute_pipeline.fit_transform(X_train_df)
+    X_test_impute = impute_pipeline.transform(X_test_df)
+    # Convert the X_train and X_test back to dataframes
+    X_train_impute_df = pd.DataFrame(X_train_impute, index=X_train_df.index, columns=columns)
+    X_test_impute_df = pd.DataFrame(X_test_impute, index=X_test_df.index, columns=columns)
+    # Keep only the target_variable variable as the outcome variable
+    target_scaler = MinMaxScaler()
+    y_train = target_scaler.fit_transform(y_train_df[[target_variable]])
+    y_test = y_test_df[target_variable].to_numpy()
+    X_train, X_test = reshape_data_to_3d([X_train_impute_df, X_test_impute_df])
+    return X_train, X_test, y_train, y_test, impute_pipeline, target_scaler
+
+def get_data_for_prediction(X:pd.DataFrame, impute_pipeline: Pipeline) -> np.ndarray:
+    """This function applies the impute pipeline transformation to the input pandas Dataframe and reshapes the dataset to
+    3D (samples, time, features) numpy arrays.
+
+    :param X: dataframe to be transformed
+    :param impute_pipeline: the impute pipeline fit on the training dataset
+    :return: the transformed dataset as numpy array"""
+    X_impute = impute_pipeline.transform(X)
+    X_impute_df = pd.DataFrame(X_impute, index=X.index, columns=X.columns)
+    X_impute_df.drop("2014", axis=0, level=1, inplace=True)
+    X_impute_reshaped = reshape_data_to_3d([X_impute_df])[0]
+    return X_impute_reshaped
