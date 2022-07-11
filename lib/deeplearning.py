@@ -330,7 +330,7 @@ def get_train_test_datasets(X: pd.DataFrame, target_variable: str, test_size: in
     X_train, X_test = reshape_data_to_3d([X_train_impute_df, X_test_impute_df])
     return X_train, X_test, y_train, y_test, impute_pipeline, target_scaler
 
-def get_data_for_prediction(X:pd.DataFrame, impute_pipeline: Pipeline) -> np.ndarray:
+def get_data_for_prediction(X: pd.DataFrame, impute_pipeline: Pipeline) -> np.ndarray:
     """This function applies the impute pipeline transformation to the input pandas Dataframe and reshapes the dataset to
     3D (samples, time, features) numpy arrays.
 
@@ -342,3 +342,54 @@ def get_data_for_prediction(X:pd.DataFrame, impute_pipeline: Pipeline) -> np.nda
     X_impute_df.drop("2014", axis=0, level=1, inplace=True)
     X_impute_reshaped = reshape_data_to_3d([X_impute_df])[0]
     return X_impute_reshaped
+
+def combine_all_target_years(X: pd.DataFrame, target_variable: str, predictions: pd.DataFrame) -> pd.DataFrame:
+    """This function combines the data of the target variables for the existing years with the predictions into a
+    single dataframe.
+
+    :param X: dataframe with the data of the target variables for the existing years
+    :param target_variable: the name of the target variable
+    :param predictions: the predictions as a Pandas DataFrame
+    :return: the combined dataframe
+    """
+    # Convert the numpy array as a Dataframe with TOWNSHIP_RANGE, YEAR index
+    predictions_df = predictions.copy()
+    predictions_df["YEAR"] = "2022"
+    predictions_df.reset_index(inplace=True)
+    predictions_df.set_index(['TOWNSHIP_RANGE', 'YEAR'], drop=True, inplace=True)
+    # Get the 2021 values from the data
+    all_years_df = X.copy()
+    all_years_df = all_years_df[[target_variable]]
+    # Append the 2022 predictions
+    all_years_df = pd.concat([all_years_df, predictions_df], axis=0)
+    all_years_df.sort_index(level=["TOWNSHIP_RANGE", "YEAR"], inplace=True)
+    return all_years_df
+
+def get_year_to_year_differences(X: pd.DataFrame, target_variable: str, predictions: pd.DataFrame) -> pd.DataFrame:
+    """This functions returns the target variable difference year-to-year between all the years and also between the
+    last year and the predicted year.
+
+    :param X: the input dataframe
+    :param target_variable: the name of the target variable
+    :param predictions: the predictions as a Pandas DataFrame
+    :return: a dataframe with the target variable difference year-to-year between all the years and also between the
+    last year and the predicted year"""
+    difference_df = X.copy()
+    predictions_df = predictions.copy()
+    # Get the target variable for every year as a column
+    difference_df = difference_df[[target_variable]]
+    difference_df = difference_df.unstack()
+    difference_df.columns = ["_".join(a) for a in difference_df.columns.to_flat_index()]
+    # Add the prediction for the following year
+    predictions_df.rename(columns={target_variable: "_".join([target_variable, "2022"])}, inplace=True)
+    difference_df = difference_df.merge(predictions, left_index=True, right_index=True)
+    years = list(X.index.get_level_values(1).unique()) + ["2022"]
+    years.sort()
+    feature_col = list(difference_df.columns.get_level_values(0))
+    for i, year in enumerate(years):
+        if i == len(years) - 1:
+            break
+        difference_df[f"{year}_{years[i+1]}"] = difference_df[f"{target_variable}_{years[i+1]}"] - \
+                                             difference_df[f"{target_variable}_{years[i]}"]
+    difference_df.drop(columns=feature_col, inplace=True)
+    return difference_df
