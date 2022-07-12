@@ -1,5 +1,7 @@
+import os
 import numpy as np
 import pandas as pd
+import pickle
 
 from typing import List, Tuple
 from sklearn.impute import SimpleImputer
@@ -302,8 +304,8 @@ def get_sets_shapes(training: np.ndarray, test: np.ndarray) -> pd.DataFrame:
                           columns=["nb_items", "nb_timestamps", "nb_features"])
     return shapes
 
-def get_train_test_datasets(X: pd.DataFrame, target_variable: str, test_size: int, random_seed: int = 0) -> \
-        Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, MinMaxScaler]:
+def get_train_test_datasets(X: pd.DataFrame, target_variable: str, test_size: int, random_seed: int = 0,
+                            save_to_file: bool = False) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, MinMaxScaler]:
     """This function splits the input pandas Dataframe into training and test datasets, applies the impute pipeline
     transformation and reshapes the datasets to 3D (samples, time, features) numpy arrays. The function also returns the
      mpute pipeline fit on the training dataset and the scaler used to transform the target variable.
@@ -328,6 +330,18 @@ def get_train_test_datasets(X: pd.DataFrame, target_variable: str, test_size: in
     y_train = target_scaler.fit_transform(y_train_df[[target_variable]])
     y_test = y_test_df[target_variable].to_numpy()
     X_train, X_test = reshape_data_to_3d([X_train_impute_df, X_test_impute_df])
+    # Save the train test X and y datasets as a pickle file
+    train_test_dict = {
+        "X_train": X_train_impute_df,
+        "X_test": X_test_impute_df,
+        "y_train": y_train_df[[target_variable]],
+        "y_test": y_test_df[[target_variable]],
+    }
+    if save_to_file:
+        dataset_dir = "../assets/train_test/"
+        os.makedirs(os.path.dirname(dataset_dir), exist_ok=True)
+        with open(os.path.join(dataset_dir, "dl_train_test.pkl"), "wb") as file:
+            pickle.dump(train_test_dict, file)
     return X_train, X_test, y_train, y_test, impute_pipeline, target_scaler
 
 def get_data_for_prediction(X: pd.DataFrame, impute_pipeline: Pipeline) -> np.ndarray:
@@ -382,7 +396,7 @@ def get_year_to_year_differences(X: pd.DataFrame, target_variable: str, predicti
     difference_df.columns = ["_".join(a) for a in difference_df.columns.to_flat_index()]
     # Add the prediction for the following year
     predictions_df.rename(columns={target_variable: "_".join([target_variable, "2022"])}, inplace=True)
-    difference_df = difference_df.merge(predictions, left_index=True, right_index=True)
+    difference_df = difference_df.merge(predictions_df, left_index=True, right_index=True)
     years = list(X.index.get_level_values(1).unique()) + ["2022"]
     years.sort()
     feature_col = list(difference_df.columns.get_level_values(0))
