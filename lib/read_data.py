@@ -76,3 +76,21 @@ def read_and_join_output_file(start_year:int=2014,
     
     return left_df
 
+def combine_datasets(x_df:pd.DataFrame, y:pd.Series, target_name:str='GSE_GWE'):
+    """This function combines feature datasets with target series 
+            
+
+    :param x_df: feature dataframe
+    :param y: target series
+
+    :output: Full datafrrame with features and target
+                
+    """
+    x_df = x_df.reset_index()
+    y_df = pd.DataFrame(y).reset_index()
+
+    #normalize the target   
+    y_df [target_name]= np.sqrt(y_df[target_name])
+
+    return pd.concat([x_df, y_df[[target_name]]], axis=1)
+
