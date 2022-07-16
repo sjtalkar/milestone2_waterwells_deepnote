@@ -416,8 +416,22 @@ def draw_corr_heatmap(df: pd.DataFrame, drop_columns: List[str] = None):
     :params df   : pd.Dataframe Dataframe with features
     :param drop_columns: Category columns that are not included in the correlation map
     :return    Altair heatmap chart
-      
     """
+    sort_cols = ['AVERAGE_YEARLY_PRECIPITATION', 'GROUNDSURFACEELEVATION_AVG', 'PCT_OF_CAPACITY', 'POPULATION_DENSITY',
+                 'STATICWATERLEVEL_AVG', 'TOPOFPERFORATEDINTERVAL_AVG', 'TOTALCOMPLETEDDEPTH_AVG', 'TOTALDRILLDEPTH_AVG',
+                 'BOTTOMOFPERFORATEDINTERVAL_AVG', 'WELLYIELD_AVG', 'WELL_COUNT_AGRICULTURE', 'WELL_COUNT_DOMESTIC',
+                 'WELL_COUNT_INDUSTRIAL', 'WELL_COUNT_PUBLIC', 'CROP_C', 'CROP_C6', 'CROP_D10', 'CROP_D12', 'CROP_D13',
+                 'CROP_D14', 'CROP_D15','CROP_D16', 'CROP_D3', 'CROP_D5', 'CROP_D6', 'CROP_F1', 'CROP_F10', 'CROP_F16',
+                 'CROP_F2', 'CROP_G',  'CROP_G2', 'CROP_G6', 'CROP_I', 'CROP_P1', 'CROP_P3', 'CROP_P6', 'CROP_R',
+                 'CROP_R1', 'CROP_T10', 'CROP_T15', 'CROP_T18', 'CROP_T19', 'CROP_T21', 'CROP_T26', 'CROP_T30',
+                 'CROP_T31', 'CROP_T4', 'CROP_T6', 'CROP_T8', 'CROP_T9', 'CROP_V', 'CROP_V3', 'CROP_YP',
+                 'SOIL_ALFISOLS_B', 'SOIL_ALFISOLS_C', 'SOIL_ALFISOLS_D', ' SOIL_ARIDISOLS_B', 'SOIL_ARIDISOLS_C',
+                 'SOIL_ARIDISOLS_D', 'SOIL_ENTISOLS_A', 'SOIL_ENTISOLS_B', 'SOIL_ENTISOLS_C', 'SOIL_ENTISOLS_D',
+                 'SOIL_HISTOSOLS_C', 'SOIL_INCEPTISOLS_B', 'SOIL_INCEPTISOLS_D', 'SOIL_MOLLISOLS_B', 'SOIL_MOLLISOLS_C',
+                 'SOIL_MOLLISOLS_D', 'SOIL_ROCK_OUTCROP_D', 'SOIL_VERTISOLS_D', 'SOIL_WATER_',
+                 'VEGETATION_BLUE_OAK-GRAY_PINE', 'VEGETATION_CALIFORNIA_COAST_LIVE_OAK', 'VEGETATION_CANYON_LIVE_OAK',
+                 'VEGETATION_HARD_CHAPARRAL', 'VEGETATION_KNOBCONE_PINE', 'VEGETATION_NON-NATIVE_HARDWOOD_FOREST',
+                 'VEGETATION_PINYON-JUNIPER']
     
     alt.data_transformers.disable_max_rows()
     if drop_columns:
@@ -432,11 +446,11 @@ def draw_corr_heatmap(df: pd.DataFrame, drop_columns: List[str] = None):
     
     base = (
         alt.Chart(cor_data)
-              .encode(x= alt.X("feature_1:N", 
-                          #sort=neworder
+              .encode(x= alt.X("feature_1:N",
+                               sort=sort_cols
                      ),
                      y=alt.Y("feature_2:N",
-                        #sort = neworder
+                             sort=sort_cols
                      ),
                      tooltip=[alt.Tooltip("feature_1:N", title='feature_1'),
                              alt.Tooltip("feature_2:N", title='feature_2'),
