@@ -259,3 +259,87 @@ def compute_hier_clusters_and_top_features(x: pd.DataFrame, n_clusters: int, aff
     sorted_feature_names = list(all_predominant_features.keys())[::-1]
     result_df = result_df[sorted_feature_names + ["cluster"]]
     return result_df, sorted_feature_names
+
+def get_tr_with_highest_values(df: pd.DataFrame, sjv_township_range_df: gpd.GeoDataFrame, top: int, feature: str,
+                               agg: str) -> gpd.GeoDataFrame:
+    """This function returns all the Township-Ranges together with the center points for the top Township-Ranges having
+    the highest value for the feature
+
+    :param df: dataframe with the data which were clustered
+    :param sjv_township_range_df: dataframe with the Township-Range geospatial information
+    :param top: number of top Township-Ranges to be returned
+    :param feature: feature for which to get the top Township-Ranges
+    :param agg: aggregation function to be used to get the top Township-Ranges
+    """
+    df = df[[feature]]
+    df.reset_index(inplace=True)
+    # Get the toop Township-Ranges with the highest value for the feature
+    df = df.groupby("TOWNSHIP_RANGE")[feature].agg(agg)
+    df.sort_values(ascending=False, inplace=True)
+    df = df.iloc[0:top]
+    # Get these Township-Ranges geospatial information by doing a left merge with the geospatial information
+    # of all Township-Ranges
+    df = gpd.GeoDataFrame(pd.merge(df.reset_index(), sjv_township_range_df, how="left", on=["TOWNSHIP_RANGE", ]))
+    # Get the centroids for these Township-Ranges with the top values
+    # Switch temporarily to a coordinate systems based on linear units (meters) to compute the centroids
+    df.to_crs(epsg=3347, inplace=True)
+    df["points"] = df.centroid
+    # Revert back to WGS84, or simple lat/lon cartesian projection for display
+    df.to_crs(epsg=4326, inplace=True)
+    df["points"] = df["points"].to_crs(epsg=4326)
+    df = df[["TOWNSHIP_RANGE", "points"]]
+    # Add the points of the top Township-Ranges with the highest value for the feature to all the TOwnship-Ranges
+    # geospatial DataFrame
+    df = pd.merge(sjv_township_range_df, df, how="left", on=["TOWNSHIP_RANGE"])
+    return df
+
+def get_tr_with_most_wells(df: pd.DataFrame, sjv_township_range_df: gpd.GeoDataFrame, top: int = 30) -> gpd.GeoDataFrame:
+    """This function returns the Township-Ranges with the biggest total amount of wells being over the entire period.
+
+    :param df: dataframme with the Township-Range wells information
+    :param sjv_township_range_df: dataframe with the Township-Range geospatial information
+    :param top: number of Township-Ranges to be returned
+    """
+    tr_with_most_wells_df = df.copy()
+    tr_with_most_wells_df["WELL_TOTAL"] = tr_with_most_wells_df["WELL_COUNT_AGRICULTURE"] + \
+                                          tr_with_most_wells_df["WELL_COUNT_DOMESTIC"] + \
+                                          tr_with_most_wells_df["WELL_COUNT_INDUSTRIAL"] +\
+                                          tr_with_most_wells_df["WELL_COUNT_PUBLIC"]
+    return get_tr_with_highest_values(tr_with_most_wells_df, sjv_township_range_df, top, "WELL_TOTAL", "sum")
+
+def get_tr_with_deepest_wells(df: pd.DataFrame, sjv_township_range_df: gpd.GeoDataFrame, top: int = 30) -> gpd.GeoDataFrame:
+    """This function returns the Township-Ranges with the deepest average GSE_GWE well depth over the entire period.
+
+    :param df: dataframme with the Township-Range wells information
+    :param sjv_township_range_df: dataframe with the Township-Range geospatial information
+    :param top: number of Township-Ranges to be returned
+    """
+    tr_with_deepest_wells = df.copy()
+    return get_tr_with_highest_values(tr_with_deepest_wells[["GSE_GWE"]], sjv_township_range_df, top, "GSE_GWE", "mean")
+
+def get_tr_with_most_wells(df: pd.DataFrame, sjv_township_range_df: gpd.GeoDataFrame, top: int = 30) -> gpd.GeoDataFrame:
+    """This function returns the Township-Ranges with the biggest total amount of wells being drilled over the entire
+    period.
+
+    :param df: dataframme with the Township-Range wells information
+    :param sjv_township_range_df: dataframe with the Township-Range geospatial information
+    :param top: number of Township-Ranges to be returned
+    """
+    tr_with_most_wells_df = df.copy()
+    tr_with_most_wells_df["WELL_TOTAL"] = tr_with_most_wells_df["WELL_COUNT_AGRICULTURE"] + \
+                                          tr_with_most_wells_df["WELL_COUNT_DOMESTIC"] + \
+                                          tr_with_most_wells_df["WELL_COUNT_INDUSTRIAL"] + \
+                                          tr_with_most_wells_df["WELL_COUNT_PUBLIC"]
+    return get_tr_with_highest_values(tr_with_most_wells_df, sjv_township_range_df, top, "WELL_TOTAL", "sum")
+
+def get_tr_with_most_shortages(df: pd.DataFrame, sjv_township_range_df: gpd.GeoDataFrame, top: int = 30) -> gpd.GeoDataFrame:
+    """This function returns the Township-Ranges with the biggest total amount of wel shortages reported over the
+    entire period.
+
+    :param df: dataframme with the Township-Range wells information
+    :param sjv_township_range_df: dataframe with the Township-Range geospatial information
+    :param top: number of Township-Ranges to be returned
+    """
+    tr_with_most_shortages_df = df.copy()
+    return get_tr_with_highest_values(tr_with_most_shortages_df[["SHORTAGE_COUNT"]], sjv_township_range_df, top,
+                                      "SHORTAGE_COUNT", "sum")

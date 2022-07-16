@@ -163,7 +163,7 @@ def get_stations_chart(stations_gdf: gpd.GeoDataFrame, tooltip_columns: List[str
         points_df.drop(columns=["geometry"], inplace=True)
         points_df.set_geometry("points", inplace=True)
         stations_chart = alt.Chart(points_df).mark_geoshape().encode(
-            color=alt.value('green'),
+            color=alt.value('black'),
             tooltip=tooltip_columns,
         )
     else:
@@ -171,7 +171,7 @@ def get_stations_chart(stations_gdf: gpd.GeoDataFrame, tooltip_columns: List[str
             latitude='LATITUDE:Q',
             longitude='LONGITUDE:Q',
             tooltip=tooltip_columns,
-            fill=alt.value('green'),
+            fill=alt.value('black'),
         )
     return stations_chart
       
@@ -455,9 +455,7 @@ def draw_corr_heatmap(df: pd.DataFrame, drop_columns: List[str] = None):
     return(rects)
 
 
-def draw_components_variance_chart(
-    pca
-):
+def draw_components_variance_chart(pca):
     """
     This function creates a scree plot. A scree plot plots the explained variance against number of components
     and helps determine the number of components to pick.
