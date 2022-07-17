@@ -1,3 +1,4 @@
+import math
 import altair as alt
 import numpy as np
 import pandas as pd
@@ -11,12 +12,45 @@ from sklearn.metrics import silhouette_samples, silhouette_score
 from sklearn.cluster import KMeans
 
 sjv_brown = "#A9784F"
+sjv_pink = "#AF6A9A"
 sjv_blue = "#3586BD"
-sjv_error = "#DF77D1"
-sjv_color_range_9 = ["#3586BD", "#4485B0", "#5283A2", "#618194", "#6F7F86", "#7E7E79", "#8C7C6B", "#9B7A5D", "#A9784F"]
-sjv_color_range_17 =["#3586BD", "#3D86B7", "#4485B0", "#4B84A9", "#5283A2", "#5A829B", "#618194", "#68808D", "#6F7F86",
-                     "#777F80", "#7E7E79", "#857D72", "#8C7C6B", "#947B64", "#9B7A5D", "#A27956", "#A9784F"]
-sjv_cmap = LinearSegmentedColormap.from_list("sjv_cmap", [sjv_blue, sjv_brown])
+sjv_error = "#E24C85"
+# sjv_color_range_9 = ["#3586BD", "#4485B0", "#5283A2", "#618194", "#6F7F86", "#7E7E79", "#8C7C6B", "#9B7A5D", "#A9784F"]
+# sjv_color_range_17 =["#3586BD", "#3D86B7", "#4485B0", "#4B84A9", "#5283A2", "#5A829B", "#618194", "#68808D", "#6F7F86",
+#                      "#777F80", "#7E7E79", "#857D72", "#8C7C6B", "#947B64", "#9B7A5D", "#A27956", "#A9784F"]
+sjv_color_range_9 = ["#3586BD", "#547FB5", "#7278AC", "#9171A3", "#AF6A9A", "#AE6E88", "#AC7175", "#AB7562", "#A9784F"]
+sjv_color_range_17 =["#3586BD", "#4583B9", "#547FB5", "#637CB1", "#7278AC", "#8275A8", "#9171A3", "#A06E9F", "#AF6A9A",
+                     "#AF6C91", "#AE6E88", "#AD707F", "#AC7175", "#AC736C", "#AC736C", "#AA7759", "#A9784F"]
+sjv_cmap = LinearSegmentedColormap.from_list("sjv_cmap", list(zip([0.0, 0.5, 1.0], [sjv_blue, sjv_pink, sjv_brown])))
+sjv_cmap.set_bad(sjv_error)
+
+
+def sjv_heat_color(value: float, reverse:bool = False) -> str:
+    min_c = np.array([0.3765, 0.5569, 0.7569])
+    middle_c = np.array([0.6863, 0.4157, 0.6039])
+    max_c = np.array([0.8902, 0.4431, 0.0745])
+    if reverse:
+        min_c = np.array([0.8902, 0.4431, 0.0745])
+        max_c = np.array([0.3765, 0.5569, 0.7569])
+    if value <= 0.5:
+        color = np.rint((min_c + (middle_c - min_c) * value)*255).astype(int)
+    else:
+        color = np.rint((middle_c + (max_c - middle_c) * value)*255).astype(int)
+    return "#{:02x}{:02x}{:02x}".format(color[0],color[1],color[2])
+
+def sjv_heat_colormap(value) -> str:
+    if math.isnan(value) == False:
+        y = sjv_heat_color(value)
+    else:
+        y = sjv_error
+    return y
+
+def sjv_heat_colormap_reverse(value) -> str:
+    if math.isnan(value) == False:
+        y = sjv_heat_color(value, reverse=True)
+    else:
+        y = sjv_error
+    return y
 
 
 
@@ -108,15 +142,11 @@ def draw_missing_data_chart(df: pd.DataFrame):
                                      'percent_missing': percent_missing})
     missing_value_df.sort_values('percent_missing', ascending=False, inplace=True)
 
-    color_for_bars = '#6e0a1e' 
-
     sort_list = list(missing_value_df['column_name'])
-    chart = alt.Chart(missing_value_df
-                      ).mark_bar(color = color_for_bars
-    ).encode(
+    chart = alt.Chart(missing_value_df).mark_bar(color=sjv_blue).encode(
         y=alt.Y("sum(percent_missing)", stack="normalize", axis=alt.Axis(format='%')),
         x=alt.X('column_name:N', sort=sort_list),
-        color=alt.value(color_for_bars),
+        color=alt.value(sjv_blue),
         tooltip=['column_name', 'percent_missing']
     )
 
@@ -288,8 +318,8 @@ def simple_geodata_viz(gdf: gpd.GeoDataFrame, feature:str, title: str, year: int
         )
     return chart
 
-def view_trs_side_by_side(gdf: pd.DataFrame, feature: str, value: str, title: str, color_scheme: str = 'blues',
-                          draw_stations: bool = False):
+def view_trs_side_by_side(gdf: pd.DataFrame, feature: str, value: str, title: str, color_scheme: str = "sjv",
+                          reverse_palette: bool = False, draw_stations: bool = False):
     """ This function creates a side by side Altair visualization of the Township-Ranges for the given feature
 
     :param gdf: the geodataframe to be visualized
@@ -297,6 +327,7 @@ def view_trs_side_by_side(gdf: pd.DataFrame, feature: str, value: str, title: st
     :param value: the name of the DataFrame column containing the Township-Ranges values
     :param title: the title of the visualization
     :param color_scheme: the color scheme to be used
+    :param reverse_palette: if True, the color palette will be reversed
     :param draw_stations: if True, the stations will be drawn on each sur chart
     :return: the Altair visualization
     """
@@ -308,7 +339,7 @@ def view_trs_side_by_side(gdf: pd.DataFrame, feature: str, value: str, title: st
     tooltip_columns = list(set(area_df.columns) - {"geometry", "points"})
     # Set the color scale depending on the parameters
     if color_scheme == "sjv" or color_scheme == "sjv_with_error":
-        color_scale = alt.Scale(range=[sjv_blue, sjv_brown])
+        color_range = [sjv_blue, sjv_brown]
         # If the variable is ordinal we extract the required number of colors
         nb_values = len(area_df[value].unique())
         # If we want to reserve a color for error values we reduce the number of features by one
@@ -321,7 +352,10 @@ def view_trs_side_by_side(gdf: pd.DataFrame, feature: str, value: str, title: st
             # Negative values are error values
             if color_scheme == "sjv_with_error":
                 color_range = [sjv_error] + color_range
-            color_scale = alt.Scale(range=color_range)
+        if reverse_palette:
+            color_scale = alt.Scale(range=reversed(color_range))
+        else:
+            color_scale = alt.Scale(range=[sjv_blue, sjv_brown])
     else:
         color_scale = alt.Scale(scheme=color_scheme)
     # Set the feature type
@@ -375,7 +409,7 @@ def visualize_seasonality_by_month(gdf: gpd.GeoDataFrame, feature: List[str]):
     """
     viz_gdf = gdf.copy()
     viz_gdf["DATE"] = viz_gdf.apply(lambda row: datetime(row.YEAR, row.MONTH, 1), axis=1)
-    chart = alt.Chart(viz_gdf[viz_gdf["YEAR"] >= 2000]).mark_bar().encode(
+    chart = alt.Chart(viz_gdf[viz_gdf["YEAR"] >= 2000]).mark_bar(color=sjv_blue).encode(
         y=f"{feature}:Q",
         x="DATE:T",
         tooltip=["YEAR", "MONTH", f"{feature}:Q"]
@@ -384,30 +418,41 @@ def visualize_seasonality_by_month(gdf: gpd.GeoDataFrame, feature: List[str]):
 
 
 def display_data_on_map(gdf: gpd.GeoDataFrame, feature: str, year: int = None, categorical: bool = False,
-                        color_scheme: str = "viridis"):
+                        color_scheme: str = "sjv", reverse_palette: bool = False):
     """Use GeoPandas explore() function based on Folium to display the Geospatial data on a map.
 
     :param gdf: the GeoDataFrame to be displayed
     :param feature: the feature to be displayed
     :param year: the year to be displayed
     :param categorical: whether the data are categorical or not
+    :param reverse_palette: if True, the color palette will be reversed
     :return: the Folium map
     """
+    legend = True
     if color_scheme == "sjv":
-        nb_categories = gdf[feature].unique()
-        if categorical and 2 < len(nb_categories) < len(sjv_color_range_17):
+        nb_categories = len(gdf[feature].unique())
+        if categorical and 2 < nb_categories < len(sjv_color_range_17):
             cmap = sjv_color_range_17[0::len(sjv_color_range_17)//(nb_categories-1)]
             cmap[-1] = sjv_brown
-        if categorical and len(nb_categories) == 2:
+            if reverse_palette:
+                cmap = reversed(cmap)
+        elif categorical and nb_categories == 2:
             cmap = [sjv_blue, sjv_brown]
+            if reverse_palette:
+                cmap = [sjv_brown, sjv_blue]
         else:
-            cmap = sjv_cmap
+            cmap = sjv_heat_colormap
+            if reverse_palette:
+                cmap = sjv_heat_colormap_reverse
+            # There is an issue in Folium when we use custom palette and legend
+            # It seems it only accepts default palettes for the legend
+            legend = False
     else:
         cmap = color_scheme
     if year:
-        return gdf[gdf.YEAR == year].explore(feature, cmap=cmap)
+        return gdf[gdf.YEAR == year].explore(feature, cmap=cmap, legend=legend)
     else:
-        return gdf.explore(feature, cmap=cmap)
+        return gdf.explore(feature, cmap=cmap, legend=legend)
 
 def draw_corr_heatmap(df: pd.DataFrame, drop_columns: List[str] = None):
     """
