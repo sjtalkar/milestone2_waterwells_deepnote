@@ -1,14 +1,8 @@
-import sys
-sys.path.append('..')
-
-import os
 import numpy as np
 import pandas as pd
 
-from sklearn import set_config
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
-from sklearn.utils.validation import check_is_fitted
 from sklearn.base import BaseEstimator, TransformerMixin
 
 
@@ -135,93 +129,63 @@ def convert_back_df(
     return pd.DataFrame(X_new, index = X.index, columns=new_col_names)
 
 
-def fill_from_prev_year(df: pd.DataFrame, cols_to_impute:list):
+def fill_from_prev_year(df: pd.DataFrame):
+    """This function fills the vegetation, crops and soils columns with the values from the previous existing years.
+    E.g. It fills 2015 data from 2014 and 2017 data from 2016.
+
+    :param df: dataframe to be imputed
+    :return: imputed dataframe with NaNs values estimated from previous year values
     """
-    This function fills the vegetation and crops columns with the values from the year 2014
-
-    Parameters
-    ----------
-    df             : Dataframe with columns to impute
-    cols_to_impute:  list
-                     column names in a list of columns that need to be imputed from the year provided
-  
-    Returns
-    -------
-    result : Dataframe with NaNs replaced for columns in the cols_to_impute list
-    """
-
-    # create a copy of the dataframe
-    result = df.copy()
-
     # Separate out the Crops, Vegetation and Soils columns since they have a very specific set of column to borrow from
     # and conditional columns to fill into
+    veg_soil_cols = [col for col in df.columns if col.startswith("VEGETATION_") or col.startswith("SOIL_")]
+    crops_cols = [col for col in df.columns if col.startswith("CROP_") and col not in veg_soil_cols]
 
-    veg_soil_cols = [col for col in result.columns if col.startswith("VEGETATION_") or col.startswith("SOIL_")]
-
-    crops_cols = [
-        col for col in result.columns if col.startswith("CROP_") and col not in veg_soil_cols
-    ]
-    # Crops and population are filled from the previous year's value and hence they are trated in a similar fashion
-    # Vegetation and Soil on the other hand have a specific year that the vaule is non-null which has to be
+    # Crops is filled from the previous year's value
+    # Vegetation and Soil on the other hand have a specific year that the value is non-null which has to be
     # used to fill the rest of the years.
-
-    subset_df = result[veg_soil_cols].copy()
-    mean_df = subset_df.groupby(["TOWNSHIP_RANGE"])[veg_soil_cols].mean().reset_index()
+    subset_df = df[veg_soil_cols].copy()
+    value_df = subset_df.groupby(["TOWNSHIP_RANGE"])[veg_soil_cols].mean().reset_index()
     year_df = pd.DataFrame({"YEAR": subset_df.index.unique(level="YEAR")})
 
-    mean_df["key"] = 0
+    value_df["key"] = 0
     year_df["key"] = 0
 
-    mean_df = mean_df.merge(year_df, on="key", how="outer")
-    mean_df.drop(columns=["key"], inplace=True)
-    mean_df.set_index(['TOWNSHIP_RANGE', 'YEAR'], drop=True, inplace=True)
+    value_df = value_df.merge(year_df, on="key", how="outer")
+    value_df.drop(columns=["key"], inplace=True)
+    value_df.set_index(['TOWNSHIP_RANGE', 'YEAR'], drop=True, inplace=True)
 
-   
-    # The crops values can be forward filled once the years are sorted
-    crops_ffill_df = result[crops_cols].copy()
+    # The crops values can be forward filled (the years are already sorted)
+    crops_ffill_df = df[crops_cols].copy()
     crops_ffill_df.ffill(inplace=True)
 
-    result = pd.merge(mean_df, crops_ffill_df, how="inner", left_index=True, right_index=True)
+    result = pd.merge(value_df, crops_ffill_df, how="inner", left_index=True, right_index=True)
     # Just make sure that rows are sorted in the original order
     result.sort_index(level=["TOWNSHIP_RANGE", "YEAR"], inplace=True)
     return result
 
   
 def fill_pop_from_prev_year(df: pd.DataFrame):
-    """
-    This function fills the population values for 2021 from 2020
+    """ This function estimates teh population based on the previous year's value and trend
 
-    Parameters
-    ----------
-    df             : Dataframe with columns to impute
-  
-    Returns
-    -------
-    result : Dataframe with NaNs replaced for columns in the cols_to_impute list
+    :param df: dataframe to be imputed
+    :return: imputed dataframe with NaNs values estimated from previous year values
     """
-  
-    # create a copy of the dataframe
-    result = df.copy()
-  
-    population_cols = ["POPULATION_DENSITY"]
-    
     # For population, we capture the trend over the past years 2019 to 2020 and add that to 2020 value
     # This gives us the imputed 2021 value
-    all_years = list(result.index.unique(level="YEAR"))
+    all_years = list(df.index.unique(level="YEAR"))
     all_years_trend = [f"{year}_trend" for year in all_years]
     # Pivot the dataframe so that the TOWNSHIP_RANGE forms the index and years are along the columns
-    pop_pivot_df = result["POPULATION_DENSITY"].reset_index().pivot(
+    pop_pivot_df = df["POPULATION_DENSITY"].reset_index().pivot(
         index=["TOWNSHIP_RANGE"], columns=["YEAR"], values=["POPULATION_DENSITY"]
     )
 
-    # On the pivot above, find difference between columns to get trend
+    # On the pivoted Dataframe , find difference between columns to get trend
     diff_df = pop_pivot_df.diff(axis="columns").reset_index()
     diff_df.droplevel(level=0, axis=1)
     diff_df.columns = ["TOWNSHIP_RANGE"] + all_years_trend
     pop_pivot_df = pop_pivot_df.droplevel(level=0, axis=1)
-    pop_pivot_df = pop_pivot_df.merge(
-        diff_df, how="inner", on=["TOWNSHIP_RANGE"]
-    ).reset_index(drop=True)
+    pop_pivot_df = pop_pivot_df.merge(diff_df, how="inner", on=["TOWNSHIP_RANGE"]).reset_index(drop=True)
     # Add the trend to past year value for 2021
     pop_pivot_df["2021"] = pop_pivot_df["2020"] + pop_pivot_df["2020_trend"]
 
@@ -233,12 +197,9 @@ def fill_pop_from_prev_year(df: pd.DataFrame):
         value_name="POPULATION_DENSITY",
     )
     pop_pivot_df.set_index(["TOWNSHIP_RANGE", "YEAR"], inplace=True, drop=True)
-    # Get all the POPULATION_DENSITY values from the POPULATION_DENSITY column of new dataframe
-    result.drop(columns=population_cols, inplace=True)
-    result = result.merge(pop_pivot_df, how="inner", left_index=True, right_index=True)
-
-    result.sort_index(level=["TOWNSHIP_RANGE", "YEAR"], inplace=True)
-    return result
+    # Just make sure that rows are sorted in the original order
+    pop_pivot_df.sort_index(level=["TOWNSHIP_RANGE", "YEAR"], inplace=True)
+    return pop_pivot_df
 
 
 class PandasSimpleImputer(SimpleImputer):

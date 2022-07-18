@@ -455,12 +455,11 @@ def display_data_on_map(gdf: gpd.GeoDataFrame, feature: str, year: int = None, c
         return gdf.explore(feature, cmap=cmap, legend=legend)
 
 def draw_corr_heatmap(df: pd.DataFrame, drop_columns: List[str] = None):
-    """
-    Function to generate a heatmap for a dataframe
+    """Function to generate an Altair heatmap vizualisation for a dataframe
     
-    :params df   : pd.Dataframe Dataframe with features
-    :param drop_columns: Category columns that are not included in the correlation map
-    :return    Altair heatmap chart
+    :params df : pd.Dataframe Dataframe with features
+    :param drop_columns: Category columns should not be included in the correlation map
+    :return: Altair heatmap chart
     """
     sort_cols = ['AVERAGE_YEARLY_PRECIPITATION', 'GROUNDSURFACEELEVATION_AVG', 'PCT_OF_CAPACITY', 'POPULATION_DENSITY',
                  'STATICWATERLEVEL_AVG', 'TOPOFPERFORATEDINTERVAL_AVG', 'TOTALCOMPLETEDDEPTH_AVG', 'TOTALDRILLDEPTH_AVG',
@@ -489,72 +488,56 @@ def draw_corr_heatmap(df: pd.DataFrame, drop_columns: List[str] = None):
                 .rename(columns={0: 'correlation', 'level_0': 'feature_1', 'level_1': 'feature_2'}))
     cor_data['correlation_label'] = cor_data['correlation'].map('{:.2f}'.format)  # Round to 2 decimal
     
-    base = (
-        alt.Chart(cor_data)
-              .encode(x= alt.X("feature_1:N",
-                               sort=sort_cols
-                     ),
-                     y=alt.Y("feature_2:N",
-                             sort=sort_cols
-                     ),
-                     tooltip=[alt.Tooltip("feature_1:N", title='feature_1'),
-                             alt.Tooltip("feature_2:N", title='feature_2'),
-                             alt.Tooltip("correlation_label:Q", title='Correlation Value')
-                             ]
-               ).properties(width=alt.Step(10), height=alt.Step(10))
-    )
+    base = alt.Chart(cor_data).encode(
+         x=alt.X("feature_1:N", sort=sort_cols),
+         y=alt.Y("feature_2:N", sort=sort_cols),
+         tooltip=[alt.Tooltip("feature_1:N", title='feature_1'),
+                  alt.Tooltip("feature_2:N", title='feature_2'),
+                  alt.Tooltip("correlation_label:Q", title='Correlation Value')],
+    ).properties(width=alt.Step(10), height=alt.Step(10))
 
-
-    rects = (base.mark_rect().encode(
-                            color=  alt.Color('correlation_label:Q',
-                                              scale=alt.Scale(scheme ="lightgreyteal"))
-                            ).properties(width=1000, height=1000)
-            )
+    rects = base.mark_rect().encode(
+        color=alt.Color('correlation_label:Q', scale=alt.Scale(scheme ="lightgreyteal"))
+    ).properties(width=1000, height=1000)
         
-    return(rects)
+    return rects
 
 
 def draw_components_variance_chart(pca):
-    """
-    This function creates a scree plot. A scree plot plots the explained variance against number of components
+    """This function creates a scree plot. A scree plot plots the explained variance against number of components
     and helps determine the number of components to pick.
 
     params: pca: pca object fit to the data
     returns:  Dataframe with NaNs replaced for vegetation and crops columns
     """
-    
-    
-    df = pd.DataFrame({'n_components' : range(1,pca.n_components_ + 1), 'explained_variance':pca.explained_variance_ratio_})
-    
-    return alt.Chart(df
-    ).mark_line(
-    ).encode(
-    x='n_components:O',
-    y='explained_variance:Q')
+    df = pd.DataFrame({
+        'n_components': range(1, pca.n_components_ + 1),
+        'explained_variance': pca.explained_variance_ratio_
+    })
+    return alt.Chart(df).mark_line(color=sjv_blue).encode(x='n_components:O', y='explained_variance:Q')
 
 
 def biplot(score, coeff, maxdim, pcax, pcay, labels=None):
-    """
-      This function uses 
-      score - the transformed data returned by pca - data as expressed according to the new axis
-      coeff - the loadings from the pca_components_
+    """ This function uses:
+    score - the transformed data returned by pca - data as expressed according to the new axis
+    coeff - the loadings from the pca_components_
       
-      For the feaures we are interested in, it plots the correlation between the original features and the PCAs.
-      Use cosine similarity and angle measures between axes.
-      
-      It shows how the data is related to the ORIGINAL features in the positive and negative direction.
+    For the feaures we are interested in, it plots the correlation between the original features and the PCAs.
+    Use cosine similarity and angle measures between axes.
 
-      :param: score is the value of data points as per the linear combination of the principal axes
-      :param:coeff: are the eigen values of the eigen vectors
-      :param:pcax: The horizontal X-axis
-      :param:pcay: The vertical y-axis 
-      
+    It shows how the data is related to the ORIGINAL features in the positive and negative direction.
+
+    :param: score is the value of data points as per the linear combination of the principal axes
+    :param:coeff: are the eigen values of the eigen vectors
+    :param:pcax: The horizontal X-axis
+    :param:pcay: The vertical y-axis
+    :return: A biplot chart
     """
     zoom = 0.5
     pca1=pcax-1
     pca2=pcay-1
-    xs = score[:,pca1]
-    ys = score[:,pca2]
+    xs = score[:, pca1]
+    ys = score[:, pca2]
     n = min(coeff.shape[0], maxdim)
     width = 2.0 * zoom
     scalex = width/(xs.max()- xs.min())
@@ -562,25 +545,23 @@ def biplot(score, coeff, maxdim, pcax, pcay, labels=None):
     text_scale_factor = 1.3
         
     fig = plt.gcf()
-    #fig.set_size_inches(9, 9)
     fig.set_size_inches(16, 16)
-    
     
     plt.scatter(xs*scalex, ys*scaley, s=9)
     for i in range(n):
-        plt.arrow(0, 0, coeff[i,pca1], coeff[i,pca2],
-                  color='b',alpha=0.9, head_width = 0.03 * zoom) 
+        plt.arrow(0, 0, coeff[i, pca1], coeff[i, pca2],
+                  color=sjv_blue, alpha=0.9, head_width=0.03 * zoom)
         if labels is None:
-            plt.text(coeff[i,pca1]* text_scale_factor, 
-                     coeff[i,pca2] * text_scale_factor, 
-                     "Var"+str(i+1), color='g', ha='center', va='center')
+            plt.text(coeff[i, pca1]* text_scale_factor,
+                     coeff[i, pca2] * text_scale_factor,
+                     "Var"+str(i+1), color=sjv_brown, ha='center', va='center')
         else:
-            plt.text(coeff[i,pca1]* text_scale_factor, 
-                     coeff[i,pca2] * text_scale_factor, 
-                     labels[i], color='g', ha='center', va='center')
+            plt.text(coeff[i, pca1]* text_scale_factor,
+                     coeff[i, pca2] * text_scale_factor,
+                     labels[i], color=sjv_brown, ha='center', va='center')
     
-    plt.xlim(-zoom,zoom)
-    plt.ylim(-zoom,zoom)
+    plt.xlim(-zoom, zoom)
+    plt.ylim(-zoom, zoom)
     plt.xlabel("PC{}".format(pcax))
     plt.ylabel("PC{}".format(pcay))
     plt.grid()
@@ -591,17 +572,16 @@ def draw_feature_importance(feature_list: list, importance_list: list):
 
     :param feature_list: The list of features for which the regressor provides importance values
     :param importance_list: Values of feature importance
-
+    :return: An Altair bar chart
     """
     df = pd.DataFrame({"Feature Name": feature_list, "Importance": importance_list})
-    feature_imp_chart = (
-        alt.Chart(df)
-        .mark_bar(color="#6e0a1e")
-        .encode(x=alt.X("Feature Name:N", sort="-y"), y="Importance:Q")
+    feature_imp_chart = alt.Chart(df).mark_bar(color=sjv_brown).encode(
+        x=alt.X("Feature Name:N", sort="-y"),
+        y="Importance:Q"
     )
     return feature_imp_chart
 
-def draw_histogram(df: pd.DataFrame, col_name:str ):
+def draw_histogram(df: pd.DataFrame, col_name: str):
     """This function charts the percentage missing data in the data file read in
 
     :param df: Dataframe in which resides the column for which histogram is to be plotted

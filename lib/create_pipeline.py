@@ -94,8 +94,7 @@ def create_transformation_pipeline(X:pd.DataFrame, scaler):
     ])
 
     # vegetation column transformer
-    veg_soil_crops_trans = FunctionTransformer(fill_from_prev_year,
-                                                 kw_args={'cols_to_impute': veg_soils_crops_cols })
+    veg_soil_crops_trans = FunctionTransformer(fill_from_prev_year)
 
     pop_trans = Pipeline(steps=[
         ("imputer", FunctionTransformer(fill_pop_from_prev_year)),

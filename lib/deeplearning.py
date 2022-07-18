@@ -11,78 +11,7 @@ from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import FunctionTransformer, MinMaxScaler
 from tensorflow import keras
 from lib.split_data import train_test_group_time_split
-
-
-def fill_veg_from_prev_year(df: pd.DataFrame):
-    """This function fills the vegetation, crops and soils columns with the values from the previous existing years. E.g. It fills 2015 data from 2014 and 2017 data from 2016.
-
-    :param df: dataframe to be imputed
-    :return: imputed dataframe with NaNs values estimated from previous year values
-    """
-    # Separate out the Crops, Vegetation and Soils columns since they have a very specific set of column to borrow from
-    # and conditional columns to fill into
-    veg_soil_cols = [col for col in df.columns if col.startswith("VEGETATION_") or col.startswith("SOIL_")]
-    crops_cols = [col for col in df.columns if col.startswith("CROP_") and col not in veg_soil_cols]
-
-    # Crops is filled from the previous year's value
-    # Vegetation and Soil on the other hand have a specific year that the value is non-null which has to be
-    # used to fill the rest of the years.
-    subset_df = df[veg_soil_cols].copy()
-    value_df = subset_df.groupby(["TOWNSHIP_RANGE"])[veg_soil_cols].mean().reset_index()
-    year_df = pd.DataFrame({"YEAR": subset_df.index.unique(level="YEAR")})
-
-    value_df["key"] = 0
-    year_df["key"] = 0
-
-    value_df = value_df.merge(year_df, on="key", how="outer")
-    value_df.drop(columns=["key"], inplace=True)
-    value_df.set_index(['TOWNSHIP_RANGE', 'YEAR'], drop=True, inplace=True)
-
-    # The crops values can be forward filled (the years are already sorted)
-    crops_ffill_df = df[crops_cols].copy()
-    crops_ffill_df.ffill(inplace=True)
-
-    result = pd.merge(value_df, crops_ffill_df, how="inner", left_index=True, right_index=True)
-    # Just make sure that rows are sorted in the original order
-    result.sort_index(level=["TOWNSHIP_RANGE", "YEAR"], inplace=True)
-    return result
-
-
-def estimate_pop_from_prev_year(df: pd.DataFrame):
-    """ This function estimates teh population based on the previous year's value and trend
-
-    :param df: dataframe to be imputed
-    :return: imputed dataframe with NaNs values estimated from previous year values
-    """
-    # For population, we capture the trend over the past years 2019 to 2020 and add that to 2020 value
-    # This gives us the imputed 2021 value
-    all_years = list(df.index.unique(level="YEAR"))
-    all_years_trend = [f"{year}_trend" for year in all_years]
-    # Pivot the dataframe so that the TOWNSHIP_RANGE forms the index and years are along the columns
-    pop_pivot_df = df["POPULATION_DENSITY"].reset_index().pivot(
-        index=["TOWNSHIP_RANGE"], columns=["YEAR"], values=["POPULATION_DENSITY"]
-    )
-
-    # On the pivot above, find difference between columns to get trend
-    diff_df = pop_pivot_df.diff(axis="columns").reset_index()
-    diff_df.droplevel(level=0, axis=1)
-    diff_df.columns = ["TOWNSHIP_RANGE"] + all_years_trend
-    pop_pivot_df = pop_pivot_df.droplevel(level=0, axis=1)
-    pop_pivot_df = pop_pivot_df.merge(diff_df, how="inner", on=["TOWNSHIP_RANGE"]).reset_index(drop=True)
-    # Add the trend to past year value for 2021
-    pop_pivot_df["2021"] = pop_pivot_df["2020"] + pop_pivot_df["2020_trend"]
-
-    pop_pivot_df = pop_pivot_df[["TOWNSHIP_RANGE"] + list(all_years)]
-    pop_pivot_df = pd.melt(
-        pop_pivot_df,
-        id_vars=["TOWNSHIP_RANGE"],
-        var_name="YEAR",
-        value_name="POPULATION_DENSITY",
-    )
-    pop_pivot_df.set_index(["TOWNSHIP_RANGE", "YEAR"], inplace=True, drop=True)
-    # Just make sure that rows are sorted in the original order
-    pop_pivot_df.sort_index(level=["TOWNSHIP_RANGE", "YEAR"], inplace=True)
-    return pop_pivot_df
+from lib.transform_impute import fill_from_prev_year, fill_pop_from_prev_year
 
 
 class PandasSimpleImputer(SimpleImputer):
@@ -226,10 +155,10 @@ def create_transformation_pipelines(X: pd.DataFrame) -> Tuple[Pipeline, List[str
     ])
     # vegetation column transformer
     veg_soil_crops_trans = Pipeline(steps=[
-        ("imputer", FunctionTransformer(fill_veg_from_prev_year))
+        ("imputer", FunctionTransformer(fill_from_prev_year))
     ])
     pop_trans = Pipeline(steps=[
-        ("imputer", FunctionTransformer(estimate_pop_from_prev_year)),
+        ("imputer", FunctionTransformer(fill_pop_from_prev_year)),
         ("scaler", MinMaxScaler())
     ])
 
