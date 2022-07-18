@@ -167,6 +167,8 @@ def fill_from_prev_year(df: pd.DataFrame):
   
 def fill_pop_from_prev_year(df: pd.DataFrame):
     """ This function estimates teh population based on the previous year's value and trend
+    Note: for shifted targets analysis, we do not include 2021 into the train or target set and so check if 2020 data is present
+    in the train set at all.
 
     :param df: dataframe to be imputed
     :return: imputed dataframe with NaNs values estimated from previous year values
@@ -174,6 +176,9 @@ def fill_pop_from_prev_year(df: pd.DataFrame):
     # For population, we capture the trend over the past years 2019 to 2020 and add that to 2020 value
     # This gives us the imputed 2021 value
     all_years = list(df.index.unique(level="YEAR"))
+    if '2020' not in all_years:
+        return df[["POPULATION_DENSITY"]]
+
     all_years_trend = [f"{year}_trend" for year in all_years]
     # Pivot the dataframe so that the TOWNSHIP_RANGE forms the index and years are along the columns
     pop_pivot_df = df["POPULATION_DENSITY"].reset_index().pivot(
