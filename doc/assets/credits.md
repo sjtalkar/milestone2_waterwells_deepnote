@@ -16,3 +16,4 @@
 - [Shortage Dataset](https://data.cnra.ca.gov/dataset/household-water-supply-shortage-reporting-system-data)
 - [Soil Dataset](https://www.nrcs.usda.gov/wps/portal/nrcs/detail/soils/survey/geo/?cid=nrcs142p2_053629)
 - [Scikit-Learn pipeline](https://towardsdatascience.com/getting-the-most-out-of-scikit-learn-pipelines-c2afc4410f1a) 
+- [Froeschke, B., Jones, L. and Garman, B. (2020). Spatio-temporal Models of Juvenile and Adult Sheepshead (Archosargus probatocephalus) in Tampa Bay, Florida from 1996 to 2016. Gulf and Caribbean Research, 31(1): 8 – 17.](https://doi.org/10.18785/gcr.3101.04)

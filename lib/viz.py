@@ -25,6 +25,40 @@ sjv_cmap = LinearSegmentedColormap.from_list("sjv_cmap", list(zip([0.0, 0.5, 1.0
 sjv_cmap.set_bad(sjv_error)
 
 
+
+def create_feature_importance_charts(models, X_train_impute_df):
+    """
+    Given a list of best models, this function charts feature importances if 
+    the model has that property
+    :param models: List of models that have been hypertuned 
+    :param X_train_impute_df: feature dataframe
+    :returns: chart_list : list of Altair charts that can be displayed
+
+    """
+    chart_list = []
+    for best_model in models:
+        if hasattr (best_model.best_estimator_, 'feature_importances_'):
+            color_for_bars = "#3884bc"
+            feature_imp_dict = pd.DataFrame(
+                {
+                    "Feature Number": range(
+                        len(best_model.best_estimator_.feature_importances_)
+                    ),
+                    "Feature Name": list(X_train_impute_df.columns),
+                    "Feature Importance": best_model.best_estimator_.feature_importances_,
+                }
+            )
+            chart = (
+                alt.Chart(feature_imp_dict, title = type(best_model.best_estimator_.regressor_).__name__ )
+                .mark_bar(color=color_for_bars)
+                .encode(x=alt.X("Feature Name:N", sort="-y"), y="Feature Importance:Q")
+            )
+            chart_list.append(chart)
+
+    return chart_list
+
+
+
 def sjv_heat_color(value: float, reverse:bool = False) -> str:
     min_c = np.array([0.3765, 0.5569, 0.7569])
     middle_c = np.array([0.6863, 0.4157, 0.6039])
