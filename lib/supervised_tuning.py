@@ -64,7 +64,32 @@ def compare_models_manual(base_model_param_dict, X_train_impute, y_train, random
         best_params_dict[type(model_best.best_estimator_.regressor_).__name__] = model_best.best_params_
     return models, best_params_dict
 
-# Define a function that compares all final models DO THIS FOR SVM and XGBOOST
+
+def final_comparison_sorted(models, test_features, test_labels):
+    """This function creates a dataframe to compare models based on mean absolute error,
+        mean squared error. root mean squared error, and r-squared
+
+    :param models: list of models with tuned parameters
+    :param test_features: dataframe or numpy array with features
+    :param test_labels: target labels
+    :return: dataframe with the scores for different models sorted (long form)
+    """
+       
+    scores_dict = {}
+    for model in models:
+        predictions = model.predict(test_features)
+        mae = round(mean_absolute_error(test_labels, predictions), 4)
+        mse = round(mean_squared_error(test_labels, predictions), 4)
+        rmse = round(np.sqrt(mean_squared_error(test_labels, predictions)), 4)
+        r2 = round(r2_score(test_labels, predictions), 4)
+        scores_dict[type(model.best_estimator_.regressor_).__name__] = [mae, mse, r2, rmse] 
+
+    scores_df = pd.DataFrame.from_dict (scores_dict, orient='index', columns = ['Mean Absolute Error', 'Mean Squared Error', 'R^2', 'RMSE'])
+    scores_df.sort_values(by=[ 'R^2', 'Mean Absolute Error'], ascending=False, inplace=True)
+    return scores_df
+
+
+
 def final_comparison(models, test_features, test_labels):
     """This function creates a dataframe to compare models based on mean absolute error,
         mean squared error. root mean squared error, and r-squared
@@ -72,7 +97,7 @@ def final_comparison(models, test_features, test_labels):
     :param models: list of models with tuned parameters
     :param test_features: dataframe or numpy array with features
     :param test_labels: target labels
-    :return: dataframe with the scores for different models
+    :return: dataframe with the scores for different models (wide format)
     """
        
     scores = pd.DataFrame()

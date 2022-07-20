@@ -636,7 +636,7 @@ def draw_histogram(df: pd.DataFrame, col_name: str):
         text=alt.Text('value:N'),
     )
 
-    hist = base.mark_bar(color="#6e0a1e").encode(
+    hist = base.mark_bar(color="#add8e6").encode(
                     alt.X(f"{col_name}:Q", bin=True),
                     y='count()',
                 )
