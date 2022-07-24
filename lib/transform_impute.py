@@ -166,9 +166,7 @@ def fill_from_prev_year(df: pd.DataFrame):
 
   
 def fill_pop_from_prev_year(df: pd.DataFrame):
-    """ This function estimates teh population based on the previous year's value and trend
-    Note: for shifted targets analysis, we do not include 2021 into the train or target set and so check if 2020 data is present
-    in the train set at all.
+    """ This function estimates the population based on the previous year's value and trend
 
     :param df: dataframe to be imputed
     :return: imputed dataframe with NaNs values estimated from previous year values
@@ -176,23 +174,34 @@ def fill_pop_from_prev_year(df: pd.DataFrame):
     # For population, we capture the trend over the past years 2019 to 2020 and add that to 2020 value
     # This gives us the imputed 2021 value
     all_years = list(df.index.unique(level="YEAR"))
-    if '2020' not in all_years:
+
+    #Find the year with missing data and sort increasingly so each year is built upon previous year value
+    miss_years = df[df['POPULATION_DENSITY'].isna()].index.unique(level='YEAR').values
+    if miss_years.shape[0] == 0:
         return df[["POPULATION_DENSITY"]]
 
+    miss_years = sorted(miss_years, key = lambda x : int(x))
+    #print(f"These are the missing years {miss_years}")
+    
+    # If the dataframe does not have years with missing population density, do nothing
+    
     all_years_trend = [f"{year}_trend" for year in all_years]
     # Pivot the dataframe so that the TOWNSHIP_RANGE forms the index and years are along the columns
     pop_pivot_df = df["POPULATION_DENSITY"].reset_index().pivot(
         index=["TOWNSHIP_RANGE"], columns=["YEAR"], values=["POPULATION_DENSITY"]
     )
 
-    # On the pivoted Dataframe , find difference between columns to get trend
+    # On the pivoted Dataframe, find difference between columns to get trend
     diff_df = pop_pivot_df.diff(axis="columns").reset_index()
     diff_df.droplevel(level=0, axis=1)
     diff_df.columns = ["TOWNSHIP_RANGE"] + all_years_trend
     pop_pivot_df = pop_pivot_df.droplevel(level=0, axis=1)
     pop_pivot_df = pop_pivot_df.merge(diff_df, how="inner", on=["TOWNSHIP_RANGE"]).reset_index(drop=True)
-    # Add the trend to past year value for 2021
-    pop_pivot_df["2021"] = pop_pivot_df["2020"] + pop_pivot_df["2020_trend"]
+    
+    for one_year in miss_years:
+         # Add the trend to past year value for missing year
+        prev_year = str(int(one_year)-1)
+        pop_pivot_df[one_year] = pop_pivot_df[prev_year] + pop_pivot_df[f"{prev_year}_trend"]
 
     pop_pivot_df = pop_pivot_df[["TOWNSHIP_RANGE"] + list(all_years)]
     pop_pivot_df = pd.melt(
@@ -205,6 +214,7 @@ def fill_pop_from_prev_year(df: pd.DataFrame):
     # Just make sure that rows are sorted in the original order
     pop_pivot_df.sort_index(level=["TOWNSHIP_RANGE", "YEAR"], inplace=True)
     return pop_pivot_df
+
 
 
 class PandasSimpleImputer(SimpleImputer):
