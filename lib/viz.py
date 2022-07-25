@@ -3,6 +3,7 @@ import altair as alt
 import numpy as np
 import pandas as pd
 import geopandas as gpd
+import seaborn as sns
 import matplotlib.cm as cm
 from typing import List
 import matplotlib.pyplot as plt
@@ -23,6 +24,31 @@ sjv_color_range_17 =["#3586BD", "#4583B9", "#547FB5", "#637CB1", "#7278AC", "#82
                      "#AF6C91", "#AE6E88", "#AD707F", "#AC7175", "#AC736C", "#AC736C", "#AA7759", "#A9784F"]
 sjv_cmap = LinearSegmentedColormap.from_list("sjv_cmap", list(zip([0.0, 0.5, 1.0], [sjv_blue, sjv_pink, sjv_brown])))
 sjv_cmap.set_bad(sjv_error)
+
+
+def create_feature_target_heatmap(full_df:pd.DataFrame(), target:str, sort_by_absolute:bool):
+    """
+    This function plots features to target correlation heatmap using seaborn
+    :param full_df: Dataframe containing feature and target columns
+    :param target: name of target column in dataframe
+    :param: sort_by_absolute : Flag True/False indicating if the sorting must be performed using 'absolute' value of correlation
+
+    """
+
+    corr_df = full_df.corr()[[target]].copy()
+    plt.figure(figsize=(8, 30))
+    color_map = 'cividis_r'
+    
+    if sort_by_absolute:
+        corr_df['sort_by_value'] = np.abs(corr_df[target])
+        corr_df.sort_values(by='sort_by_value', ascending=False, inplace=True)
+        corr_df.drop(columns=['sort_by_value'], inplace=True)
+        heatmap = sns.heatmap(corr_df, vmin=-1, vmax=1, annot=True, cmap=color_map)
+
+    else :
+        heatmap = sns.heatmap(corr_df.sort_values(by=target, ascending=False), vmin=-1, vmax=1, annot=True, cmap=color_map)
+
+    return heatmap.set_title(f'Features Correlating with {target}', fontdict={'fontsize':18}, pad=16)
 
 
 
@@ -121,24 +147,25 @@ def create_correlation_scatters(df:pd.DataFrame, colName:str, targetName:str, va
     
 
 
-def chart_feature_target_relation(x_df:pd.DataFrame, y:pd.Series, variable:str):
+def chart_feature_target_relation(x_df:pd.DataFrame, y:pd.Series, feature:str, target:str):
     """This function returns the correlation coefficient of each feature
        with respect to target
 
-    :param X_df: The fetaures DataFrame 
-    :param y_target: Series containing target
+    :param x_df: The fetaures DataFrame containing feature = variable
+    :param y: Series containing target
+    :param: feature: Name of feature to correlate with target 
     :param target: Name of target
     """
     feature_to_target_df_year = x_df.reset_index()
     y_year = pd.DataFrame(y).reset_index()
 
     #normalize the target   
-    y_year ['GSE_GWE']= np.sqrt(y_year['GSE_GWE'])
+    y_year [target]= np.sqrt(y_year[target])
 
-    total_df  = pd.concat([feature_to_target_df_year, y_year[['GSE_GWE']]], axis=1)
-    total_chart_df =pd.melt(total_df, id_vars=['TOWNSHIP_RANGE', 'YEAR', 'GSE_GWE'])
-    total_chart_df = total_chart_df[total_chart_df['variable'] == variable]
-    return create_correlation_scatters(total_chart_df, "value", 'GSE_GWE', variable)
+    total_df  = pd.concat([feature_to_target_df_year, y_year[[target]]], axis=1)
+    total_chart_df =pd.melt(total_df, id_vars=['TOWNSHIP_RANGE', 'YEAR', target])
+    total_chart_df = total_chart_df[total_chart_df['variable'] == feature]
+    return create_correlation_scatters(total_chart_df, "value", target, feature)
 
 
 
