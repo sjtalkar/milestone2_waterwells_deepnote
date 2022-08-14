@@ -16,25 +16,22 @@ sjv_brown = "#A9784F"
 sjv_pink = "#AF6A9A"
 sjv_blue = "#3586BD"
 sjv_error = "#E24C85"
-# sjv_color_range_9 = ["#3586BD", "#4485B0", "#5283A2", "#618194", "#6F7F86", "#7E7E79", "#8C7C6B", "#9B7A5D", "#A9784F"]
-# sjv_color_range_17 =["#3586BD", "#3D86B7", "#4485B0", "#4B84A9", "#5283A2", "#5A829B", "#618194", "#68808D", "#6F7F86",
-#                      "#777F80", "#7E7E79", "#857D72", "#8C7C6B", "#947B64", "#9B7A5D", "#A27956", "#A9784F"]
 sjv_color_range_9 = ["#3586BD", "#547FB5", "#7278AC", "#9171A3", "#AF6A9A", "#AE6E88", "#AC7175", "#AB7562", "#A9784F"]
-sjv_color_range_17 =["#3586BD", "#4583B9", "#547FB5", "#637CB1", "#7278AC", "#8275A8", "#9171A3", "#A06E9F", "#AF6A9A",
-                     "#AF6C91", "#AE6E88", "#AD707F", "#AC7175", "#AC736C", "#AC736C", "#AA7759", "#A9784F"]
+sjv_color_range_17 = ["#3586BD", "#4583B9", "#547FB5", "#637CB1", "#7278AC", "#8275A8", "#9171A3", "#A06E9F", "#AF6A9A",
+                      "#AF6C91", "#AE6E88", "#AD707F", "#AC7175", "#AC736C", "#AC736C", "#AA7759", "#A9784F"]
 sjv_cmap = LinearSegmentedColormap.from_list("sjv_cmap", list(zip([0.0, 0.5, 1.0], [sjv_blue, sjv_pink, sjv_brown])))
 sjv_cmap.set_bad(sjv_error)
 
 
-def create_feature_target_heatmap(full_df:pd.DataFrame(), target:str, sort_by_absolute:bool):
-    """
-    This function plots features to target correlation heatmap using seaborn
+def create_feature_target_heatmap(full_df: pd.DataFrame(), target: str, sort_by_absolute: bool):
+    """This function plots features to target correlation heatmap using seaborn
+
     :param full_df: Dataframe containing feature and target columns
     :param target: name of target column in dataframe
-    :param: sort_by_absolute : Flag True/False indicating if the sorting must be performed using 'absolute' value of correlation
-
+    :param: sort_by_absolute: Flag True/False indicating if the sorting must be performed using 'absolute'
+    value of correlation
+    :returns: a Seaborn heatmap
     """
-
     corr_df = full_df.corr()[[target]].copy()
     plt.figure(figsize=(8, 30))
     color_map = 'cividis_r'
@@ -44,48 +41,46 @@ def create_feature_target_heatmap(full_df:pd.DataFrame(), target:str, sort_by_ab
         corr_df.sort_values(by='sort_by_value', ascending=False, inplace=True)
         corr_df.drop(columns=['sort_by_value'], inplace=True)
         heatmap = sns.heatmap(corr_df, vmin=-1, vmax=1, annot=True, cmap=color_map)
-
-    else :
-        heatmap = sns.heatmap(corr_df.sort_values(by=target, ascending=False), vmin=-1, vmax=1, annot=True, cmap=color_map)
-
-    return heatmap.set_title(f'Features Correlating with {target}', fontdict={'fontsize':18}, pad=16)
-
+    else:
+        heatmap = sns.heatmap(corr_df.sort_values(by=target, ascending=False),
+                              vmin=-1, vmax=1, annot=True, cmap=color_map)
+    return heatmap.set_title(f'Features Correlating with {target}', fontdict={'fontsize': 18}, pad=16)
 
 
-def create_feature_importance_charts(models, X_train_impute_df):
-    """
-    Given a list of best models, this function charts feature importances if 
-    the model has that property
+def create_feature_importance_charts(models: list, X_train_impute_df: pd.DataFrame()) -> List[alt.Chart]:
+    """Given a list of best models, this function charts feature importances if the model has that property
+
     :param models: List of models that have been hypertuned 
     :param X_train_impute_df: feature dataframe
     :returns: chart_list : list of Altair charts that can be displayed
-
     """
     chart_list = []
     for best_model in models:
-        if hasattr (best_model.best_estimator_, 'feature_importances_'):
+        if hasattr(best_model.best_estimator_, 'feature_importances_'):
             color_for_bars = "#3884bc"
             feature_imp_dict = pd.DataFrame(
                 {
-                    "Feature Number": range(
-                        len(best_model.best_estimator_.feature_importances_)
-                    ),
+                    "Feature Number": range(len(best_model.best_estimator_.feature_importances_)),
                     "Feature Name": list(X_train_impute_df.columns),
                     "Feature Importance": best_model.best_estimator_.feature_importances_,
                 }
             )
             chart = (
-                alt.Chart(feature_imp_dict, title = type(best_model.best_estimator_.regressor_).__name__ )
+                alt.Chart(feature_imp_dict, title=type(best_model.best_estimator_.regressor_).__name__)
                 .mark_bar(color=color_for_bars)
                 .encode(x=alt.X("Feature Name:N", sort="-y"), y="Feature Importance:Q")
             )
             chart_list.append(chart)
-
     return chart_list
 
 
+def sjv_heat_color(value: float, reverse: bool = False) -> str:
+    """This function returns a color for a given value in a range of colors
 
-def sjv_heat_color(value: float, reverse:bool = False) -> str:
+    :param value: value to be mapped to a color
+    :param reverse: Flag True/False indicating if the color mapping should be reversed
+    :returns: color : color for the given value
+    """
     min_c = np.array([0.3765, 0.5569, 0.7569])
     middle_c = np.array([0.6863, 0.4157, 0.6039])
     max_c = np.array([0.8902, 0.4431, 0.0745])
@@ -96,40 +91,51 @@ def sjv_heat_color(value: float, reverse:bool = False) -> str:
         color = np.rint((min_c + (middle_c - min_c) * value)*255).astype(int)
     else:
         color = np.rint((middle_c + (max_c - middle_c) * value)*255).astype(int)
-    return "#{:02x}{:02x}{:02x}".format(color[0],color[1],color[2])
+    return "#{:02x}{:02x}{:02x}".format(color[0], color[1], color[2])
 
-def sjv_heat_colormap(value) -> str:
-    if math.isnan(value) == False:
+
+def sjv_heat_colormap(value: float) -> str:
+    """This function is a colormap function. It returns a color for a given value in a range of colors
+
+    :param value: value to be mapped to a color
+    :returns: color : color for the given value
+    """
+    if math.isnan(value) is False:
         y = sjv_heat_color(value)
     else:
         y = sjv_error
     return y
 
-def sjv_heat_colormap_reverse(value) -> str:
-    if math.isnan(value) == False:
+
+def sjv_heat_colormap_reverse(value: float) -> str:
+    """This function is a colormap function. It returns a color for a given value in an inverse range of colors
+
+    :param value: value to be converted to color
+    :returns: color in hex format
+    """
+    if math.isnan(value) is False:
         y = sjv_heat_color(value, reverse=True)
     else:
         y = sjv_error
     return y
 
 
+def create_correlation_scatters(df: pd.DataFrame, x_feature: str, y_feature: str, x_axis_title: str) -> alt.Chart:
+    """This function creates a scatter chart and a line that is a regression line between the two numerical columns
+    passed to it. It prints out the correlation values as well
 
-def create_correlation_scatters(df:pd.DataFrame, colName:str, targetName:str, variable):
+    :param df: Dataframe containing the features to be plotted
+    :param x_feature: name of the feature to be plotted on the x-axis
+    :param y_feature: name of the target feature to be plotted on the y-axis
+    :param x_axis_title: name of the x-axis Title
     """
-        This function creates a scatter chart and a line that is a regression line between the two numerical columns passed to it
-        It prints out the correlation values as well
-
-    """
-
-
-    corr = df[targetName].corr(df[colName])
+    corr = df[y_feature].corr(df[x_feature])
     source = df
-
     base = alt.Chart(source)
 
     chart = base.mark_circle().encode(
-        alt.X(f"{colName}:Q", axis=alt.Axis(title=variable)),
-        alt.Y(f"{targetName}:Q"),
+        alt.X(f"{x_feature}:Q", axis=alt.Axis(title=x_axis_title)),
+        alt.Y(f"{y_feature}:Q"),
         color="YEAR:N"
     ).properties(
         width=300,
@@ -142,14 +148,13 @@ def create_correlation_scatters(df:pd.DataFrame, colName:str, targetName:str, va
                         y=alt.value(5),  # pixels from top
                         text=alt.value(f"corr: {corr:.3f}"),
                         )
+    corr_chart = chart + text + chart.transform_regression(x_feature, y_feature).mark_line(
+        color='darkblue').encode(color=alt.value('blue'))
+    return corr_chart
 
-    return chart + text+ chart.transform_regression(colName, targetName).mark_line(color='darkblue').encode(color=alt.value('blue'))
-    
 
-
-def chart_feature_target_relation(x_df:pd.DataFrame, y:pd.Series, feature:str, target:str):
-    """This function returns the correlation coefficient of each feature
-       with respect to target
+def chart_feature_target_relation(x_df: pd.DataFrame, y: pd.Series, feature: str, target: str) -> alt.Chart:
+    """This function returns the correlation coefficient of each feature with respect to target
 
     :param x_df: The fetaures DataFrame containing feature = variable
     :param y: Series containing target
@@ -159,41 +164,39 @@ def chart_feature_target_relation(x_df:pd.DataFrame, y:pd.Series, feature:str, t
     feature_to_target_df_year = x_df.reset_index()
     y_year = pd.DataFrame(y).reset_index()
 
-    #normalize the target   
-    y_year [target]= np.sqrt(y_year[target])
+    # normalize the target
+    y_year[target] = np.sqrt(y_year[target])
 
-    total_df  = pd.concat([feature_to_target_df_year, y_year[[target]]], axis=1)
-    total_chart_df =pd.melt(total_df, id_vars=['TOWNSHIP_RANGE', 'YEAR', target])
+    total_df = pd.concat([feature_to_target_df_year, y_year[[target]]], axis=1)
+    total_chart_df = pd.melt(total_df, id_vars=['TOWNSHIP_RANGE', 'YEAR', target])
     total_chart_df = total_chart_df[total_chart_df['variable'] == feature]
     return create_correlation_scatters(total_chart_df, "value", target, feature)
 
 
-
-def get_feature_target_correlation(X_df:pd.DataFrame, y_target:pd.Series, target:str='GSE_GWE'):
-    """This function returns the correlation coefficient of each feature
-       with respect to target
+def get_feature_target_correlation(X_df: pd.DataFrame, y_target: pd.Series, target: str = 'GSE_GWE') -> pd.DataFrame:
+    """This function returns the correlation coefficient of each feature with respect to target
 
     :param X_df: The features DataFrame 
     :param y_target: Series containing target
     :param target: Name of target
     """
-   
     variable_corr_dict = {}
     y_df = pd.DataFrame(y_target)
 
-    #normalize the target   
-    y_df[target]= np.sqrt(y_df[target])
+    # normalize the target
+    y_df[target] = np.sqrt(y_df[target])
 
-    full_df = pd.concat([X_df,y_df], axis=1)
+    full_df = pd.concat([X_df, y_df], axis=1)
     for col in full_df.columns:
         corr = full_df[target].corr(full_df[col])
         variable_corr_dict[col] = corr
-    corr_df = pd.DataFrame.from_dict(variable_corr_dict, orient='index', columns=[ 'Correlation_Coefficient'])
+    corr_df = pd.DataFrame.from_dict(variable_corr_dict, orient='index', columns=['Correlation_Coefficient'])
     corr_df['sort_coeff'] = np.abs(corr_df['Correlation_Coefficient'])
-    corr_df =  corr_df.sort_values(['sort_coeff'], ascending=False)
+    corr_df = corr_df.sort_values(['sort_coeff'], ascending=False)
     return corr_df.drop(columns=['sort_coeff'])
 
-def draw_missing_data_chart(df: pd.DataFrame):
+
+def draw_missing_data_chart(df: pd.DataFrame) -> alt.Chart:
     """This function charts the percentage missing data in the data file read in
 
     :param df: The Pandas DataFrame for which to draw missing data
@@ -223,7 +226,8 @@ def draw_missing_data_chart(df: pd.DataFrame):
     )
     return chart + text
 
-def get_base_map(gdf: gpd.GeoDataFrame, color: str, opacity: float):
+
+def get_base_map(gdf: gpd.GeoDataFrame, color: str, opacity: float) -> alt.Chart:
     """This function creates and returns an base map with Altair from the GeoDataFrame
 
     :param gdf: The geopandas DataFrame from which to generate the Altair base map
@@ -231,19 +235,20 @@ def get_base_map(gdf: gpd.GeoDataFrame, color: str, opacity: float):
     :param opacity: Opacity to apply to the color
     """
     base_gdf = gdf.set_crs('epsg:4326')
-    #Set the class's base chart 
+    # Set the class's base chart
     return alt.Chart(base_gdf).mark_geoshape(
                         stroke='black',
                         strokeWidth=1
                     ).encode(
-                        color= alt.value(color),
+                        color=alt.value(color),
                         opacity=alt.value(opacity),
                     ).properties(
                         width=500,
                         height=500
                     )
 
-def get_stations_chart(stations_gdf: gpd.GeoDataFrame, tooltip_columns: List[str]):
+
+def get_stations_chart(stations_gdf: gpd.GeoDataFrame, tooltip_columns: List[str]) -> alt.Chart:
     """This function creates and returns an Altair chart of the stations
 
     :param stations_gdf: The GeoDataFrame containing the stations data
@@ -265,9 +270,10 @@ def get_stations_chart(stations_gdf: gpd.GeoDataFrame, tooltip_columns: List[str
             fill=alt.value('black'),
         )
     return stations_chart
-      
-def view_year_with_slider(base_map, gdf: gpd.GeoDataFrame, color_col: str, color_scheme : str = 'blues',
-                          time_col: str = 'YEAR', draw_stations: bool =False):
+
+
+def view_year_with_slider(base_map, gdf: gpd.GeoDataFrame, color_col: str, color_scheme: str = 'blues',
+                          time_col: str = 'YEAR', draw_stations: bool = False) -> alt.Chart:
     """This function generates an interactive visualization of the data with a slider
 
     :param base_map: The Altair chart to use as the base map
@@ -278,7 +284,7 @@ def view_year_with_slider(base_map, gdf: gpd.GeoDataFrame, color_col: str, color
     :param draw_stations: If True, draw the stations
     """
     gdf = gdf.set_crs('epsg:4326')
-    #Limit the time range so that the chart can be shown
+    # Limit the time range so that the chart can be shown
     gdf = gdf[gdf[time_col] >= 2014]
     min_year_num = gdf[time_col].min()
     max_year_num = gdf[time_col].max()
@@ -311,8 +317,9 @@ def view_year_with_slider(base_map, gdf: gpd.GeoDataFrame, color_col: str, color
     else:
         return base_map + area_slider_chart
 
-def simple_geodata_viz(gdf: gpd.GeoDataFrame, feature:str, title: str, year: int = None, color_scheme:str = 'blues',
-                       draw_stations: bool = False):
+
+def simple_geodata_viz(gdf: gpd.GeoDataFrame, feature: str, title: str, year: int = None, color_scheme: str = 'blues',
+                       draw_stations: bool = False) -> alt.Chart:
     """This function creates a simple visualization of a single feature of a geodataframe.
 
     :param gdf: the geodataframe to visualize
@@ -379,8 +386,9 @@ def simple_geodata_viz(gdf: gpd.GeoDataFrame, feature:str, title: str, year: int
         )
     return chart
 
-def view_trs_side_by_side(gdf: pd.DataFrame, feature: str, value: str, title: str, color_scheme: str = "sjv",
-                          reverse_palette: bool = False, draw_stations: bool = False):
+
+def view_trs_side_by_side(gdf: gpd.GeoDataFrame, feature: str, value: str, title: str, color_scheme: str = "sjv",
+                          reverse_palette: bool = False, draw_stations: bool = False) -> alt.Chart:
     """ This function creates a side by side Altair visualization of the Township-Ranges for the given feature
 
     :param gdf: the geodataframe to be visualized
@@ -461,7 +469,8 @@ def view_trs_side_by_side(gdf: pd.DataFrame, feature: str, value: str, title: st
                            ).properties(title=title)
     return chart
 
-def visualize_seasonality_by_month(gdf: gpd.GeoDataFrame, feature: List[str]):
+
+def visualize_seasonality_by_month(gdf: gpd.GeoDataFrame, feature: List[str]) -> alt.Chart:
     """ This function visualizes the seasonality of the data by month
 
     :param gdf: the geodataframe to visualize
@@ -486,6 +495,7 @@ def display_data_on_map(gdf: gpd.GeoDataFrame, feature: str, year: int = None, c
     :param feature: the feature to be displayed
     :param year: the year to be displayed
     :param categorical: whether the data are categorical or not
+    :param color_scheme: the color palette to be used
     :param reverse_palette: if True, the color palette will be reversed
     :return: the Folium map
     """
@@ -515,7 +525,8 @@ def display_data_on_map(gdf: gpd.GeoDataFrame, feature: str, year: int = None, c
     else:
         return gdf.explore(feature, cmap=cmap, legend=legend)
 
-def draw_corr_heatmap(df: pd.DataFrame, drop_columns: List[str] = None):
+
+def draw_corr_heatmap(df: pd.DataFrame, drop_columns: List[str] = None) -> alt.Chart:
     """Function to generate an Altair heatmap vizualisation for a dataframe
     
     :params df : pd.Dataframe Dataframe with features
@@ -523,13 +534,13 @@ def draw_corr_heatmap(df: pd.DataFrame, drop_columns: List[str] = None):
     :return: Altair heatmap chart
     """
     sort_cols = ['AVERAGE_YEARLY_PRECIPITATION', 'GROUNDSURFACEELEVATION_AVG', 'PCT_OF_CAPACITY', 'POPULATION_DENSITY',
-                 'STATICWATERLEVEL_AVG', 'TOPOFPERFORATEDINTERVAL_AVG', 'TOTALCOMPLETEDDEPTH_AVG', 'TOTALDRILLDEPTH_AVG',
-                 'BOTTOMOFPERFORATEDINTERVAL_AVG', 'WELLYIELD_AVG', 'WELL_COUNT_AGRICULTURE', 'WELL_COUNT_DOMESTIC',
-                 'WELL_COUNT_INDUSTRIAL', 'WELL_COUNT_PUBLIC', 'CROP_C', 'CROP_C6', 'CROP_D10', 'CROP_D12', 'CROP_D13',
-                 'CROP_D14', 'CROP_D15','CROP_D16', 'CROP_D3', 'CROP_D5', 'CROP_D6', 'CROP_F1', 'CROP_F10', 'CROP_F16',
-                 'CROP_F2', 'CROP_G',  'CROP_G2', 'CROP_G6', 'CROP_I', 'CROP_P1', 'CROP_P3', 'CROP_P6', 'CROP_R',
-                 'CROP_R1', 'CROP_T10', 'CROP_T15', 'CROP_T18', 'CROP_T19', 'CROP_T21', 'CROP_T26', 'CROP_T30',
-                 'CROP_T31', 'CROP_T4', 'CROP_T6', 'CROP_T8', 'CROP_T9', 'CROP_V', 'CROP_V3', 'CROP_YP',
+                 'STATICWATERLEVEL_AVG', 'TOPOFPERFORATEDINTERVAL_AVG', 'TOTALCOMPLETEDDEPTH_AVG',
+                 'TOTALDRILLDEPTH_AVG', 'BOTTOMOFPERFORATEDINTERVAL_AVG', 'WELLYIELD_AVG', 'WELL_COUNT_AGRICULTURE',
+                 'WELL_COUNT_DOMESTIC', 'WELL_COUNT_INDUSTRIAL', 'WELL_COUNT_PUBLIC', 'CROP_C', 'CROP_C6', 'CROP_D10',
+                 'CROP_D12', 'CROP_D13', 'CROP_D14', 'CROP_D15', 'CROP_D16', 'CROP_D3', 'CROP_D5', 'CROP_D6', 'CROP_F1',
+                 'CROP_F10', 'CROP_F16', 'CROP_F2', 'CROP_G',  'CROP_G2', 'CROP_G6', 'CROP_I', 'CROP_P1', 'CROP_P3',
+                 'CROP_P6', 'CROP_R', 'CROP_R1', 'CROP_T10', 'CROP_T15', 'CROP_T18', 'CROP_T19', 'CROP_T21', 'CROP_T26',
+                 'CROP_T30', 'CROP_T31', 'CROP_T4', 'CROP_T6', 'CROP_T8', 'CROP_T9', 'CROP_V', 'CROP_V3', 'CROP_YP',
                  'SOIL_ALFISOLS_B', 'SOIL_ALFISOLS_C', 'SOIL_ALFISOLS_D', ' SOIL_ARIDISOLS_B', 'SOIL_ARIDISOLS_C',
                  'SOIL_ARIDISOLS_D', 'SOIL_ENTISOLS_A', 'SOIL_ENTISOLS_B', 'SOIL_ENTISOLS_C', 'SOIL_ENTISOLS_D',
                  'SOIL_HISTOSOLS_C', 'SOIL_INCEPTISOLS_B', 'SOIL_INCEPTISOLS_D', 'SOIL_MOLLISOLS_B', 'SOIL_MOLLISOLS_C',
@@ -543,9 +554,10 @@ def draw_corr_heatmap(df: pd.DataFrame, drop_columns: List[str] = None):
         chart_df = df.drop(columns=drop_columns)
     else:
         chart_df = df
-   
+
+    # The stacking results in an index on the correlation values, we need the index as normal columns for Altair
     cor_data = (chart_df.corr().stack()
-                .reset_index()     # The stacking results in an index on the correlation values, we need the index as normal columns for Altair
+                .reset_index()
                 .rename(columns={0: 'correlation', 'level_0': 'feature_1', 'level_1': 'feature_2'}))
     cor_data['correlation_label'] = cor_data['correlation'].map('{:.2f}'.format)  # Round to 2 decimal
     
@@ -558,18 +570,18 @@ def draw_corr_heatmap(df: pd.DataFrame, drop_columns: List[str] = None):
     ).properties(width=alt.Step(10), height=alt.Step(10))
 
     rects = base.mark_rect().encode(
-        color=alt.Color('correlation_label:Q', scale=alt.Scale(scheme ="lightgreyteal"))
+        color=alt.Color('correlation_label:Q', scale=alt.Scale(scheme="lightgreyteal"))
     ).properties(width=1000, height=1000)
         
     return rects
 
 
-def draw_components_variance_chart(pca):
+def draw_components_variance_chart(pca) -> alt.Chart:
     """This function creates a scree plot. A scree plot plots the explained variance against number of components
     and helps determine the number of components to pick.
 
     params: pca: pca object fit to the data
-    returns:  Dataframe with NaNs replaced for vegetation and crops columns
+    returns: Dataframe with NaNs replaced for vegetation and crops columns
     """
     df = pd.DataFrame({
         'n_components': range(1, pca.n_components_ + 1),
@@ -595,14 +607,14 @@ def biplot(score, coeff, maxdim, pcax, pcay, labels=None):
     :return: A biplot chart
     """
     zoom = 0.5
-    pca1=pcax-1
-    pca2=pcay-1
+    pca1 = pcax-1
+    pca2 = pcay-1
     xs = score[:, pca1]
     ys = score[:, pca2]
     n = min(coeff.shape[0], maxdim)
     width = 2.0 * zoom
-    scalex = width/(xs.max()- xs.min())
-    scaley = width/(ys.max()- ys.min())
+    scalex = width/(xs.max() - xs.min())
+    scaley = width/(ys.max() - ys.min())
     text_scale_factor = 1.3
         
     fig = plt.gcf()
@@ -613,11 +625,11 @@ def biplot(score, coeff, maxdim, pcax, pcay, labels=None):
         plt.arrow(0, 0, coeff[i, pca1], coeff[i, pca2],
                   color=sjv_blue, alpha=0.9, head_width=0.03 * zoom)
         if labels is None:
-            plt.text(coeff[i, pca1]* text_scale_factor,
+            plt.text(coeff[i, pca1] * text_scale_factor,
                      coeff[i, pca2] * text_scale_factor,
                      "Var"+str(i+1), color=sjv_brown, ha='center', va='center')
         else:
-            plt.text(coeff[i, pca1]* text_scale_factor,
+            plt.text(coeff[i, pca1] * text_scale_factor,
                      coeff[i, pca2] * text_scale_factor,
                      labels[i], color=sjv_brown, ha='center', va='center')
     
@@ -628,7 +640,8 @@ def biplot(score, coeff, maxdim, pcax, pcay, labels=None):
     plt.grid()
     return plt
 
-def draw_feature_importance(feature_list: list, importance_list: list):
+
+def draw_feature_importance(feature_list: list, importance_list: list) -> alt.Chart:
     """This function charts the percentage missing data in the data file read in
 
     :param feature_list: The list of features for which the regressor provides importance values
@@ -642,7 +655,8 @@ def draw_feature_importance(feature_list: list, importance_list: list):
     )
     return feature_imp_chart
 
-def draw_histogram(df: pd.DataFrame, col_name: str):
+
+def draw_histogram(df: pd.DataFrame, col_name: str) -> alt.Chart:
     """This function charts the percentage missing data in the data file read in
 
     :param df: Dataframe in which resides the column for which histogram is to be plotted
@@ -652,7 +666,10 @@ def draw_histogram(df: pd.DataFrame, col_name: str):
     x_median = np.round(df[col_name].median(), 2)
     base = alt.Chart(df)
 
-    mean_df = pd.DataFrame({'x': [x_mean, x_median], 'y':[1000, 1100], 'value':[f"Mean = {x_mean}", f"Median = {x_median}"]})
+    mean_df = pd.DataFrame({
+        'x': [x_mean, x_median],
+        'y': [1000, 1100],
+        'value': [f"Mean = {x_mean}", f"Median = {x_median}"]})
 
     txt_chart = alt.Chart(mean_df).mark_text(
         align='left', 
@@ -667,11 +684,13 @@ def draw_histogram(df: pd.DataFrame, col_name: str):
                     alt.X(f"{col_name}:Q", bin=True),
                     y='count()',
                 )
-    return (txt_chart + hist).configure_axis( grid=False )
+    return (txt_chart + hist).configure_axis(grid=False)
 
-def draw_two_lines_with_two_axis(df: pd.DataFrame, x:str, y1:str, y2:str,
-                                 title: str, x_title: str, y1_title: str, y2_title):
+
+def draw_two_lines_with_two_axis(df: pd.DataFrame, x: str, y1: str, y2: str,
+                                 title: str, x_title: str, y1_title: str, y2_title) -> alt.Chart:
     """This function plots two lines on the same chart with independant y-axis
+
     :param df: the Dataframe with the data to be plotted
     :param x: the column name of the x-axis
     :param y1: the column name of the first line
@@ -697,8 +716,10 @@ def draw_two_lines_with_two_axis(df: pd.DataFrame, x:str, y1:str, y2:str,
         chart = chart.properties(title=title)
     return chart
 
-def draw_faceted_two_lines_with_two_axis(df: pd.DataFrame, x:str, y1:str, y2:str, facet: str,
-                                         title: str, x_title: str, y1_title: str, y2_title, facet_titles: List[str]):
+
+def draw_faceted_two_lines_with_two_axis(df: pd.DataFrame, x: str, y1: str, y2: str, facet: str,
+                                         title: str, x_title: str, y1_title: str, y2_title, facet_titles: List[str]) \
+        -> alt.Chart:
     """This function plots a chart of two lines on the same chart with independent y-axis, for each value in the
     facet variable
 
@@ -711,6 +732,7 @@ def draw_faceted_two_lines_with_two_axis(df: pd.DataFrame, x:str, y1:str, y2:str
     :param x_title: the title of the x-axis
     :param y1_title: the title of the first line
     :param y2_title: the title of the second line
+    :param facet_titles: the titles of the facets
     :return: the Altair visualization
     """
     for i, facet_value in enumerate(list(df[facet].unique())):
@@ -724,7 +746,9 @@ def draw_faceted_two_lines_with_two_axis(df: pd.DataFrame, x:str, y1:str, y2:str
     chart = chart.properties(title=title)
     return chart
 
-def draw_faceted_lines(df: pd.DataFrame, x:str, y:str, facet: str, title: str, x_title: str, y_title: str):
+
+def draw_faceted_lines(df: pd.DataFrame, x: str, y: str, facet: str, title: str, x_title: str, y_title: str) \
+        -> alt.Chart:
     """This function plots a facet line-chart on the same chart with independent y-axis, for each value in the
     facet variable
 
@@ -741,7 +765,7 @@ def draw_faceted_lines(df: pd.DataFrame, x:str, y:str, facet: str, title: str, x
     # extract 1 color per facet from the custom sjv_color_range_17 color list
     # at regular intervals
     nb_facets = len(df[facet].unique())
-    if nb_facets > 2 and nb_facets < len(sjv_color_range_17):
+    if 2 < nb_facets < len(sjv_color_range_17):
         color_range = sjv_color_range_17[0::len(sjv_color_range_17)//(nb_facets-1)]
         color_range[-1] = sjv_brown
     else:
@@ -772,7 +796,9 @@ def draw_faceted_lines(df: pd.DataFrame, x:str, y:str, facet: str, title: str, x
     ).resolve_scale(y="independent").properties(title=title)
     return chart
 
-def draw_small_multiples_bar_charts(df: pd.DataFrame, x:str, y:str, facet: str, facet_sort: List[str], title:str):
+
+def draw_small_multiples_bar_charts(df: pd.DataFrame, x: str, y: str, facet: str, facet_sort: List[str], title: str) \
+        -> alt.Chart:
     """This function generate small multiples bar charts
 
     :param df: the Dataframe with the data to be plotted
@@ -805,8 +831,9 @@ def draw_small_multiples_bar_charts(df: pd.DataFrame, x:str, y:str, facet: str, 
     ).properties(title=title).configure_view(stroke="transparent")
     return chart
 
-def draw_hierarchical_parameters_results(df: pd.DataFrame, x:str, y:str, facet: str, title: List[str], x_title: str,
-                                         y_title: str, nb_facet_columns: int = 2):
+
+def draw_hierarchical_parameters_results(df: pd.DataFrame, x: str, y: str, facet: str, title: List[str], x_title: str,
+                                         y_title: str, nb_facet_columns: int = 2) -> alt.Chart:
     """This function plots a faceted line chart for the results of the hierarcical clustering parameters search results
 
     :param df: the Dataframe with the data to be plotted
@@ -823,7 +850,7 @@ def draw_hierarchical_parameters_results(df: pd.DataFrame, x:str, y:str, facet: 
     # extract 1 color per facet from the custom sjv_color_range_17 color list
     # at regular intervals
     nb_facets = len(df[facet].unique())
-    if nb_facets > 2 and nb_facets < len(sjv_color_range_17):
+    if 2 < nb_facets < len(sjv_color_range_17):
         color_range = sjv_color_range_17[0::len(sjv_color_range_17)//(nb_facets-1)]
         color_range[-1] = sjv_brown
     else:
@@ -855,12 +882,14 @@ def draw_hierarchical_parameters_results(df: pd.DataFrame, x:str, y:str, facet: 
     ).resolve_scale(x="independent", y="independent").properties(title=title)
     return chart
 
-def create_silhoutte_cluster_viz(X_train_impute: np.ndarray, random_seed):
+
+def create_silhoutte_cluster_viz(X_train_impute: np.ndarray, random_seed: int):
     """This function plots a pair of visualizations for every number of KMeans cluster chosen.
     This code was taken for scikit-learn documentation
     https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_analysis.html
 
-    :param df: the Dataframe with the data to clustered
+    :param X_train_impute: the Dataframe with the data to clustered
+    :param random_seed: the random seed for the KMeans clustering
     :return: the pyplot visualization
     """
     range_n_clusters = [2, 3, 4, 5, 6]
