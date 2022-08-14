@@ -57,7 +57,7 @@ def create_feature_importance_charts(models: list, X_train_impute_df: pd.DataFra
     chart_list = []
     for best_model in models:
         if hasattr(best_model.best_estimator_, 'feature_importances_'):
-            color_for_bars = "#3884bc"
+            color_for_bars = sjv_blue
             feature_imp_dict = pd.DataFrame(
                 {
                     "Feature Number": range(len(best_model.best_estimator_.feature_importances_)),
