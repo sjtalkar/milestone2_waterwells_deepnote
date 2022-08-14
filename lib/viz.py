@@ -34,7 +34,7 @@ def create_feature_target_heatmap(full_df: pd.DataFrame(), target: str, sort_by_
     """
     corr_df = full_df.corr()[[target]].copy()
     plt.figure(figsize=(8, 30))
-    color_map = 'cividis_r'
+    color_map = sjv_cmap
     
     if sort_by_absolute:
         corr_df['sort_by_value'] = np.abs(corr_df[target])
@@ -649,7 +649,7 @@ def draw_feature_importance(feature_list: list, importance_list: list) -> alt.Ch
     :return: An Altair bar chart
     """
     df = pd.DataFrame({"Feature Name": feature_list, "Importance": importance_list})
-    feature_imp_chart = alt.Chart(df).mark_bar(color=sjv_brown).encode(
+    feature_imp_chart = alt.Chart(df).mark_bar(color=sjv_blue).encode(
         x=alt.X("Feature Name:N", sort="-y"),
         y="Importance:Q"
     )
