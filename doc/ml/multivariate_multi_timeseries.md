@@ -3,7 +3,7 @@
 In a multi-variate multi time-series prediction problem, the inputs are 3 dimensional, made of multiple subjects, 
 each characterized by several features (X1 - X4 and Y), each being a time-series.
 The objective is to predict the value of one feature (many-to-one), here Y, or multiple features (many-to-many), 
-one or multiple steps into the future (one step Y(t+n+1) in this example).
+one or multiple steps into the future (one step *Y(t+n+1)* in this example).
 
 LSTMs are used for time series and NLP because they are both sequential data and depend on previous states.
 The future prediction *Y(t+n+1)* depends not only on the last state *X1(t+n) - Y(t+n)*, not only on past values of the 
