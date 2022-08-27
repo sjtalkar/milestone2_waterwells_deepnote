@@ -10,11 +10,11 @@ supply, particularly for agricultural and domestic usage. This project seeks to 
 management agencies preemptively identify areas prone to overdraft and bring groundwater basins into balanced levels of 
 pumping and recharge.
 Focused on the San Joaquin Valley, the objectives are:
-* Supervised Learning: Predict the depth to groundwater elevation in feet below ground surface (GSE_GWE). This value 
+* __Supervised Learning__: Predict the depth to groundwater elevation in feet below ground surface (GSE_GWE). This value 
 portends shortage in a TownshipRange. Increase or decrease in GSE_GWE will then indicate if there will be more requests 
 for well construction. This in turn will provide a quantitative metric for whether SGMA is functioning and areas to 
 focus on for recharge.
-* Unsupervised Learning: cluster areas into sustainable and unsustainable areas, anomaly detection
+* __Unsupervised Learning__: cluster areas into sustainable and unsustainable areas, anomaly detection
 
 The geographical unit of analysis chosen for this project is the Township-Range level of the Public Land Survey System.
 
@@ -38,12 +38,6 @@ This repository is organized following the below folder structure:
 
 ## Documentation Table of Contents
 * Datasets
- 
-We have collected 10 geospatial datasets from different government agencies for the 2014-2021 period, on the topics 
-impacting water consumption: Geo-spatial data (San Joaquin Valley PLSS), current groundwater levels and consumption 
-through well completion reports, recharge factors and consumption factors through precipitation, water reservoir 
-capacity, agricultural crops, population density, regional vegetation, soils survey and water shortages reports.
-
   * [Credits and List of Dataset Sources](doc/assets/credits.md)
   * [General Information on Datasets Download](doc/assets/download.md) 
   * [The Crops Dataset](doc/assets/crops.md)
@@ -62,5 +56,6 @@ capacity, agricultural crops, population density, regional vegetation, soils sur
   * [Squaring San Joaquin Valley Township-Ranges](doc/etl/squaring_townships.md)
   * [Dropping Rare Township Features](doc/etl/drop_rare_features.md)
   * [Transforming Point Values into Township-Range Values](doc/etl/from_point_to_region_values.md)
-* Machine Learning
-  * [Multi-Variate Multi Time-Series Predictions with LSTM](doc/ml/multivariate_multi_timeseries.md) 
+* Machine Learning & Deepl Learning
+  * [Multi-Variate Multi Time-Series Predictions with LSTM](doc/ml/multivariate_multi_timeseries.md)
+  * [Running the Deep Learning Experiment](doc/ml/deeplearning.md)
