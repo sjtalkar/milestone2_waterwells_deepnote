@@ -1,5 +1,3 @@
-import os
-import requests
 import pandas as pd
 import geopandas as gpd
 
@@ -7,6 +5,7 @@ from datetime import datetime
 from typing import List
 from fiona.errors import DriverError
 from lib.wsdatasets import WsGeoDataset
+from lib.download import download_groundwater_datasets
 
 class GroundwaterDataset(WsGeoDataset):
     """This class loads, processes and exports the Well Completion Reports dataset"""
@@ -49,17 +48,8 @@ class GroundwaterDataset(WsGeoDataset):
         :param input_measurements_file: the path where to store the measurements dataset.
         :param input_stations_file: the path where to store the stations dataset.
         """
-        print("Data not found locally.\nDownloading the groundwater measurements dataset. Please wait...")
-        os.makedirs(os.path.dirname(input_measurements_file), exist_ok=True)
-        measurements_url = "https://data.cnra.ca.gov/dataset/dd9b15f5-6d08-4d8c-bace-37dc761a9c08/resource/bfa9f262-24a1-45bd-8dc8-138bc8107266/download/measurements.csv"
-        measurements_content = requests.get(measurements_url).text
-        with open(input_measurements_file, "w", encoding="utf-8") as f:
-            f.write(measurements_content)
-        print("Downloading the groundwater stations dataset. Please wait...")
-        stations_url = "https://data.cnra.ca.gov/dataset/dd9b15f5-6d08-4d8c-bace-37dc761a9c08/resource/af157380-fb42-4abf-b72a-6f9f98868077/download/stations.csv"
-        stations_content = requests.get(stations_url).text
-        with open(input_stations_file, "w", encoding="utf-8") as f:
-            f.write(stations_content)
+        print("Data not found locally.")
+        download_groundwater_datasets(input_measurements_file, input_stations_file)
         print("Downloads complete.")
 
     def preprocess_data_df(self, features_to_keep: List[str], min_year: int = 2014):

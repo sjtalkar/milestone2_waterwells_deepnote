@@ -1,5 +1,4 @@
 import os
-import requests
 import numpy as np
 import pandas as pd
 import geopandas as gpd
@@ -8,7 +7,7 @@ from datetime import datetime
 from typing import List
 from fiona.errors import DriverError
 from lib.wsdatasets import WsGeoDataset
-from lib.download import download_and_extract_zip_file
+from lib.download import download_well_completion_datasets
 
 
 class WellCompletionReportsDataset(WsGeoDataset):
@@ -49,18 +48,8 @@ class WellCompletionReportsDataset(WsGeoDataset):
         :param input_datafile: the path where to store the well completion reports dataset
         :param elevation_datadir: the path where to store the elevation data
         """
-        print("Data not found locally.\nDownloading the well completion reports dataset. Please wait...")
-        welldata_url = "https://data.cnra.ca.gov/dataset/647afc02-8954-426d-aabd-eff418d2652c/resource/" \
-                       "8da7b93b-4e69-495d-9caa-335691a1896b/download/wellcompletionreports.csv"
-        file_content = requests.get(welldata_url).text
-        os.makedirs(os.path.dirname(input_datafile), exist_ok=True)
-        with open(input_datafile, "w") as f:
-            f.write(file_content)
-        print("Downloading the elevation data. Please wait...")
-        os.makedirs(elevation_datadir, exist_ok=True)
-        elevation_url = "https://github.com/mlnrt/milestone2_waterwells_data/raw/main/well_completion/" \
-                        "elevation_data.zip"
-        download_and_extract_zip_file(url = elevation_url, extract_dir=elevation_datadir)
+        print("Data not found locally.")
+        download_well_completion_datasets(input_datafile, elevation_datadir)
         print("Downloads complete.")
         
     def _load_wcr_data(self, wcr_datafile: str):

@@ -1,4 +1,3 @@
-import requests
 import os
 import numpy as np
 import pandas as pd
@@ -6,6 +5,7 @@ import pandas as pd
 from typing import List
 from fiona.errors import DriverError
 from lib.wsdatasets import WsGeoDataset
+from lib.download import download_soils_datasets
 
 
 class SoilsDataset(WsGeoDataset):
@@ -31,20 +31,8 @@ class SoilsDataset(WsGeoDataset):
         :param input_geodir: the path where to store the Soil geospatial dataset
         :param input_datafile: the file name where to store the Soil data dataset
         """
-        os.makedirs(input_geodir, exist_ok=True)
-        print("Data not found locally.\nDownloading soil dataset from GitHub repository. Please wait...")
-        data_url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/soils/soil_data.csv"
-        datafile_content = requests.get(data_url).text
-        with open(input_datafile, "w", encoding="utf-8") as f:
-            f.write(datafile_content)
-        print("Downloading soil geospatial dataset from GitHub repository. Please wait...")
-        geofile_baseurl = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/soils/map/"
-        files_basename = "gsmsoilmu_a_ca."
-        extensions = ["dbf", "prj", "shp", "shx"]
-        for ext in extensions:
-            geofile_content = requests.get(geofile_baseurl + files_basename + ext).content
-            with open(os.path.join(input_geodir, files_basename + ext), "wb") as f:
-                f.write(geofile_content)
+        print("Data not found locally.")
+        download_soils_datasets(input_geodir, input_datafile)
         print("Downloads complete.")
 
     def _read_input_datafile(self, input_datafile: str, input_datafile_format: str = "csv") -> pd.DataFrame:

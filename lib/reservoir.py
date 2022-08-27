@@ -1,10 +1,7 @@
-import os
-import requests
-
 from typing import List
 from lib.wsdatasets import WsGeoDataset
 from fiona.errors import DriverError
-from lib.download import download_and_extract_zip_file
+from lib.download import download_reservoir_datasets
 
 
 class ReservoirDataset(WsGeoDataset):
@@ -42,15 +39,7 @@ class ReservoirDataset(WsGeoDataset):
         :param input_datafile: the path to the CSV file containing the additional data dataset
         """
         print("Data not found locally.")
-        os.makedirs(os.path.dirname(input_datafile), exist_ok=True)
-        print("Downloading the pre-packaged reservoir dataset. Please wait...")
-        url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/reservoir/reservoir_data.csv"
-        file_content = requests.get(url).text
-        with open(input_datafile, "w", encoding="utf-8") as f:
-            f.write(file_content)
-        print("Downloading the geospatial data of the reservoir dataset. Please wait...")
-        tract_url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/reservoir/reservoir_map.zip"
-        download_and_extract_zip_file(url=tract_url, extract_dir=os.path.dirname(input_stationfile))
+        download_reservoir_datasets(input_stationfile, input_datafile)
         print("Downloads complete.")
 
     def preprocess_map_df(self, features_to_keep: List[str]):

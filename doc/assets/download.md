@@ -35,6 +35,16 @@ By automating the download of the original datasets we aim at:
 * ensuring that the data are correctly downloaded,
 * simplifying the process for anyone trying to use the project
 * improving the reproducibility of the project and the results.
+## Pre Download All Datasets
+Instead of downloading the datasets individually at the start of each notebook or if you want to directly jump into
+the machine learning part of the project, you can download all the datasets at once, including the output files from
+all the ETL processes.
+
+A Python script has been created to all you to do just that. From the project root directory run:
+```python
+cd lib
+python download_datasets.py
+```
 ## Pre-packaged Data
 Some datasets take time to download through internet pages web scraping or API calls. For the same reasons as listed
 above, and to limit the burden on API services, we provide a pre-packaged version of such the datasets in the 

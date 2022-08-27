@@ -1,11 +1,10 @@
-import os
-import requests
 import pandas as pd
 import geopandas as gpd
 
 from datetime import datetime
 from typing import List
 from lib.wsdatasets import WsGeoDataset
+from lib.download import download_water_shortage_dataset
 
 
 class ShortageReportsDataset(WsGeoDataset):
@@ -40,14 +39,8 @@ class ShortageReportsDataset(WsGeoDataset):
         """This function downloads the datasets from the web
 
         :param input_datafile: the path and name of the file where to store the data"""
-        print("Data not found locally.\nDownloading the water shortage reports dataset. Please wait...")
-        os.makedirs(os.path.dirname(input_datafile), exist_ok=True)
-        shortage_url = "https://data.cnra.ca.gov/dataset/2cf184d1-2d34-46cc-8bb0-1dec86b6caf6/resource/" \
-                       "e1fd9f48-a613-4567-8042-3d2e064d77c8/download/householdwatersupplyshortagereporting" \
-                       "systemdata.csv"
-        shortage_content = requests.get(shortage_url).text
-        with open(input_datafile, "w", encoding="utf-8") as f:
-            f.write(shortage_content)
+        print("Data not found locally.")
+        download_water_shortage_dataset(input_datafile)
         print("Downloads complete.")
         
     def _clean_shortage_reports(self, shortage_datafile: str):

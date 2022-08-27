@@ -17,7 +17,7 @@ from bs4 import BeautifulSoup
 
 
 # Data Download Functions 
-def download_and_extract_zip_file(url: str, extract_dir: str):
+def download_and_extract_zip_file(url: str, extract_dir: str) -> None:
     """
     This function downloads a zip file and extracts it to the specified directory.
 
@@ -32,7 +32,8 @@ def download_and_extract_zip_file(url: str, extract_dir: str):
         # For each members of the archive
         for member in zf.infolist():
             # If it's a directory, continue
-            if member.filename[-1] == "/": continue
+            if member.filename[-1] == "/":
+                continue
             # Else write its content to the dataset root folder
             with open(os.path.join(extract_dir, os.path.basename(member.filename)),
                       "wb") as outfile:
@@ -41,10 +42,12 @@ def download_and_extract_zip_file(url: str, extract_dir: str):
 
 def download_population_raw_data(apikey_file: str = "./assets/inputs/population/census_api_token.pickle",
                                  input_datafile: str = "./assets/inputs/population/population.csv",
-                                 tract_geofile: str = "./assets/inputs/population/tracts_map/tl_2019_06_tract.shp"):
+                                 tract_geofile: str = "./assets/inputs/population/tracts_map/tl_2019_06_tract.shp") \
+        -> None:
     """
     This functions downloads the raw data from the Census Bureau.
 
+    :param apikey_file: the file containing the API key
     :param input_datafile: the file where to store the yearly population estimates
     :param tract_geofile: the file were to store the Census Tracts geometries
     """
@@ -243,7 +246,7 @@ def get_batch_elevation_from_latlon(df: pd.DataFrame, lat_column: str = "LATITUD
 def download_all_elevations(well_datafile: str = "./assets/inputs/wellcompletion/wellcompletion.csv",
                             elevation_basedir: str = "./assets/inputs/wellcompletion/elevation_data",
                             start_year: int = 2014, end_year: int = 2021,
-                            batch_size: int = 1500, wait_between_batches: int = 5):
+                            batch_size: int = 1500, wait_between_batches: int = 5) -> None:
     """
     This function downloads the elevation of all wells in the well completion dataset.
 
@@ -303,10 +306,9 @@ def download_all_elevations(well_datafile: str = "./assets/inputs/wellcompletion
     print("Downloads complete.")
 
 
-
-# Web Scraping with BeautifulSoup 
-
-def download_reservoir_stations_geospatial_data(stationfile: str = "./assets/inputs/reservoir/map/reservoir_stations.shp"):
+# Web Scraping with BeautifulSoup
+def download_reservoir_stations_geospatial_data(
+        stationfile: str = "./assets/inputs/reservoir/map/reservoir_stations.shp") -> None:
     """This function retrieves all the precipitation stations geospatial data and saves them locally in a Shapefile.
     It scrapes the web for precipitation data at daily and monthly level and extracts the latitude and longitude of all
     stations and saves it in a Geospatial Shapefile.
@@ -317,7 +319,7 @@ def download_reservoir_stations_geospatial_data(stationfile: str = "./assets/inp
     # Make a GET request to fetch the raw HTML content
     html_content = requests.get("https://cdec.water.ca.gov/reportapp/javareports?name=DailyRes").text
     # Parse the html content
-    #Note: Developer tools in Chrome will inform you of the element type and element names to be retrieved.
+    # Note: Developer tools in Chrome will inform you of the element type and element names to be retrieved.
     soup = BeautifulSoup(html_content, "lxml")
     station_table = soup.find("table", attrs={"id": "DailyRes_LIST", "class": "data"})
     all_rows_list = []
@@ -345,12 +347,13 @@ def download_reservoir_stations_geospatial_data(stationfile: str = "./assets/inp
     all_stations_geodf.to_file(stationfile, index=False)
     print("Download complete.")
 
-def scrape_reservoir_data_per_date(a_date: str):
+
+def scrape_reservoir_data_per_date(a_date: str) -> pd.DataFrame:
     url = f"https://cdec.water.ca.gov/reportapp/javareports?name=RES.{a_date}"
     # Make a GET request to fetch the raw HTML content
     html_content = requests.get(url).text
     # Parse the html content
-    #Note: Developer tools in Chrome will inform you of the element type and element names to be retrieved.
+    # Note: Developer tools in Chrome will inform you of the element type and element names to be retrieved.
     soup = BeautifulSoup(html_content, "lxml")
     reservoir_table = soup.find("table", attrs={"id": "RES", "class": "data"})
     if reservoir_table is None:
@@ -375,7 +378,8 @@ def scrape_reservoir_data_per_date(a_date: str):
         data_table_df.columns = reservoir_table_header + ['date']
     return data_table_df
 
-def download_weekly_reservoir_data(reservoir_datafile: str = "./assets/inputs/reservoir/reservoir_data.csv"):
+
+def download_weekly_reservoir_data(reservoir_datafile: str = "./assets/inputs/reservoir/reservoir_data.csv") -> None:
     """This function retrieves all the reservoir data from the web and saves them locally.
 
     :param reservoir_datafile: The file to save the data to.
@@ -415,7 +419,7 @@ def download_weekly_reservoir_data(reservoir_datafile: str = "./assets/inputs/re
     all_years_reservoir_data = all_years_reservoir_data[['STATION_ID', 'YEAR', 'PCT_OF_CAPACITY', 'RESERVOIR_NAME']]
     # Filter out values of "---  and convert values to float
     all_years_reservoir_data = all_years_reservoir_data[all_years_reservoir_data['PCT_OF_CAPACITY'] != '---']
-    #all_years_reservoir_data.dropna(subset=['PCT_OF_CAPACITY'], inplace=True)
+    # all_years_reservoir_data.dropna(subset=['PCT_OF_CAPACITY'], inplace=True)
     all_years_reservoir_data['PCT_OF_CAPACITY'] = all_years_reservoir_data['PCT_OF_CAPACITY'].astype(float)
     # Average by station and year
     all_years_reservoir_data = all_years_reservoir_data.groupby(['STATION_ID', 'YEAR', 'RESERVOIR_NAME'],
@@ -423,6 +427,7 @@ def download_weekly_reservoir_data(reservoir_datafile: str = "./assets/inputs/re
     os.makedirs(os.path.dirname(reservoir_datafile), exist_ok=True)
     all_years_reservoir_data.to_csv(reservoir_datafile, index=False)
     print("Download complete.")
+
 
 def scrape_precipitation_data_per_year(year: int) -> pd.DataFrame:
     """This function downloads the precipitation data for a given year from the web and returns it as a dataframe.
@@ -435,7 +440,7 @@ def scrape_precipitation_data_per_year(year: int) -> pd.DataFrame:
     # Make a GET request to fetch the raw HTML content
     html_content = requests.get(url).text
     # Parse the html content
-    #Note: Developer tools in Chrome will inform you of the element type and element names to be retrieved.
+    # Note: Developer tools in Chrome will inform you of the element type and element names to be retrieved.
     soup = BeautifulSoup(html_content, "lxml")
     precipitation_table = soup.find("table", attrs={"id": "data", "class": "data"})
 
@@ -466,8 +471,10 @@ def scrape_precipitation_data_per_year(year: int) -> pd.DataFrame:
     df.drop(columns=months, inplace=True)
     return df
 
-def download_monthly_precipitation_data(precipitation_datafile: str = "./assets/inputs/precipitation/precipitation_data.csv",
-                                   year_start: int = 2014):
+
+def download_monthly_precipitation_data(
+        precipitation_datafile: str = "./assets/inputs/precipitation/precipitation_data.csv",
+        year_start: int = 2014) -> None:
     """This function loops through a set of years in a list, scrap the monthly precipitation from the
     California Dta Exchange Center web sites and computes the average yearly precipitation.
 
@@ -490,12 +497,14 @@ def download_monthly_precipitation_data(precipitation_datafile: str = "./assets/
     all_years_precipitation_data.to_csv(precipitation_datafile, index=False)
     print("Download complete.")
 
-def scrape_precipitation_station_data(level: str, station_features: List[str]):
+
+def scrape_precipitation_station_data(level: str, station_features: List[str]) -> pd.DataFrame:
     """This function scrapes the web for daily or monthly precipitation station data in order to retrieve all
     the weather station geospatial information.
 
     :param level: the level ("daily" ot "monthly") at which to gather precipitation data in order to extract the
     geospatial data of the stations
+    :param station_features: the list of features to extract from the stations.
     :return: the precipitation stations geospatial data
     """
     print(f"Scraping the {level} precipitation stations data from the web. Please wait...")
@@ -506,7 +515,7 @@ def scrape_precipitation_station_data(level: str, station_features: List[str]):
     # Make a GET request to fetch the raw HTML content
     html_content = requests.get(url).text
     # Parse the html content
-    #Note: Developer tools in Chrome will inform you of the element type and element names to be retrieved.
+    # Note: Developer tools in Chrome will inform you of the element type and element names to be retrieved.
     soup = BeautifulSoup(html_content, "lxml")
 
     if level == "daily":
@@ -530,9 +539,11 @@ def scrape_precipitation_station_data(level: str, station_features: List[str]):
     station_table = station_table[station_features]
     return station_table
 
-def download_precipitation_stations_geospatial_data(precipitation_stationfile: str = "./assets/inputs/precipitation/map/precipitation_stations.shp"):
-    """This function retrieves all the precipitation stations geospatial data and stores them locally. It scrapes the web
-    for precipitation data at daily and monthly level and extracts the latitude and longitude of all stations and
+
+def download_precipitation_stations_geospatial_data(
+        precipitation_stationfile: str = "./assets/inputs/precipitation/map/precipitation_stations.shp") -> None:
+    """This function retrieves all the precipitation stations geospatial data and stores them locally. It scrapes the
+    web for precipitation data at daily and monthly level and extracts the latitude and longitude of all stations and
     stores it in a Geospatial Shapefile.
 
     :param precipitation_stationfile: the file to save the precipitation stations geospatial data to.
@@ -556,3 +567,256 @@ def download_precipitation_stations_geospatial_data(precipitation_stationfile: s
     os.makedirs(os.path.dirname(precipitation_stationfile), exist_ok=True)
     all_stations_geodf.to_file(precipitation_stationfile, index=False)
     print("Download complete.")
+
+
+def download_sjv_shapefile(sjv_shapefile: str = "../assets/inputs/common/plss_subbasin.geojson") -> None:
+    """This function downloads the San Joaquin Valley shapefile from the USGS website and stores it locally.
+
+    :param sjv_shapefile: the file to save the San Joaquin Valley shapefile to.
+    """
+    url = "https://github.com/datadesk/groundwater-analysis/raw/main/data/plss_subbasin.geojson"
+    geofile_content = requests.get(url).content
+    os.makedirs(os.path.dirname(sjv_shapefile), exist_ok=True)
+    with open(sjv_shapefile, "wb") as f:
+        f.write(geofile_content)
+
+
+def download_ca_shapefile(
+        ca_shapefile: str = "../assets/inputs/common/ca_county_boundaries/CA_Counties_TIGER2016.shp") -> None:
+    """ This function downloads the California county boundaries shapefile from the US Census Bureau website.
+
+    :param ca_shapefile: the file to save the shapefile to.
+    """
+    url = "https://data.ca.gov/dataset/e212e397-1277-4df3-8c22-40721b095f33/resource/b0007416-a325-4777-9295-" \
+          "368ea6b710e6/download/ca-county-boundaries.zip"
+    download_and_extract_zip_file(url, os.path.dirname(ca_shapefile))
+
+
+def download_crops_datasets(input_geodir: str = "../assets/inputs/crops",
+                            crop_name_to_type_file: str = "../assets/inputs/crops/crop_name_to_type_mapping.json") \
+        -> None:
+    """This function downloads the crops datasets from the web
+
+    :param input_geodir: the directory where to store the crops geospatial datasets
+    :param crop_name_to_type_file: the file name where to store the crop name to type mapping
+    """
+    url_base = "https://data.cnra.ca.gov/dataset/6c3d65e3-35bb-49e1-a51e-49d5a2cf09a9/resource"
+    crops_datasets_urls = {
+        "crops_2014": "/3bba74e2-a992-48db-a9ed-19e6fabb8052/download/i15_crop_mapping_2014_shp.zip",
+        "crops_2016": "/3b57898b-f013-487a-b472-17f54311edb5/download/i15_crop_mapping_2016_shp.zip",
+        "crops_2018": "/2dde4303-5c83-4980-a1af-4f321abefe95/download/i15_crop_mapping_2018_shp.zip"
+    }
+    for dataset_name, url in crops_datasets_urls.items():
+        print(f"Downloading the crops geospatial dataset '{dataset_name}'. Please wait...")
+        download_and_extract_zip_file(url=url_base + url, extract_dir=os.path.join(input_geodir, dataset_name))
+    print("Downloading the crops name-to-type mapping from GitHub repository. Please wait...")
+    url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/crops/crop_name_to_type_mapping.json"
+    file_content = requests.get(url).text
+    with open(crop_name_to_type_file, "w", encoding="utf-8") as f:
+        f.write(file_content)
+
+
+def download_groundwater_datasets(
+        input_measurements_file: str = "../assets/inputs/groundwater/groundwater_measurements.csv",
+        input_stations_file: str = "../assets/inputs/groundwater/groundwater_stations.csv") \
+        -> None:
+    """This function downloads the groundwater measurements dataset and the groundwater stations dataset from the
+    web.
+
+    :param input_measurements_file: the path where to store the measurements dataset.
+    :param input_stations_file: the path where to store the stations dataset.
+    """
+    print("Downloading the groundwater measurements dataset. Please wait...")
+    os.makedirs(os.path.dirname(input_measurements_file), exist_ok=True)
+    measurements_url = "https://data.cnra.ca.gov/dataset/dd9b15f5-6d08-4d8c-bace-37dc761a9c08/resource/bfa9f262-24a1-" \
+                       "45bd-8dc8-138bc8107266/download/measurements.csv"
+    measurements_content = requests.get(measurements_url).text
+    with open(input_measurements_file, "w", encoding="utf-8") as f:
+        f.write(measurements_content)
+    print("Downloading the groundwater stations dataset. Please wait...")
+    stations_url = "https://data.cnra.ca.gov/dataset/dd9b15f5-6d08-4d8c-bace-37dc761a9c08/resource/af157380-fb42-" \
+                   "4abf-b72a-6f9f98868077/download/stations.csv"
+    stations_content = requests.get(stations_url).text
+    with open(input_stations_file, "w", encoding="utf-8") as f:
+        f.write(stations_content)
+
+
+def downoad_population_datasets(
+        input_datafile: str = "../assets/inputs/population/population.csv",
+        tract_geofile: str = "../assets/inputs/population/tracts_map/tl_2019_06_tract.shp") -> None:
+    """This function downloads the population datasets from the web
+
+    :param input_datafile: the file where to store the population data
+    :param tract_geofile: the file where to store the shapefile of the population census Tracts
+    """
+    os.makedirs(os.path.dirname(input_datafile), exist_ok=True)
+    print("Downloading the pre-packaged 2014-2020 California Census population estimates at the Tract level."
+          " Please wait...")
+    url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/population/population.csv"
+    file_content = requests.get(url).text
+    with open(input_datafile, "w", encoding="utf-8") as f:
+        f.write(file_content)
+    print("Downloading the geospatial data of the population census Tracts. Please wait...")
+    tract_url = "https://www2.census.gov/geo/tiger/TIGER2019/TRACT/tl_2019_06_tract.zip"
+    download_and_extract_zip_file(url=tract_url, extract_dir=os.path.dirname(tract_geofile))
+
+
+def download_precipitation_datasets(
+        input_stationfile: str = "../assets/inputs/precipitation/map/precipitation_stations.shp",
+        input_datafile: str = "../assets/inputs/precipitation/precipitation_data.csv") -> None:
+    """This function downloads the pre-packaged precipitation dataset from the web
+
+    :param input_stationfile: the path to the Shapefile file containing the precipitation station geospatial data
+    :param input_datafile: the path to the CSV file containing the additional data dataset
+    """
+    os.makedirs(os.path.dirname(input_datafile), exist_ok=True)
+    print("Downloading the pre-packaged reservoir dataset. Please wait...")
+    url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/precipitation/precipitation_data.csv"
+    file_content = requests.get(url).text
+    with open(input_datafile, "w", encoding="utf-8") as f:
+        f.write(file_content)
+    print("Downloading the geospatial data of the reservoir dataset. Please wait...")
+    tract_url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/precipitation/" \
+                "precipitation_map.zip"
+    download_and_extract_zip_file(url=tract_url, extract_dir=os.path.dirname(input_stationfile))
+
+
+def download_reservoir_datasets(
+        input_stationfile: str = "../assets/inputs/reservoir/map/reservoir_stations.shp",
+        input_datafile: str = "../assets/inputs/reservoir/reservoir_data.csv") -> None:
+    """This function downloads the pre-packaged reservoir dataset from the web
+
+    :param input_stationfile: the path to the Shapefile file containing the reservoir station geospatial data
+    :param input_datafile: the path to the CSV file containing the additional data dataset
+    """
+    os.makedirs(os.path.dirname(input_datafile), exist_ok=True)
+    print("Downloading the pre-packaged reservoir dataset. Please wait...")
+    url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/reservoir/reservoir_data.csv"
+    file_content = requests.get(url).text
+    with open(input_datafile, "w", encoding="utf-8") as f:
+        f.write(file_content)
+    print("Downloading the geospatial data of the reservoir dataset. Please wait...")
+    tract_url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/reservoir/reservoir_map.zip"
+    download_and_extract_zip_file(url=tract_url, extract_dir=os.path.dirname(input_stationfile))
+
+
+def download_water_shortage_dataset(input_datafile: str = "../assets/inputs/shortage/shortage.csv") -> None:
+    """This function downloads the Water Shortage dataset from the web
+
+    :param input_datafile: the path and name of the file where to store the data"""
+    print("Downloading the water shortage reports dataset. Please wait...")
+    os.makedirs(os.path.dirname(input_datafile), exist_ok=True)
+    shortage_url = "https://data.cnra.ca.gov/dataset/2cf184d1-2d34-46cc-8bb0-1dec86b6caf6/resource/" \
+                   "e1fd9f48-a613-4567-8042-3d2e064d77c8/download/householdwatersupplyshortagereporting" \
+                   "systemdata.csv"
+    shortage_content = requests.get(shortage_url).text
+    with open(input_datafile, "w", encoding="utf-8") as f:
+        f.write(shortage_content)
+
+
+def download_soils_datasets(input_geodir: str = "../assets/inputs/soils/map/",
+                            input_datafile: str = "../assets/inputs/soils/soil_data.csv") -> None:
+    """This function downloads the Soil geospatial and data datasets from a GitHub repository where we extracted the
+    data of interest.
+
+    :param input_geodir: the path where to store the Soil geospatial dataset
+    :param input_datafile: the file name where to store the Soil data dataset
+    """
+    os.makedirs(input_geodir, exist_ok=True)
+    print("Downloading soil dataset from GitHub repository. Please wait...")
+    data_url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/soils/soil_data.csv"
+    datafile_content = requests.get(data_url).text
+    with open(input_datafile, "w", encoding="utf-8") as f:
+        f.write(datafile_content)
+    print("Downloading soil geospatial dataset from GitHub repository. Please wait...")
+    geofile_baseurl = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/soils/map/"
+    files_basename = "gsmsoilmu_a_ca."
+    extensions = ["dbf", "prj", "shp", "shx"]
+    for ext in extensions:
+        geofile_content = requests.get(geofile_baseurl + files_basename + ext).content
+        with open(os.path.join(input_geodir, files_basename + ext), "wb") as f:
+            f.write(geofile_content)
+
+
+def download_vegetation_datasets(
+        input_geodir: str = "../assets/inputs/vegetation/",
+        cover_type_mapping: str = "../assets/inputs/vegetation/saf_cover_type_mapping.json") -> None:
+    """This function downloads the Vegetation datasets from the web
+
+    :param input_geodir: the directory where to store the vegetation geospatial datasets
+    :param cover_type_mapping: the file where the mapping between the SAF cover type code and the forest type will
+    be stored
+    """
+    os.makedirs(input_geodir, exist_ok=True)
+    vegetation_datasets_urls = {
+        "central_coast": "https://data.fs.usda.gov/geodata/edw/edw_resources/fc/S_USA.EVMid_R05_CentralCoast.gdb.zip",
+        "central_valley": "https://data.fs.usda.gov/geodata/edw/edw_resources/fc/S_USA.EVMid_R05_CentralValley.gdb.zip"
+    }
+    for dataset_name, url in vegetation_datasets_urls.items():
+        print(f"Downloading the vegetation geospatial dataset '{dataset_name}'. Please wait...")
+        download_and_extract_zip_file(url=url, extract_dir=os.path.join(input_geodir, dataset_name))
+    print("Downloading the vegetation cover-type-to-name mapping from GitHub repository. Please wait...")
+    url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/vegetation/" \
+          "saf_cover_type_mapping.json"
+    file_content = requests.get(url).text
+    with open(cover_type_mapping, "w", encoding="utf-8") as f:
+        f.write(file_content)
+
+
+def download_well_completion_datasets(
+        input_datafile: str = "../assets/inputs/wellcompletion/wellcompletion.csv",
+        elevation_datadir: str = "../assets/inputs/wellcompletion/elevation_data/") -> None:
+    """This function downloads the datasets from the web
+
+    :param input_datafile: the path where to store the well completion reports dataset
+    :param elevation_datadir: the path where to store the elevation data
+    """
+    print("Downloading the well completion reports dataset. Please wait...")
+    welldata_url = "https://data.cnra.ca.gov/dataset/647afc02-8954-426d-aabd-eff418d2652c/resource/" \
+                   "8da7b93b-4e69-495d-9caa-335691a1896b/download/wellcompletionreports.csv"
+    file_content = requests.get(welldata_url).text
+    os.makedirs(os.path.dirname(input_datafile), exist_ok=True)
+    with open(input_datafile, "w", encoding="utf-8") as f:
+        f.write(file_content)
+    print("Downloading the elevation data. Please wait...")
+    os.makedirs(elevation_datadir, exist_ok=True)
+    elevation_url = "https://github.com/mlnrt/milestone2_waterwells_data/raw/main/well_completion/" \
+                    "elevation_data.zip"
+    download_and_extract_zip_file(url=elevation_url, extract_dir=elevation_datadir)
+
+
+def download_etl_outputs(etl_outputs_dir: str = "../assets/outputs/") -> None:
+    """This function downloads the outputs of the ETL process from the GitHub repository
+
+    :param etl_outputs_dir: the path where to store the outputs files of the ETL process"""
+    print("Downloading the outputs of the ETL process. Please wait...")
+    etl_outputs_url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/etl/etl_outputs.zip"
+    download_and_extract_zip_file(url=etl_outputs_url, extract_dir=etl_outputs_dir)
+
+
+if __name__ == "__main__":
+    print("=========================== San Joaquin Valley Geospatial Dataset ===========================")
+    download_sjv_shapefile()
+    print("=========================== California Geospatial Dataset ===================================")
+    download_ca_shapefile()
+    print("=========================== Crops Dataset ===================================================")
+    download_crops_datasets()
+    print("=========================== Ground Water Dataset ============================================")
+    download_groundwater_datasets()
+    print("=========================== Population Dataset ==============================================")
+    downoad_population_datasets()
+    print("=========================== Precipitation Dataset ===========================================")
+    download_precipitation_datasets()
+    print("=========================== Reservoir Dataset ===============================================")
+    download_reservoir_datasets()
+    print("=========================== Water Shortage Datasets =========================================")
+    download_water_shortage_dataset()
+    print("=========================== Soil Datasets ===================================================")
+    download_soils_datasets()
+    print("=========================== Vegetation Datasets =============================================")
+    download_vegetation_datasets()
+    print("=========================== Well Completion Datasets ========================================")
+    download_well_completion_datasets()
+    print("=========================== ETL outputs =====================================================")
+    download_etl_outputs()
+    print("  ***   ALL DOWNLOADS ARE COMPLETED   ***  ")

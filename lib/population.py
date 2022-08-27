@@ -1,12 +1,10 @@
-import requests
-import os
 import pandas as pd
 import geopandas as gpd
 
 from typing import List
 from fiona.errors import DriverError
 from lib.wsdatasets import WsGeoDataset
-from lib.download import download_and_extract_zip_file
+from lib.download import downoad_population_datasets
 
 
 class PopulationDataset(WsGeoDataset):
@@ -37,22 +35,13 @@ class PopulationDataset(WsGeoDataset):
         print("Loading of datasets complete.")
 
     def _download_datasets(self, input_datafile: str, tract_geofile: str):
-        """This function downloads the crops datasets from the web
+        """This function downloads the population datasets from the web
 
         :param input_datafile: the file where to store the population data
         :param tract_geofile: the file where to store the shapefile of the population census Tracts
         """
         print("Data not found locally.")
-        os.makedirs(os.path.dirname(input_datafile), exist_ok=True)
-        print("Downloading the pre-packaged 2014-2020 California Census population estimates at the Tract level."
-              " Please wait...")
-        url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/population/population.csv"
-        file_content = requests.get(url).text
-        with open(input_datafile, "w", encoding="utf-8") as f:
-            f.write(file_content)
-        print("Downloading the geospatial data of the population census Tracts. Please wait...")
-        tract_url = "https://www2.census.gov/geo/tiger/TIGER2019/TRACT/tl_2019_06_tract.zip"
-        download_and_extract_zip_file(url=tract_url, extract_dir=os.path.dirname(tract_geofile))
+        downoad_population_datasets(input_datafile, tract_geofile)
         print("Downloads complete.")
 
     def preprocess_map_df(self, features_to_keep: List[str]):

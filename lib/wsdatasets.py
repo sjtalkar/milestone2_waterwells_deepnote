@@ -1,7 +1,6 @@
 # This file contains the base Class definition for the Waters Shortage Datasets
 import abc
 import os
-import requests
 import pandas as pd
 import pygeos
 import geopandas as gpd
@@ -10,7 +9,7 @@ from typing import List, Tuple
 from fiona.errors import DriverError
 from shapely.geometry import Polygon, MultiPolygon, MultiPoint
 from shapely.ops import voronoi_diagram
-from lib.download import download_and_extract_zip_file
+from lib.download import download_sjv_shapefile, download_ca_shapefile
 
 
 class BaseWsDataset(abc.ABC):
@@ -133,11 +132,7 @@ class WsGeoDataset(BaseWsDataset):
         try:
             sjv_plss_df = gpd.read_file(sjv_shapefile)
         except (FileNotFoundError, DriverError):
-            url = "https://github.com/datadesk/groundwater-analysis/raw/main/data/plss_subbasin.geojson"
-            geofile_content = requests.get(url).content
-            os.makedirs(os.path.dirname(sjv_shapefile), exist_ok=True)
-            with open(sjv_shapefile, "wb") as f:
-                f.write(geofile_content)
+            download_sjv_shapefile(sjv_shapefile)
             sjv_plss_df = gpd.read_file(sjv_shapefile)
         # We use GeoPandas dissolve function to dissolve all the geometries in Township-Ranges as one to get only one
         # geometry (i.e. one row in the GeoPandas DataFrame) per Township-Range
@@ -172,9 +167,7 @@ class WsGeoDataset(BaseWsDataset):
         try:
             ca_geodf = gpd.read_file(ca_shapefile).to_crs(epsg=4326)
         except (FileNotFoundError, DriverError):
-            url = "https://data.ca.gov/dataset/e212e397-1277-4df3-8c22-40721b095f33/resource/b0007416-a325-4777-9295-" \
-                  "368ea6b710e6/download/ca-county-boundaries.zip"
-            download_and_extract_zip_file(url, os.path.dirname(ca_shapefile))
+            download_ca_shapefile(ca_shapefile)
             ca_geodf = gpd.read_file(ca_shapefile).to_crs(epsg=4326)
         ca_counties = ca_geodf[["NAME", "geometry"]].copy()
         ca_counties.rename(columns={"NAME": "COUNTY"}, inplace=True)

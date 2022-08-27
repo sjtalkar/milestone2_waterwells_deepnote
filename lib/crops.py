@@ -1,12 +1,10 @@
 import json
-import requests
-import os
 import pandas as pd
 
 from typing import List
 from fiona.errors import DriverError
 from lib.wsdatasets import WsGeoDataset
-from lib.download import download_and_extract_zip_file
+from lib.download import download_crops_datasets
 
 
 class CropsDataset(WsGeoDataset):
@@ -47,20 +45,7 @@ class CropsDataset(WsGeoDataset):
         :param crop_name_to_type_file: the file name where to store the crop name to type mapping
         """
         print(f"Data not found locally.")
-        url_base = "https://data.cnra.ca.gov/dataset/6c3d65e3-35bb-49e1-a51e-49d5a2cf09a9/resource"
-        crops_datasets_urls = {
-            "crops_2014": "/3bba74e2-a992-48db-a9ed-19e6fabb8052/download/i15_crop_mapping_2014_shp.zip",
-            "crops_2016": "/3b57898b-f013-487a-b472-17f54311edb5/download/i15_crop_mapping_2016_shp.zip",
-            "crops_2018": "/2dde4303-5c83-4980-a1af-4f321abefe95/download/i15_crop_mapping_2018_shp.zip"
-        }
-        for dataset_name, url in crops_datasets_urls.items():
-            print(f"Downloading the crops geospatial dataset '{dataset_name}'. Please wait...")
-            download_and_extract_zip_file(url=url_base + url, extract_dir=os.path.join(input_geodir, dataset_name))
-        print("Downloading the crops name-to-type mapping from GitHub repository. Please wait...")
-        url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/crops/crop_name_to_type_mapping.json"
-        file_content = requests.get(url).text
-        with open(crop_name_to_type_file, "w", encoding="utf-8") as f:
-            f.write(file_content)
+        download_crops_datasets(input_geodir, crop_name_to_type_file)
         print("Downloads complete.")
 
     def preprocess_map_df(self, features_to_keep: List[str], get_crops_details: bool = False):

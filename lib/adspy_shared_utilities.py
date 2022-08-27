@@ -1,16 +1,12 @@
-# version 1.1 for MADS
-
 import numpy
+import graphviz
 import pandas as pd
-import seaborn as sn
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
+import matplotlib.patches as mpatches
+
 from matplotlib.colors import ListedColormap, BoundaryNorm
 from sklearn import neighbors
-import matplotlib.patches as mpatches
-import graphviz
 from sklearn.tree import export_graphviz
-import matplotlib.patches as mpatches
 
 def load_crime_dataset():
     # Communities and Crime dataset for regression
