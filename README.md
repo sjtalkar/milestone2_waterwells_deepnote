@@ -39,7 +39,7 @@ This repository is organized following the below folder structure:
 ## Documentation Table of Contents
 * Datasets
   * [Credits and List of Dataset Sources](doc/assets/credits.md)
-  * [General Information on Datasets Download](doc/assets/download.md) 
+  * [How to Download the Datasets?](doc/assets/download.md) 
   * [The Crops Dataset](doc/assets/crops.md)
   * [The Groundwater Dataset](doc/assets/groundwater.md)
   * [The Population Dataset](doc/assets/population.md)
@@ -58,4 +58,4 @@ This repository is organized following the below folder structure:
   * [Transforming Point Values into Township-Range Values](doc/etl/from_point_to_region_values.md)
 * Machine Learning & Deepl Learning
   * [Multi-Variate Multi Time-Series Predictions with LSTM](doc/ml/multivariate_multi_timeseries.md)
-  * [How to use the Deep Learning Notebooks=](doc/ml/deeplearning.md)
+  * [How to use the Deep Learning Notebooks?](doc/ml/deeplearning.md)

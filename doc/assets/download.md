@@ -1,4 +1,5 @@
-# Original Datasets Download
+# How to Download the Datasets?
+## The Datasets
 This project uses many datasets from various sources on many different topics:
 * Agriculture land use
 * Groundwater measurements
@@ -53,7 +54,7 @@ by us for the project:
 * A JSON mapping of all the existing vegetation type code to their names
 ## Downloading Original Datasets
 ### APIs
-In the `/llib/download.py` custom library, we provide 2 functions to download some of the raw datasets instead of the 
+In the `/lib/download.py` custom library, we provide 2 functions to download some of the raw datasets instead of the 
 pre-packaged ones:
 * `download_population_raw_data()` to download the 2014-2021 US Census Bureau American Community (ACS) 5-Year Estimates 
 total population

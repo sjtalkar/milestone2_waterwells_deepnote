@@ -1,4 +1,4 @@
-# How to use the Deep Learning Notebooks=
+# How to use the Deep Learning Notebooks?
 The Deep Learning experiment used to try to produce an [LSTM model](doc/ml/multivariate_multi_timeseries.md) is made
 of 3 Jupyter Notebooks:
 1. [Deeplearning LSTM Model Hyperpamaters Tuning](ml/deeplearning_tuning.ipynb) where we perform hyperparameter tuning
