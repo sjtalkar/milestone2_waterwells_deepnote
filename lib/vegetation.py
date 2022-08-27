@@ -29,6 +29,8 @@ class VegetationDataset(WsGeoDataset):
         vegetation_subdir_list = [name for name in os.listdir(input_geodir) if os.path.isdir(
             os.path.join(input_geodir, name))]
         input_geofiles = []
+        if len(vegetation_subdir_list) != 2:
+            raise FileNotFoundError("No vegetation geospatial datasets found in the input directory.")
         for vegetation_subdir in vegetation_subdir_list:
             input_geofiles.append(os.path.join(input_geodir, vegetation_subdir, "a00000009.gdbtable"))
         WsGeoDataset.__init__(self, input_geofiles=input_geofiles)
