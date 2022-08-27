@@ -58,4 +58,4 @@ This repository is organized following the below folder structure:
   * [Transforming Point Values into Township-Range Values](doc/etl/from_point_to_region_values.md)
 * Machine Learning & Deepl Learning
   * [Multi-Variate Multi Time-Series Predictions with LSTM](doc/ml/multivariate_multi_timeseries.md)
-  * [Running the Deep Learning Experiment](doc/ml/deeplearning.md)
+  * [How to use the Deep Learning Notebooks=](doc/ml/deeplearning.md)
