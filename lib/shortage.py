@@ -14,8 +14,8 @@ class ShortageReportsDataset(WsGeoDataset):
         try:
             self._load_local_datasets(input_datafile)
         except FileNotFoundError:
-            self._load_local_datasets(input_datafile)
             self._download_datasets(input_datafile)
+            self._load_local_datasets(input_datafile)
 
     def _load_local_datasets(self, input_datafile: str):
         """This function loads the datasets from the local filesystem

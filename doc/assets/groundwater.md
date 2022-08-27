@@ -62,8 +62,6 @@ Data collection was performed in a community edition of Databricks that was conn
 the file in Filestore, it was downloaded to an Azure VM and then uploaded to Deepnote running in a browser on the same 
 VM.
 
-[NOTE: I faced challenges running the retrieval in Deepnote due to low memory] 
-
 ```python
 url = "https://data.cnra.ca.gov/api/3/action/datastore_search?resource_id=bfa9f262-24a1-45bd-8dc8-138bc8107266&limit=4000"
 groundwater_data = requests.get(url).json()
