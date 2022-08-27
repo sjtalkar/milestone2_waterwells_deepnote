@@ -123,4 +123,5 @@ extended the data for the missing years (2015, 2017, ~2019) with the data from t
 (i.e. we assume that 2015 crops = 2014 crops). We understand that farming practices like crop rotation would challenge
 these assumptions.
 3. This problem has been ignored at this stage
-4. Imputing values is performed in a scikit-learn function transformer that forward fills the crops values from the years it is available to the next year(s). For instance 2014 value is used for 2015, 2016v vale for 2017 and so on.
+4. Imputing values is performed in a scikit-learn function transformer that forward fills the crops values from the 
+years it is available to the next year(s). For instance 2014 value is used for 2015, 2016 value for 2017 and so on.
