@@ -1,4 +1,22 @@
 # California San Joaquin Valley Water Shortage
+Objective: Predict San Joaquin Valley (CA) groundwater level
+California's Sustainable Groundwater Management Act (SGMA) was passed in 2014 with the intention to address over 
+pumping, halt chronic water-level declines and bring long-depleted aquifers into balance. Despite SGMA, a frenzy of 
+well drilling has continued on large farms across the San Joaquin Valley, the state's largest and most lucrative 
+agricultural zone. As a result, shallower wells supplying nearly a thousand family homes have gone dry in recent years.
+
+Frequently, perniciously drought-inflicted California, depends on groundwater for a major portion of its annual water 
+supply, particularly for agricultural and domestic usage. This project seeks to aid policy makers and natural resource 
+management agencies preemptively identify areas prone to overdraft and bring groundwater basins into balanced levels of 
+pumping and recharge.
+Focused on the San Joaquin Valley, the objectives are:
+* Supervised Learning: Predict the depth to groundwater elevation in feet below ground surface (GSE_GWE). This value 
+portends shortage in a TownshipRange. Increase or decrease in GSE_GWE will then indicate if there will be more requests 
+for well construction. This in turn will provide a quantitative metric for whether SGMA is functioning and areas to 
+focus on for recharge.
+* Unsupervised Learning: cluster areas into sustainable and unsustainable areas, anomaly detection
+
+The geographical unit of analysis chosen for this project is the Township-Range level of the Public Land Survey System.
 
 ## Repository Structure
 This repository is organized following the below folder structure:
@@ -20,6 +38,12 @@ This repository is organized following the below folder structure:
 
 ## Documentation Table of Contents
 * Datasets
+ 
+We have collected 10 geospatial datasets from different government agencies for the 2014-2021 period, on the topics 
+impacting water consumption: Geo-spatial data (San Joaquin Valley PLSS), current groundwater levels and consumption 
+through well completion reports, recharge factors and consumption factors through precipitation, water reservoir 
+capacity, agricultural crops, population density, regional vegetation, soils survey and water shortages reports.
+
   * [Credits and List of Dataset Sources](doc/assets/credits.md)
   * [General Information on Datasets Download](doc/assets/download.md) 
   * [The Crops Dataset](doc/assets/crops.md)
