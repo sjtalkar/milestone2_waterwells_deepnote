@@ -7,22 +7,25 @@ distributed  in both quantity and quality. When rain falls or snow melts, some o
 transpired by plants, some flows overland and collects in streams, and some infiltrates into the pores or cracks of the 
 soil and rocks. The first water that enters the soil replaces water that has been evaporated or used by plants during a 
 preceding dry period. After the water requirements  for plant and soil are satisfied, any excess water will infiltrate 
-to the water table--the top of the zone below which the openings in rocks are saturated.Below the 
+to the water table--the top of the zone below which the openings in rocks are saturated. Below the 
 [water table](https://pubs.usgs.gov/gip/gw/how_a.html), all the openings in  the rocks are full of water that moves 
 through the aquifer to streams, springs, or wells from which water is being withdrawn.
 
 ## Source
-This dataset was scraped from the California Data Exchange Center (CDEC) website.The primary function of CDEC is to 
+This dataset was scraped from the California Data Exchange Center (CDEC) website. The primary function of CDEC is to 
 facilitate the collection, storage, and exchange of hydrologic and climate information to support real-time flood 
 management and water supply needs in California. It is an agency within California Department of Water Resources 
 which protects, conserves, develops, and manages much of California's water supply.
 
-## How to download ?
-Web scraping was employed to scrape data over multiple years from 2013 through 2022. 
+## How to download?
+The `PrecipitationDataset` class in the `/lib/precipitation.py` custom library is designed to load the weather stations
+data and geospatial information from the local `/assets/inputs/precipitation/` folder. If they are not found the data
+are downloaded from [a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) where we
+provide some prepackaged datasets. Please refer to the 
+[How to Download the Datasets?](doc/assets/download.md) documentation for more details.
 
-The `PrecipitationDataset` class in the `/lib/precipitation.py` custom library is designed to load the weather stations 
-data and geospatial information from the local `/assets/inputs/precipitation/` folder. If they are not found the data 
-are scraped from the web saved into that folder for further reuse.
+### Original web scrapping
+Web scraping was originally employed to scrape data over multiple years from 2013 through 2022. 
 
 The data are downloaded using Python's requests package. The HTML is then parsed using BeautifulSoup. As an example, 
 the attributes of the HTML table that contains precipitation data is identified and passed to the 'find' method of the 
@@ -58,6 +61,10 @@ for eachTableRow in precipitation_table_rows:
 We can then create a dataframe out of the list of data rows and the column headers using pandas. The precipitation 
 stations information was similarly scraped with the page url used to retrieve the raw HTML.
 
+Please refer to the
+[How to Download the Datasets? - Web Scrapping](doc/assets/download.mdweb-scraping) documentation if you want to run
+the web scrapping code yourself.
+
 ## Features of interest
 The primary feature to be derived from this dataset is the average precipitation in inches for a Township-Range.
 The precipitation data is collected for each year and for each precipitation recording station at the month level. The 
@@ -73,13 +80,11 @@ Township-Range level per year, for each year we:
 * used Voronoi diagrams to estimate precipitations for areas from the point measurements. Please refer to this
 documentation for more details: 
 [Transforming Point Values into Township-Range Values](doc/etl/from_point_to_region_values.md)
-* overlayed the Township-Range boundaries over the Voronoi diagram, and averaged the values of the areas intersecting
+* overlaid the Township-Range boundaries over the Voronoi diagram and averaged the values of the areas intersecting
 the Township-Ranges. Please refer to this documentation for more details: 
 [Overlaying San Joaquin Valley Township-Range Boundaries](doc/etl/township_overlay.md)
-* 
 ## Potential issues
-1. The weather stations are sparsely positioned and we have to derive the precipitation information from a few stations.
-2. 
+1. The weather stations are sparsely positioned, and we have to derive the precipitation information from a few stations.
 ### How did we remediate these issues?
 1. As described above, we use a combination of the Voronoi diagram to estimate area measurements, overlay of the 
 Township-Range boundaries and compute the average to estimate the precipitation at the Township-Range level. 

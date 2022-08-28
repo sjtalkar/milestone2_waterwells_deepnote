@@ -31,11 +31,12 @@ Running the Jupyter Notebooks in the `/eda` folder will automatically download t
 to the datasets used in the notebook. There is thus no need to manually pre-download any of the datasets in order to
 run any of the EDA Jupyter Notebooks.
 
-By automating the download of the original datasets we aim at: 
-* ensuring that the data are correctly downloaded,
-* simplifying the process for anyone trying to use the project
+By automating the download of the original datasets, we aim at: 
+* ensuring that the data are correctly downloaded.
+* simplifying the process for anyone trying to use the project.
 * improving the reproducibility of the project and the results.
-## Pre Download All Datasets
+* giving the ability to jump right into the machine learning experiments by downloading the results of the ETL process.
+## Pre-Download All Datasets
 Instead of downloading the datasets individually at the start of each notebook or if you want to directly jump into
 the machine learning part of the project, you can download all the datasets at once, including the output files from
 all the ETL processes.
@@ -45,7 +46,7 @@ A Python script has been created to all you to do just that. From the project ro
 cd lib
 python download_datasets.py
 ```
-## Pre-packaged Data
+## Pre-Packaged Data
 Some datasets take time to download through internet pages web scraping or API calls. For the same reasons as listed
 above, and to limit the burden on API services, we provide a pre-packaged version of such the datasets in the 
 [GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data). 
@@ -104,7 +105,7 @@ Python package `BeautifulSoup`. This includes the following datasets:
 
 All of these data were scraped from the 
 [California Department of Water Resources Data Echange Center](https://cdec.water.ca.gov/).
-Since
+We consider the web scraping of these data ethical and acceptable since
 * the website is dedicated to data publication
 * provides public data
 * the [Conditions of Use](https://water.ca.gov/Conditions-of-Use) do not mention any restriction regarding web scraping
@@ -112,18 +113,16 @@ practices
 * we provide the data pre-packaged in a dedicated [GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data)
 to avoid overloading the CDEC website with requests when reproducing the project.
 
-we consider the web scraping of these data ethical and acceptable.
-
 Should you want to see how we collected those data through web scraping or want to download the raw data instead of
-the pre-packaged one, we provide in the `/llib/download.py` custom library the original functions we used to scrap the 
+the pre-packaged one, we provide in the `/lib/download.py` custom library the original functions we used to scrap the 
 data:
 
-| Feature Name | Description                                                                                                      |
-|--------------|------------------------------------------------------------------------------------------------------------------|
-| The reservoir geospatial data      | download_reservoir_stations_geospatial_data() |
-| The reservoir measurements data      | download_weekly_reservoir_data() |
-| The precipitation weather station geospatial data      | download_precipitation_stations_geospatial_data() |
-| The monthly precipitation measurements data      | download_monthly_precipitation_data() |
+| Feature Name                                      | Description                                       |
+|---------------------------------------------------|---------------------------------------------------|
+| The reservoir geospatial data                     | download_reservoir_stations_geospatial_data()     |
+| The reservoir measurements data                   | download_weekly_reservoir_data()                  |
+| The precipitation weather station geospatial data | download_precipitation_stations_geospatial_data() |
+| The monthly precipitation measurements data       | download_monthly_precipitation_data()             |
 
 For all 4 datasets, in the project's root directory, you can run the following Python code, replacing the function name
 with the one corresponding to the dataset you want to download.

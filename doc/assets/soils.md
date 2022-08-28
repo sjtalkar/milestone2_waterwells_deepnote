@@ -15,19 +15,20 @@ Citation information:
     * Publication Place: Fort Worth, Texas
     * Publisher: U.S. Department of Agriculture, Natural Resources Conservation Service
   * Online_Linkage: [https://websoilsurvey-dev.dev.sc.egov.usda.gov/](https://websoilsurvey-dev.dev.sc.egov.usda.gov/)
-## How to download ?
+## How to download?
 The `SoilsDataset` class in the `/lib/soils.py` custom library is designed to load the soil survey data and geospatial 
 information from the local `/assets/inputs/soils/` folder. If files are not found the data automatically are downloaded
 from [a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) where we store the 
-required data we extracted and prepackaged. Also, the survey data in the raw dataset are stored in a Microsoft Access 
-database, making it difficult to automate the loading of the data. To eas reproducibility, we thus provide in the GitHub
-repository the data used in this analysis.
+required data, we extracted and prepackaged. Also, the survey data in the raw dataset are stored in a Microsoft Access 
+database, making it difficult to automate the loading of the data. To ease reproducibility, we thus provide in the GitHub
+repository the data used in this analysis. Please refer to the
+[How to Download the Datasets?](doc/assets/download.md) documentation for more details.
 
 The raw dataset file __wss_gsmsoil_CA_\[2016-10-13\].zip__ can be downloaded from 
 [the U.S. General Soil Map (STATSGO2) by state](https://nrcs.app.box.com/v/soils). It contains both:
 * spatial shapefiles describing each map area 
 * and a Microsoft Access table describing the soil type of each area. For simplicity, the data have been extracted 
-* from the _Win-Pst - Input_ view in the Microsoft Access database as a CSV file, stored in the
+from the _Win-Pst - Input_ view in the Microsoft Access database as a CSV file, stored in the
 `./assets/inputs/soils/soil_data.csv`.
 ## Features of interest
 The features extracted from the original datasets are:
@@ -43,10 +44,10 @@ The features extracted from the original datasets are:
 
 * from the map dataset:
 
-| Feature Name | Description                                                                                                                                             |
-|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
-| mukey        | a key identifying a map unit in the soil survey dataset                                                                                                 |
-| geometry     | ontaining the polygon shapes of each map survey area. In this map dataset one map unit identified by a `musym` key can contain multiple geometry shapes |
+| Feature Name | Description                                                                                                                                              |
+|--------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| mukey        | a key identifying a map unit in the soil survey dataset                                                                                                  |
+| geometry     | containing the polygon shapes of each map survey area. In this map dataset one map unit identified by a `musym` key can contain multiple geometry shapes |
 
 
 Note that through ETL, we combine the `taxorder` and `hydgrp` columns as one soil type and create a feature for each
@@ -54,15 +55,15 @@ map unit, keeping only the `dominant_soil_type` of that map unit.
 
 We do not make use of the below features from the table of soil orders:
 
-| Feature Name     | Description                                                                                                                                                                                                         |
-|------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| slope_l, slope_h | representing the map unit's low and high slope percentage                                                                                                                                                           |
-| compname         | the soil's component name                                                                                                                                                                                           |
-| musym            | the column which contains in both datasets a symbol identifying a map unit, because each map unit have a unique `musym` and `mukey` to identify it. So using either of the two is sufficient to identify a map unit |
+| Feature Name     | Description                                                                                                                                                                                                      |
+|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| slope_l, slope_h | representing the map unit's low and high slope percentage                                                                                                                                                        |
+| compname         | the soil's component name                                                                                                                                                                                        |
+| musym            | the column which contains in both datasets a symbol identifying a map unit, because each map unit have a unique `musym` and `mukey` to identify it. Using either of the two is sufficient to identify a map unit |
 
 ### What are Soil Orders?
 Soil Orders is the most general level of classification in the USDA system of 
-[Soil Taxonomy](https://www.nrcs.usda.gov/wps/portal/nrcs/main/soils/survey/class/taxonomy/). Using this Order classes,
+[Soil Taxonomy](https://www.nrcs.usda.gov/wps/portal/nrcs/main/soils/survey/class/taxonomy/). Using this order classes,
 all the soils in the world can be assigned one of the 12 orders.
 
 Soil orders are described as follow.
@@ -96,7 +97,6 @@ soil orders table without any table key to match them.
 3. Soil survey map unit boundaries do not match the boundaries of townships in the TRS land survey system that we are
 using in this analysis.
 4. The soil survey dataset only contains data from the 2016 soil survey.
-5. 
 ### How did we remediate these issues?
 1. Through ETL, data points in the soil dataset without `hydgrp` but with a value `taxorder` value, have their 
 `soil_type` value set to the `taxorder` value and data points without a soil `taxorder` value have their `soil_type` 

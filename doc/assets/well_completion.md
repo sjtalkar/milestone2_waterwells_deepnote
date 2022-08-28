@@ -20,15 +20,17 @@ Dataset information:
 * Resources, website: 
 [https://data.cnra.ca.gov/dataset/well-completion-reports](https://data.cnra.ca.gov/dataset/well-completion-reports)
 
-## How to download ?
+## How to download?
 The `WellCompletionReportsDataset` class in the `/lib/well.py` custom library is designed to load the well
 completion report CSV datasets from the local `/assets/inputs/wellcompletion/` folder. If files are not found the well
 completion reports data are automatically downloaded from the 
 [California Well Completion Reports](https://data.cnra.ca.gov/dataset/well-completion-reports) page, when running the 
-`/eda/well_completion.ipynb` notebook. The missing  elevation data were downloaded using API but are provided 
+`/eda/well_completion.ipynb` notebook. The missing elevation data were downloaded using API but are provided 
 prepackaged in [a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data). These data are 
-also automatically downloaded. 
+also automatically downloaded. Please refer to the
+[How to Download the Datasets?](doc/assets/download.md) documentation for more details.
 
+### Original API download of elevation data
 The elevation data were collected using APIs from the 
 [The National Map - Elevation Point Query Service](https://nationalmap.gov/epqs/) as shown in the code sample below. 
 
@@ -58,9 +60,9 @@ def get_elevation_from_latlon(lat: float, lon: float) -> float:
 ```
 
 You can refer to the code in the `/lib/download.py` Python script for the code used to collect the elevation data and
-the corresponding [download documentation](doc/assets/download.md). These data are prepackaged and provided to you in 
-[a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) we create to ease the collection 
-of the data and the repeatability of the analysis.
+the corresponding [How to Download the Datasets?](doc/assets/download.md) documentation. These data are prepackaged and 
+provided to you in [a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) we create to e
+ase the collection of the data and the repeatability of the analysis.
 
 **Note:**
 The public dataset site offers 
@@ -121,7 +123,7 @@ been distilled below and features are explained. The columns specified here are 
 > water in the well while it is pumping. The time that the pumping water level was measured is usually recorded also. 
 > For example, "The pumping water level was 85 feet below land surface, 1 hour after pumping began."
 
-> **Drawdown** : The drawdown in a well is the difference between the pumping water level and the static (non-pumping) 
+> **Drawdown**: The drawdown in a well is the difference between the pumping water level and the static (non-pumping) 
 > water level. Drawdown begins when the pump is turned on and increases until the well reaches "steady state" sometime 
 > later. Therefore, drawdown measurements are usually reported along with the amount of time that has elapsed since 
 > pumping began. For example, "The drawdown was 10 feet, 1 hour after pumping began."
@@ -187,7 +189,7 @@ Depth)
 1. For all the records, we extracted their latitude and longitude coordinates and queried the 
 [The National Map - Elevation Point Query Service](https://nationalmap.gov/epqs/) API to collect the elevation of all 
 the wells in the dataset. The elevations were later merged with the original dataset based on latitude and longitude.
-Please refer to the [Original Datasets Download](doc/assets/download.md) documentation for more details.
+Please refer to the [How to Download the Datasets?](doc/assets/download.md) documentation for more details.
 2. Depending on the fields we used several approach to correct the values:
    * Convert all positive longitudes to negative values and negative latitudes to positive values. 
    * Latitude and Longitude records in some cases contained text. These records do not yield the right location and were 
@@ -195,4 +197,5 @@ Please refer to the [Original Datasets Download](doc/assets/download.md) documen
    * Wells with a depth less than 20 feet were dropped (see typical well depth above).
    * Drop data were text is provided in place of a well depth
 3. We plotted missing values and decided to leave to downstream process the task to fill in the missing values.
+
 ![plot_missing](../images/wellcompletion_missing_values.png)

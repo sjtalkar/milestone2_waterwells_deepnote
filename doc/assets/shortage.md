@@ -33,14 +33,15 @@ Datasets citation information:
 * Title: Household Water Supply Shortage Reporting System Data
 * Resources, website: [https://data.cnra.ca.gov/dataset/household-water-supply-shortage-reporting-system-data](https://data.cnra.ca.gov/dataset/household-water-supply-shortage-reporting-system-data).
 
-## How to download ?
+## How to download?
 The `ShortageReportsDataset` class in the `/lib/shortage.py` custom library is designed to load the well shortage 
 reports dataset from the local  `/assets/inputs/shortage/` folder. If files are not found, it is  automatically 
 downloaded from the 
 [Household Water Supply Shortage Reporting System Data](https://data.cnra.ca.gov/dataset/household-water-supply-shortage-reporting-system-data) 
-page, when running the `/eda/shortage.ipynb` notebook. 
+page, when running the `/eda/shortage.ipynb` notebook. Please refer to the
+[How to Download the Datasets?](doc/assets/download.md) documentation for more details.
 
-The datasets can be manually downloaded from the 
+The dataset can be manually downloaded from the 
 [Household Water Supply Shortage Reporting System Data](https://data.cnra.ca.gov/dataset/household-water-supply-shortage-reporting-system-data) 
 page, using the download button.
 
@@ -71,7 +72,7 @@ To compute well shortage count per Township-Range we use the following approach:
 
 ## Potential issues
 ### Description
-1. As mentioned above, reporting this data is voluntary and abscence of shortage for a county does not represent due 
+1. As mentioned above, reporting this data is voluntary and absence of shortage for a county does not represent due 
 absence of shortage.
 ### How did we remediate the issues?
 1. This is not an issue we can fix. The project will be based on the reported well shortages.

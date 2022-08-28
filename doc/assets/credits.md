@@ -1,5 +1,4 @@
 # Credits
-
 - [USGS info on groundwater](https://www.usgs.gov/special-topics/water-science-school/science/groundwater)
 - [County Of Colusa](https://www.countyofcolusa.org/DocumentCenter/View/4260/Series1Article4-GroundwaterLevelMonitoring?bidId=#:~:text=The%20elevation%20of%20the%20groundwater,groundwater%20flow%20can%20be%20determined.&text=Figure%201.)
 - [Exploratory Analysis of Well Completion Reports](https://richpauloo.github.io/oswcr_1.html)

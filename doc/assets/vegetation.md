@@ -27,19 +27,21 @@ Central Coast dataset citation information
 * Title: EVeg Mid Region 5 Central Coast
 * Geospatial Data Presentation Form: vector digital data
 * Online Linkage: [http://data.fs.usda.gov/geodata/edw/datasets.php](http://data.fs.usda.gov/geodata/edw/datasets.php)
-## How to download ?
+## How to download?
 The `VegetationDataset` class in the `/lib/vegetation.py` custom library is designed to load the vegetation geospatial
 datasets from the local `/assets/inputs/vegetation/` folder. If files are not found the data are downloaded from the
 [the USDA Forest Service data website](https://data.fs.usda.gov/geodata/edw/datasets.php?xmlKeyword=existing+vegetation)
 page. The custom vegetation cover-type-to-name mapping JSON file is downloaded from 
 [a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) where we provide additional files.
+Please refer to the
+[How to Download the Datasets?](doc/assets/download.md) documentation for more details.
 
 The 2 datasets are ESRI geodatabases which can be downloaded from [the USDA Forest Service data website](https://data.fs.usda.gov/geodata/edw/datasets.php?xmlKeyword=existing+vegetation)
 * [Existing Vegetation: Region 5 - Central Valley](https://data.fs.usda.gov/geodata/edw/edw_resources/fc/S_USA.EVMid_R05_CentralValley.gdb.zip)
 * [Existing Vegetation: Region 5 - Central Coast](https://data.fs.usda.gov/geodata/edw/edw_resources/fc/S_USA.EVMid_R05_CentralCoast.gdb.zip)
 
 For each of these datasets:
-* only the a00000009.* files containing the desired detailed information have been kept.
+* only the a00000009.* files containing the desired detailed information are being used.
 ## Features of interest
 The full documentation for the fields in those datasets is available in the metadata link for each of the dataset :
 * metadata for the [Central Valley dataset](https://data.fs.usda.gov/geodata/edw/edw_resources/meta/S_USA.EVMid_R05_CentralValley.xml)

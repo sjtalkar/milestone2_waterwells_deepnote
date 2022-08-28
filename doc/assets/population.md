@@ -5,7 +5,7 @@ The population density of an area is a feature of interest in our analysis of we
 San Joaquin valley river basin. 
 
 ## Source
-We use 3 datasets from the U.S. Census Bureau::
+We use 3 datasets from the U.S. Census Bureau:
 * The American Community Survey 5-Year Data to collect the population estimates per year and Tract for the 2014-2020 
 period.
 * The Census Bureau's Planning Database (PDB) to collect California census 2019 tracts land surface area to calculate 
@@ -25,8 +25,8 @@ Citation information:
 * Resources, website: [https://www.census.gov/data/developers/data-sets/acs-5year.html](https://www.census.gov/data/developers/data-sets/acs-5year.html)
 
 Census Bureau's Planning Database (PDB) dataset information:
-> The 2021 Tract Level Planning Database (also called the PDB) is a datasetthat contains a range of 
-> housing, demographic,socioeconomic, and census operational data. These datahave been extracted 
+> The 2021 Tract Level Planning Database (also called the PDB) is a dataset that contains a range of 
+> housing, demographic, socioeconomic, and census operational data. These data have been extracted 
 > from2010 Census and 2015-2019 American Community Survey (ACS) data sources, and summarized for 
 > all tracts in the country and the territory of Puerto Rico.
 
@@ -47,13 +47,14 @@ Citation information:
 * Title: TIGER/Line Shapefiles
 * Resources, website: [https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html)
 
-## How to download ?
-The `PopulationDataset` class in the `/lib/population.py` custom library is designed to load pre-packaged total 
-population dataset from and the Tracts geospatial dataset from the local `/assets/inputs/population/` folder. If files 
-are not found, the data are automatically downloaded. As the Census Bureau API requires an API key, the
-total population from [a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) where we 
+## How to download?
+The `PopulationDataset` class in the `/lib/population.py` custom library is designed to load the total 
+population dataset and the Tracts geospatial dataset from the local `/assets/inputs/population/` folder. If files 
+are not found, the data are automatically downloaded. As the Census Bureau API requires an API key, the data are 
+downloaded from [a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) where we 
 provide some prepackaged datasets. The Census Bureau's 2019 TIGER/Line Shapefiles dataset is downloaded directly
 from the [census bureau website](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html).
+Please refer to the [How to Download the Datasets?](doc/assets/download.md) documentation for more details.
 
 As mentioned above, as the Census Bureau's API requires an API key, the population data for the years 2014-2020 has been
 pre-packaged to simplify the download process and reproducibility of this project. Originally, the population size and 
