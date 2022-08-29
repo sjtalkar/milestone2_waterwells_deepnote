@@ -22,3 +22,4 @@ keras-tuner==1.1.2
 seaborn==0.11.2
 xgboost==1.6.2
 catboost==1.0.6
+shap==0.41.0
