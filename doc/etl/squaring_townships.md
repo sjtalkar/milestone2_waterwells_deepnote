@@ -1,5 +1,5 @@
 # Squaring San Joaquin Valley Township-Ranges
-## What is the Problematic?
+## Problem statement
 To filter data from the San Joaquin Valley in the various geospatial dataset we collected for the state of California, 
 we reused the [TRS](doc/etl/township_overlay.md) geospatial data from the L.A Times which motivated this analysis.
 

@@ -1,8 +1,6 @@
 **Explainability through SHAP**
 
-![Diagram Description automatically
-generated](../doc/images/shapely-1.png){width="4.308706255468066in"
-height="4.5587281277340335in"}
+!["Diagram Description automatically generated"](../doc/images/shapely-1.png)
 
 Figure 1: Power set of features
 
@@ -60,10 +58,7 @@ the marginal contribution of a feature as we traverse an edge. In the
 edge movement from no features to addition of precipitation feature, the
 marginal contribution is calculated as 125 -- 90 = 35
 
-![Diagram Description automatically
-generated](../doc/images/shapely-2.png){width="1.2917782152230972in"
-height="2.2251924759405073in"}
-
+!["Shapely 2"](../doc/images/shapely-2.png)
 Formulaically, this can be represented as: )
 
 MC~Precipitation,{Precipitation}(I₀)~ = Predict~{Precipitation}(I₀)~ -
@@ -75,9 +70,7 @@ feature Precipitation is added, so that we can compute the overall
 features as well, we weight the contribution of Precipitation
 accordingly. For instance, in the below weighted edges,
 
-![Diagram Description automatically
-generated](../doc/images/shapely-3.png){width="3.4252963692038496in"
-height="3.6253138670166227in"}\
+!["Shapely 3"](../doc/images/shapely-3.png)\
 \
 SHAP ~Precipitation~ (I~0~) = w1 \* MC~Precipitation~,~{Precipitation}~
 (I~0~) +\
@@ -105,10 +98,7 @@ a marginal contribution to an n feature-model is the reciprocal of
 possible marginal contributions to all the n-feature-models. It is
 simplified in a visual as:
 
-![Diagram Description automatically
-generated](../doc/images/shapely-4.png){width="4.375379483814523in"
-height="4.600399168853893in"}
-
+!["Shapely 4"](../doc/images/shapely-4.png)
 The number of all the marginal contributions of all the n-feature-models
 alternatively, the number of edges in each row) is :\
 If the Total number of features is N and possible
@@ -136,10 +126,9 @@ predicted value and blue bar denoting a decrease. The gray text before
 the feature names shows the value of each feature for this sample, in
 the below it is normalized data.
 
-![Graphical user interface Description automatically
-generated](../doc/images/shapely-5.png){width="6.5in" height="4.386111111111111in"}
+!["Shapely Waterfall"](../doc/images/shapely-5.png)
 
-Credits: [SHAP Values explained exactly how you whished someone
+Credits: [SHAP Values explained exactly how you wished someone
 explained to
 you.](https://towardsdatascience.com/shap-explained-the-way-i-wish-someone-explained-it-to-me-ab81cc69ef30)\
 [SHAP
