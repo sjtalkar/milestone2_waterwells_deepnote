@@ -1,4 +1,4 @@
-**Explainability through SHAP**
+## Explainability through SHAP
 
 !["Diagram Description automatically generated"](../images/shapely-1.png)
 
@@ -59,7 +59,8 @@ edge movement from no features to addition of precipitation feature, the
 marginal contribution is calculated as 125 - 90 = 35
 
 !["Shapely 2"](../images/shapely-2.png)
-Formulaically, this can be represented as: )
+
+Formulaically, this can be represented as: 
 
 MC<sub>Precipitation,{Precipitation}(I₀)</sub> =
 Predict<sub>{Precipitation}(I₀)</sub> - Predict<sub>Φ</sub> (
@@ -88,16 +89,15 @@ MC<sub>Precipitation</sub>,<sub>{Precipitation,\ Groundsurface\ Elevation,\ Pop.
 
 where *w₁+w₂ +w₃+w₄=*1.
 
-To compute the weights, group the number of contributions at each level
-:
+To compute the weights, group the number of contributions at each level:
 
 *w₁+(w₂ +w₃)+w₄ = 1 i.e,\
 1/3 + 1/3 + 1/3 = 1\
 =\> w₁ = 1/3 and w4 = 1/3\
 while w2 + w3 = 1/3 =\> w2 = 1/6 and w3 = 1/6*
 
-*\
-*The above pattern indicates that the weight of an edge is the
+
+The above pattern indicates that the weight of an edge is the
 reciprocal of the total number of edges in the same "row". The weight of
 a marginal contribution to an n feature-model is the reciprocal of
 possible marginal contributions to all the n-feature-models. It is
@@ -109,7 +109,8 @@ alternatively, the number of edges in each row) is :\
 If the Total number of features is N and possible
 n-feature-models/coalitions = n, then the number of all the marginal
 contributions of all the n-feature-models is\
-n \* ~N~C~n~
+
+n \* <sub>N</sub>C<sub>n</sub>
 
 The weight of the marginal contribution to an n-feature-model is the
 reciprocal of the above.
