@@ -1,6 +1,6 @@
 **Explainability through SHAP**
 
-!["Diagram Description automatically generated"](../doc/images/shapely-1.png)
+!["Diagram Description automatically generated"](../images/shapely-1.png)
 
 Figure 1: Power set of features
 
@@ -37,13 +37,13 @@ Water Depth for a Township-Range in any particular year. In other words,
 SHAP is about the local interpretability of a predictable model. Each
 combination of features (or players) contributes to a "coalition" in the
 Game. If we have 'n' features or players (the number of coalitions
-(combinations of player contributions) = 2^n^. As seen in the tree
+(combinations of player contributions) = 2<sup>n</sup>. As seen in the tree
 representation of the Power Set of features, in Figure 1, where every
 node is a coalition, each edge represents the inclusion of a feature not
 present in the previous coalition. Each coalition can be thought of as a
 predictive model, with the prediction of Ground Water Depth, as seen in
 the node. Note again that the tree corresponds to a singular set of
-features and one instance of observation say, I~0.~
+features and one instance of observation say, I<sub>0</sub>.
 
 The root node is the model is with no features which will predict the
 ground water depth as the average of all observations (this is the
@@ -56,13 +56,14 @@ Since SH**A**P, makes note of incrementally adding a feature as the
 difference between the predictions of two connected nodes we can derive
 the marginal contribution of a feature as we traverse an edge. In the
 edge movement from no features to addition of precipitation feature, the
-marginal contribution is calculated as 125 -- 90 = 35
+marginal contribution is calculated as 125 - 90 = 35
 
-!["Shapely 2"](../doc/images/shapely-2.png)
+!["Shapely 2"](../images/shapely-2.png)
 Formulaically, this can be represented as: )
 
-MC~Precipitation,{Precipitation}(I₀)~ = Predict~{Precipitation}(I₀)~ -
-Predict~Φ~ ( I~0~)
+MC<sub>Precipitation,{Precipitation}(I₀)</sub> =
+Predict<sub>{Precipitation}(I₀)</sub> - Predict<sub>Φ</sub> (
+I<sub>0</sub>)
 
 We now extend this to every edge that connects nodes to which the
 feature Precipitation is added, so that we can compute the overall
@@ -70,16 +71,20 @@ feature Precipitation is added, so that we can compute the overall
 features as well, we weight the contribution of Precipitation
 accordingly. For instance, in the below weighted edges,
 
-!["Shapely 3"](../doc/images/shapely-3.png)\
-\
-SHAP ~Precipitation~ (I~0~) = w1 \* MC~Precipitation~,~{Precipitation}~
-(I~0~) +\
-w2 \* MC~Precipitation~,~{Precipitation,\ Groundsurface\ Elevation}~
-(I~0~) +\
-w3 \* MC~Precipitation~,~{Precipitation,\ Pop.\ Density}~ (I~0~) +\
+!["Shapely 3"](../images/shapely-3.png)
+
+SHAP <sub>Precipitation</sub> (I<sub>0</sub>) = w1 \*
+MC<sub>Precipitation</sub>,<sub>{Precipitation}</sub> (I<sub>0</sub>)
++  
+w2 \*
+MC<sub>Precipitation</sub>,<sub>{Precipitation,\ Groundsurface\ Elevation}</sub>
+(I<sub>0</sub>) +  
+w3 \*
+MC<sub>Precipitation</sub>,<sub>{Precipitation,\ Pop.\ Density}</sub>
+(I<sub>0</sub>) +  
 w4 \*
-MC~Precipitation~,~{Precipitation,\ Groundsurface\ Elevation,\ Pop.\ Density}~
-(I~0~)
+MC<sub>Precipitation</sub>,<sub>{Precipitation,\ Groundsurface\ Elevation,\ Pop.\ Density}</sub>
+(I<sub>0</sub>)
 
 where *w₁+w₂ +w₃+w₄=*1.
 
@@ -98,7 +103,7 @@ a marginal contribution to an n feature-model is the reciprocal of
 possible marginal contributions to all the n-feature-models. It is
 simplified in a visual as:
 
-!["Shapely 4"](../doc/images/shapely-4.png)
+!["Shapely 4"](../images/shapely-4.png)
 The number of all the marginal contributions of all the n-feature-models
 alternatively, the number of edges in each row) is :\
 If the Total number of features is N and possible
@@ -126,7 +131,7 @@ predicted value and blue bar denoting a decrease. The gray text before
 the feature names shows the value of each feature for this sample, in
 the below it is normalized data.
 
-!["Shapely Waterfall"](../doc/images/shapely-5.png)
+!["Shapely Waterfall"](../images/shapely-5.png)
 
 Credits: [SHAP Values explained exactly how you wished someone
 explained to
