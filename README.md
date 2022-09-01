@@ -1,5 +1,5 @@
 # California San Joaquin Valley Water Shortage
-Objective: Predict San Joaquin Valley (CA) groundwater level
+__Objective__: Predict San Joaquin Valley (CA) groundwater level
 California's Sustainable Groundwater Management Act (SGMA) was passed in 2014 with the intention to address over 
 pumping, halt chronic water-level declines and bring long-depleted aquifers into balance. Despite SGMA, a frenzy of 
 well drilling has continued on large farms across the San Joaquin Valley, the state's largest and most lucrative 
@@ -54,6 +54,7 @@ This repository is organized following the below folder structure:
   * [Squaring San Joaquin Valley Township-Ranges](doc/etl/squaring_townships.md)
   * [Dropping Rare Township Features](doc/etl/drop_rare_features.md)
   * [Transforming Point Values into Township-Range Values](doc/etl/from_point_to_region_values.md)
-* Machine Learning & Deepl Learning
-  * [Multi-Variate Multi Time-Series Predictions with LSTM](doc/ml/multivariate_multi_timeseries.md)
-  * [How to use the Deep Learning Notebooks?](doc/ml/deeplearning.md)
+* Machine Learning & Deep Learning
+  * [Multi-Variate Multi Time-Series Predictions with LSTM](../doc/ml/multivariate_multi_timeseries.md)
+  * [How to use the Deep Learning Notebooks?](../doc/ml/deeplearning.md)
+  * [Explainability](../doc/ml/explainability_through_shapely.md)
