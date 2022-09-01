@@ -55,6 +55,6 @@ This repository is organized following the below folder structure:
   * [Dropping Rare Township Features](doc/etl/drop_rare_features.md)
   * [Transforming Point Values into Township-Range Values](doc/etl/from_point_to_region_values.md)
 * Machine Learning & Deep Learning
-  * [Multi-Variate Multi Time-Series Predictions with LSTM](../doc/ml/multivariate_multi_timeseries.md)
-  * [How to use the Deep Learning Notebooks?](../doc/ml/deeplearning.md)
-  * [Explainability](../doc/ml/explainability_through_shapely.md)
+  * [Multi-Variate Multi Time-Series Predictions with LSTM](doc/ml/multivariate_multi_timeseries.md)
+  * [How to use the Deep Learning Notebooks?](doc/ml/deeplearning.md)
+  * [Explainability](doc/ml/explainability_through_shapely.md)
