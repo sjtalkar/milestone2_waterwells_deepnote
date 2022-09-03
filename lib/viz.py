@@ -388,7 +388,8 @@ def simple_geodata_viz(gdf: gpd.GeoDataFrame, feature: str, title: str, year: in
 
 
 def view_trs_side_by_side(gdf: gpd.GeoDataFrame, feature: str, value: str, title: str, color_scheme: str = "sjv",
-                          reverse_palette: bool = False, draw_stations: bool = False) -> alt.Chart:
+                          reverse_palette: bool = False, draw_stations: bool = False, small_multiple_size: int = 350) \
+        -> alt.Chart:
     """ This function creates a side by side Altair visualization of the Township-Ranges for the given feature
 
     :param gdf: the geodataframe to be visualized
@@ -398,6 +399,7 @@ def view_trs_side_by_side(gdf: gpd.GeoDataFrame, feature: str, value: str, title
     :param color_scheme: the color scheme to be used
     :param reverse_palette: if True, the color palette will be reversed
     :param draw_stations: if True, the stations will be drawn on each sur chart
+    :param small_multiple_size: the size of the small multiples charts
     :return: the Altair visualization
     """
     area_df = gdf.copy()
@@ -441,8 +443,8 @@ def view_trs_side_by_side(gdf: gpd.GeoDataFrame, feature: str, value: str, title
                                               labelFontSize=12, titleFontSize=14)),
             tooltip=tooltip_columns,
         ).properties(
-            width=350,
-            height=350
+            width=small_multiple_size,
+            height=small_multiple_size
         )
         stations_chart = get_stations_chart(gdf, tooltip_columns)
         chart = alt.layer(base, stations_chart, data=area_df).facet(
@@ -460,7 +462,8 @@ def view_trs_side_by_side(gdf: gpd.GeoDataFrame, feature: str, value: str, title
                 color=alt.Color(value, scale=color_scale),
                 tooltip=tooltip_columns
             ).properties(
-                width=350, height=350,
+                width=small_multiple_size,
+                height=small_multiple_size,
                 title=feature_
             )
             for feature_ in sorted(area_df[feature].unique())
