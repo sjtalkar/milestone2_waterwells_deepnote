@@ -27,14 +27,14 @@ Citation information:
 Census Bureau's Planning Database (PDB) dataset information:
 > The 2021 Tract Level Planning Database (also called the PDB) is a dataset that contains a range of 
 > housing, demographic, socioeconomic, and census operational data. These data have been extracted 
-> from2010 Census and 2015-2019 American Community Survey (ACS) data sources, and summarized for 
+> from 2010 Census and 2015-2019 American Community Survey (ACS) data sources, and summarized for 
 > all tracts in the country and the territory of Puerto Rico.
 
 Citation information:
 * Organization: U.S. Census Bureau
 * Publication Date: 04-10-2016
 * Title: 2021 Planning Database (PDB)
-* Resources, website: [https://www.census.gov/data/developers/data-sets/acs-5year.html](https://www.census.gov/data/developers/data-sets/acs-5year.html)
+* Resources, website: [https://www.census.gov/data/developers/data-sets/planning-database.2016.html](https://www.census.gov/data/developers/data-sets/planning-database.2016.html)
 
 The Census Bureau's 2019 TIGER/Line Shapefiles dataset information:
 > The TIGER/Line Shapefiles are extracts of selected geographic and cartographic information from the
@@ -130,6 +130,8 @@ can be seen on this map.
 !["Missing 2020 Tracts population data"](../images/2020_popupation_missing_data.jpg)
 2. The Census Bureau does not provide yet American Community Survey data for 2021. 
 ### How did we remediate the issues?
-1. We estimated the missing 2020 Tracts population size, using the 2019 population size and the 2018-2019 trend.
-2. We estimated the missing 2021 Tracts population size, using the updated 2020 population size and the 2019-2020 trend.
+1. We estimated the 2020 Township-Ranges population density, in the data imputation pipeline using the Township-Ranges
+2019 population density and the 2018-2019 trend.
+2. We estimated the 2021 Township-Ranges population density, in the data imputation pipeline using the Township-Ranges 
+2020 population density and the 2019-2020 trend.
 

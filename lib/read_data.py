@@ -19,7 +19,7 @@ def read_feature_files(folder_name : str = "../assets/outputs/"):
     output_files_dict = dict()
 
     for output_file in os.listdir("../assets/outputs/"):
-        if output_file != "california_weekly_drought_index.csv" and  output_file != "crops_classes.csv":
+        if output_file != "california_weekly_drought_index.csv" and output_file.endswith(".csv"):
             output_files_dict[f"{output_file.replace(r'.csv', '')}_df"] = pd.read_csv(rf"{folder_name}{output_file}") 
     return output_files_dict
 

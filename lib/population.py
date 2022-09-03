@@ -69,16 +69,10 @@ class PopulationDataset(WsGeoDataset):
 
         self.data_df["TRACT_ID"] = self.data_df["TRACT_ID"].astype(str)
         self.data_df["TRACT_ID"] = "0" + self.data_df["TRACT_ID"]
-        # The year 2020 has missing data, we estimate them for the 2018-2019 data.
-        trend_df = get_trend(self.data_df, year=2019)
-        year_2020_df = self.data_df[self.data_df["YEAR"] == 2020].copy()
-        tract_ids_2020 = list(year_2020_df["TRACT_ID"].unique())
-        missing_2020_df = self.data_df[(self.data_df["YEAR"] == 2019) & (~self.data_df["TRACT_ID"].isin(tract_ids_2020))].copy()
-        missing_2020_df["YEAR"] = 2020
-        missing_2020_df = missing_2020_df.merge(trend_df[["TRACT_ID", "TREND"]], on="TRACT_ID", how="left")
-        missing_2020_df["TOTAL_POPULATION"] = round(missing_2020_df["TREND"] * missing_2020_df["TOTAL_POPULATION"])
-        missing_2020_df.drop(columns=["TREND"], inplace=True)
-        self.data_df = pd.concat([self.data_df, missing_2020_df], axis=0)
         # Now that we have all data we compute the population density per year and tract
         self.data_df["POPULATION_DENSITY"] = self.data_df["TOTAL_POPULATION"] / self.data_df["LAND_AREA"]
         self.data_df = self.data_df[["TRACT_ID", "POPULATION_DENSITY", "YEAR"]]
+
+    def discard_partial_2020_data(self):
+        """This function discards the partial 2020 data"""
+        self.map_df = self.map_df[self.map_df["YEAR"] != 2020]
