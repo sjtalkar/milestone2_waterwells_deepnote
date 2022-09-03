@@ -14,9 +14,9 @@ class PrecipitationDataset(WsGeoDataset):
         map_df dataframe.
 
         :param input_stationfile: the path to the CSV file containing the station dataIf it does not exists, the data
-        will be scrapped from the web and stored into this file.
-        :param input_datafile: the path to the CSV file containing the additional data dataset. If it does not exists,
-        the data will be scrapped from the web and stored into this file.
+        will be scraped from the web and stored into this file.
+        :param input_datafile: the path to the CSV file containing the additional data dataset. If it does not exist,
+        the data will be scraped from the web and stored into this file.
         :param year_start: The year to start collecting the data from.
         :param year_end: The year to end collecting the data from.
         """

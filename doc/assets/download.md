@@ -79,6 +79,7 @@ the wells in the dataset, based on their latitude-longitude coordinates. The API
 
 There are 35,677 wells in the dataset. In order to speed up the download we:
 * download the elevation in batches of 1,500 wells
+* each well is associated with a latitude and longitude. Dedupe these so only one call goes per latitude and longitude.
 * use multi-threading with 5 workers
 * check if batches have already been downloaded and skip them if they have
 * if the API throttles us, we wait for a few minutes and try again

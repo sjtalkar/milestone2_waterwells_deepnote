@@ -1,6 +1,6 @@
 # Dropping Rare Township-Range Features
-## What is the Problematic?
-By gathering for each Township-Range (in the TRS system) data like soil, crops and vegetation types generates a vast 
+## Problem Statement
+Gathering data for certain features such as crops, soil and vegation in the each Township-Range (in the TRS system) generates a vast 
 amount of sparse features.
 
 For the San Joaquin Valley, there are for example:
@@ -8,8 +8,8 @@ For the San Joaquin Valley, there are for example:
 * 8 crops classes and 95 crop types + 5 land use classes (idle, urban, not classified...) 
 * 15 existing vegetation tree types
 
-when all these soils, crops and vegetation types are used to generate Township-Range features, it creates a lot of sparse
-features as for example out of the 22 soil types, a specific Township-Range will have on average just 2~4 different type of
+When all these soils, crops and vegetation types are used to generate Township-Range features, it creates a lot of sparse
+features, for example out of the 22 soil types, a specific Township-Range will have on average just 2~4 different type of
 soils.
 
 Some of those features are also very rare. We describe in this documentation the method we used to drop some of those
@@ -61,7 +61,7 @@ The resulting dataframe would then be
 | T1 R1          | 2018 | 0.025 | 0.95 | 
 | T2 R1          | 2018 | 0.475 | 0.5  | 
 
-The same apply across Township-Ranges AND years. E.g. for the below dataframe 
+The same applies across Township-Ranges AND years. E.g. for the below dataframe 
 
 | TOWNSHIP_RANGE | YEAR | A     | B     | C    |
 |----------------|------|-------|-------|------|

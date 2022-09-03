@@ -1,5 +1,5 @@
 # Transforming Point Values into Township-Range Values
-## What is the Problematic?
+## Problem Statement
 Some of the data are collected and recorded in specific locations while we need them for all the townships of the San 
 Joaquin Valley. An example is precipitation which is collected in weather stations, but there is not one weather station
 for every township. If we look at all the weather stations in the state of California, from which we were able to 
