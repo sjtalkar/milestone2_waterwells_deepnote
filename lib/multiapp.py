@@ -33,9 +33,9 @@ class MultiPage:
         url_git = 'https://github.com/sjtalkar/milestone2_waterwells_deepnote'
         st.sidebar.markdown(f"Source Code on [Github]({url_git})")
         
-        predict_choice = st.sidebar.radio(
-             "Choose view:",
-             ('Predict Shortage', 'Predict Groundwater Level'))
+        # predict_choice = st.sidebar.radio(
+        #      "Choose view:",
+        #      ('Predict Shortage', 'Predict Groundwater Level'))
 
         
         # run the app function

@@ -10,15 +10,14 @@ from lib.viz import display_data_on_map, simple_geodata_viz
 from lib.township_range import TownshipRanges
 from lib.supervised_tuning import read_target_shifted_data
 
-def get_geo_prediction_df():
-    """This function combines the predictions in the dataset for the year 2021 that was set aside with the geometry of the township ranges by county 
+
+
+def get_predictions_df():
+    """This function applies saved models on the prediction dataset and returns predictions for all TRs for prediction year 2021
      
         :param None
-        :output: a  dataframe with columns for COUNTY, Year = 2021, TOWNSHIP_RANGE and columns for the predictions from each of the models
+        :output: a  dataframe with columns for Year = 2021, TOWNSHIP_RANGE and columns for the predictions from each of the models
     """
-    township_range = TownshipRanges()
-    county_tr_mapping = township_range.counties_and_trs_df
-   
     #county_tr_mapping.nunique() # 478 TRs repeated in counties
     data_dir = "../assets/train_test_target_shifted/"
     train_test_dict_file_name = "train_test_dict_target_shifted.pickle"
@@ -35,13 +34,6 @@ def get_geo_prediction_df():
     test_year_list = list(X_test_impute_df.index.get_level_values('YEAR').unique())
     pred_year_list = [int(year) + 1 for year in test_year_list]
  
-    #Pick the counties from those predicted
-    county_list = list(X_train_impute_df.index.get_level_values('TOWNSHIP_RANGE').unique())
-    pred_counties_df = pd.DataFrame({'TOWNSHIP_RANGE': county_list})
-    #pred_counties_df.nunique() # 478 TRS unique
-    #merge the county trs to the unique trs in prediction
-    common_pred_df = pred_counties_df.merge(county_tr_mapping, how='left', left_on='TOWNSHIP_RANGE', right_on='TOWNSHIP_RANGE',  copy=False, indicator=True)
-
     with open('../assets/models/supervised_learning_models/models.pickle', 'rb') as file:
             models = pickle.load(file)
     for model in models:
@@ -50,9 +42,31 @@ def get_geo_prediction_df():
   
     y_pred_df.drop(columns=['GSE_GWE_SHIFTED'], inplace=True)
     y_pred_df.reset_index(inplace=True)
+    return y_pred_df
+
+
+
+def get_geo_prediction_df():
+    """This function combines the predictions in the dataset for the year 2021 that was set aside with the geometry of the township ranges by county 
+     
+        :param None
+        :output: a  dataframe with columns for COUNTY, Year = 2021, TOWNSHIP_RANGE and columns for the predictions from each of the models
+    """
+    township_range = TownshipRanges()
+    county_tr_mapping = township_range.counties_and_trs_df
+   
+    # The path of this file is relative to the supervised_learning.py page
+    if os.path.exists("prediction_values.csv"):
+            y_pred_df = pd.read_csv("prediction_values.csv", dtype={ 'YEAR':str, 'XGBRegressor': np.float64, 'SVR':np.float64,
+                          'KNeighborsRegressor':np.float64, 'GradientBoostingRegressor':np.float64, 'CatBoostRegressor':np.float64}) 
+    else:
+        y_pred_df = get_predictions_df()
+    
     y_pred_df = county_tr_mapping.merge(y_pred_df, left_on='TOWNSHIP_RANGE', right_on='TOWNSHIP_RANGE') 
     return y_pred_df
 
+
+### Streamlit has an issue with handling geomtery columns and so this function was not used and instead folium was used.
 def draw_predictions_for_model(gdf:gpd.GeoDataFrame, model_name: str,county_name:str='All'):
     """
         This function takes in a county (or all counties) and will visualize predictions 
