@@ -1,5 +1,7 @@
 import math
 import altair as alt
+import os
+import pickle
 import numpy as np
 import pandas as pd
 import geopandas as gpd
@@ -11,6 +13,7 @@ from datetime import datetime
 from matplotlib.colors import LinearSegmentedColormap
 from sklearn.metrics import silhouette_samples, silhouette_score
 from sklearn.cluster import KMeans
+from lib.supervised_tuning import compare_models_manual, read_target_shifted_data, final_comparison_sorted
 
 sjv_brown = "#A9784F"
 sjv_pink = "#AF6A9A"
@@ -888,7 +891,7 @@ def draw_hierarchical_parameters_results(df: pd.DataFrame, x: str, y: str, facet
 
 def create_silhoutte_cluster_viz(X_train_impute: np.ndarray, random_seed: int):
     """This function plots a pair of visualizations for every number of KMeans cluster chosen.
-    This code was taken for scikit-learn documentation
+    This code was taken from scikit-learn documentation
     https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_analysis.html
 
     :param X_train_impute: the Dataframe with the data to clustered
@@ -1000,3 +1003,130 @@ def create_silhoutte_cluster_viz(X_train_impute: np.ndarray, random_seed: int):
         )
 
     return plt
+
+def get_model_errors():
+    """ This function return the evaluation metrics for the top 6 models.
+        It also returns the test-target dataframe along with the predicted targets for each of the 
+        models.
+    :param None
+    :return: dataframe with evaluation scores, dataframe with target value and predicted absolute errors
+    """
+
+    data_dir = "../assets/train_test_target_shifted/"
+    train_test_dict_file_name = "train_test_dict_target_shifted.pickle"
+    X_train_df_file_name = "X_train_impute_target_shifted_df.pkl"
+    X_test_df_file_name = "X_test_impute_target_shifted_df.pkl"
+
+    train_test_dict, X_train_impute_df, X_test_impute_df = read_target_shifted_data(
+        data_dir, train_test_dict_file_name, X_train_df_file_name, X_test_df_file_name
+    )
+    X_test_impute = train_test_dict["X_pred_impute"]
+    y_test_df = train_test_dict["y_test"]
+    y_test = y_test_df["GSE_GWE_SHIFTED"].values.ravel()
+    test_year_list = list(X_test_impute_df.index.get_level_values("YEAR").unique())
+    with open("../assets/models/supervised_learning_models/models.pickle", "rb") as file:
+        models = pickle.load(file)
+
+
+    test_model_errors_df = final_comparison_sorted(models, X_test_impute, y_test)
+    test_model_errors_df.to_csv("../test_model_errors.csv", index=False)
+
+    for model in models:
+        regressor_name = type(model.best_estimator_.regressor_).__name__
+        y_test_df[regressor_name] = model.best_estimator_.predict(X_test_impute)
+        y_test_df[f'{regressor_name}_absolute_error'] = np.abs(y_test_df[regressor_name] - y_test_df['GSE_GWE_SHIFTED'])
+
+    y_test_df = y_test_df.reset_index()
+    col_subset = [
+        col
+        for col in y_test_df.columns
+        if col.endswith("_absolute_error") or "TOWNSHIP_RANGE" in col or "GSE_GWE" in col
+    ]
+    y_test_df = y_test_df[col_subset]
+    melt_cols = [col for col in y_test_df.columns if col.endswith("_absolute_error")]
+    error_df = y_test_df.melt(
+        id_vars=["TOWNSHIP_RANGE", "GSE_GWE_SHIFTED"],
+        value_vars=melt_cols,
+        var_name="model_name",
+        value_name="absolute_error",
+    )
+
+    return test_model_errors_df, error_df
+
+def chart_error_distribution(error_df: pd.DataFrame):
+    """ This function charts the distribution of errors in the given dataframe
+    :param : Error dataframe with absolute error and column with model names
+    :return: Altair chart
+    """
+    return (
+        alt.Chart(error_df, title="Error distribution by model")
+        .mark_bar(color=sjv_color_range_17[3], opacity=0.4)
+        .encode(alt.X("absolute_error:Q", bin=True), y="count()", tooltip=["count()"])
+        .properties(width=400, height=125)
+        .facet(facet="model_name:N", columns=2)
+    )
+
+def chart_error_by_depth(error_df: pd.DataFrame, model_name_list:List):
+    """ This function charts the distribution of errors in the given dataframe against the 
+        actual test target
+    :param : error_df: Error dataframe with absolute error and column with model names
+    :param : model_name_list: List of model names e.g. SVR_absolute_error
+    :return: Altair chart
+    """
+    return (
+        alt.Chart(
+            error_df[error_df["model_name"].isin(model_name_list)],
+            title="Error distribution by model",
+        )
+        .mark_line(color=sjv_color_range_17[16], opacity=0.9)
+        .encode(
+            alt.X("GSE_GWE_SHIFTED:Q"),
+            y="absolute_error:Q",
+            tooltip=["model_name", "absolute_error", "TOWNSHIP_RANGE"],
+        )
+        .properties(width=900, height=125)
+        .facet(facet="model_name:N", columns=1)
+    )
+
+def chart_error_by_township(error_df: pd.DataFrame, model_name_list: List):
+    """ This function charts the distribution of errors in the given dataframe against the townships
+        with the most absolute error.
+        The chart can be restricted to the models sent in
+    :param : error_df: Error dataframe with absolute error and column with model names
+    :param : model_name_list: List of model names e.g. SVR_absolute_error
+    :return: Altair chart
+    """
+    errors_by_township_df = (
+        error_df[error_df["model_name"].isin(model_name_list)]
+        .sort_values(["absolute_error"], ascending=False)
+        .groupby("model_name")
+        .head(20)
+    )
+    return (
+        alt.Chart(
+            errors_by_township_df[
+                errors_by_township_df["model_name"].isin(model_name_list)
+            ]
+        )
+        .mark_bar(opacity=1)
+        .encode(
+            x=alt.X("TOWNSHIP_RANGE:N", sort="-y"),
+            y=alt.Y("absolute_error:Q"),
+            color=alt.Color(
+                "model_name:N",
+                scale=alt.Scale(
+                    domain=model_name_list,
+                    range=[
+                        sjv_color_range_9[0],
+                        sjv_color_range_17[14],
+                        sjv_color_range_17[5],
+                    ],
+                ),
+            ),
+            tooltip=["model_name", "absolute_error", "TOWNSHIP_RANGE"],
+        )
+        .properties(width=850, height=150)
+    )        
+
+
+
