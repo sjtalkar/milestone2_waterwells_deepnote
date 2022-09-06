@@ -13,7 +13,6 @@ from datetime import datetime
 from matplotlib.colors import LinearSegmentedColormap
 from sklearn.metrics import silhouette_samples, silhouette_score
 from sklearn.cluster import KMeans
-from lib.supervised_tuning import compare_models_manual, read_target_shifted_data, final_comparison_sorted
 
 sjv_brown = "#A9784F"
 sjv_pink = "#AF6A9A"
@@ -1004,54 +1003,6 @@ def create_silhoutte_cluster_viz(X_train_impute: np.ndarray, random_seed: int):
 
     return plt
 
-def get_model_errors():
-    """ This function return the evaluation metrics for the top 6 models.
-        It also returns the test-target dataframe along with the predicted targets for each of the 
-        models.
-    :param None
-    :return: dataframe with evaluation scores, dataframe with target value and predicted absolute errors
-    """
-
-    data_dir = "../assets/train_test_target_shifted/"
-    train_test_dict_file_name = "train_test_dict_target_shifted.pickle"
-    X_train_df_file_name = "X_train_impute_target_shifted_df.pkl"
-    X_test_df_file_name = "X_test_impute_target_shifted_df.pkl"
-
-    train_test_dict, X_train_impute_df, X_test_impute_df = read_target_shifted_data(
-        data_dir, train_test_dict_file_name, X_train_df_file_name, X_test_df_file_name
-    )
-    X_test_impute = train_test_dict["X_pred_impute"]
-    y_test_df = train_test_dict["y_test"]
-    y_test = y_test_df["GSE_GWE_SHIFTED"].values.ravel()
-    test_year_list = list(X_test_impute_df.index.get_level_values("YEAR").unique())
-    with open("../assets/models/supervised_learning_models/models.pickle", "rb") as file:
-        models = pickle.load(file)
-
-
-    test_model_errors_df = final_comparison_sorted(models, X_test_impute, y_test)
-    test_model_errors_df.to_csv("../test_model_errors.csv", index=False)
-
-    for model in models:
-        regressor_name = type(model.best_estimator_.regressor_).__name__
-        y_test_df[regressor_name] = model.best_estimator_.predict(X_test_impute)
-        y_test_df[f'{regressor_name}_absolute_error'] = np.abs(y_test_df[regressor_name] - y_test_df['GSE_GWE_SHIFTED'])
-
-    y_test_df = y_test_df.reset_index()
-    col_subset = [
-        col
-        for col in y_test_df.columns
-        if col.endswith("_absolute_error") or "TOWNSHIP_RANGE" in col or "GSE_GWE" in col
-    ]
-    y_test_df = y_test_df[col_subset]
-    melt_cols = [col for col in y_test_df.columns if col.endswith("_absolute_error")]
-    error_df = y_test_df.melt(
-        id_vars=["TOWNSHIP_RANGE", "GSE_GWE_SHIFTED"],
-        value_vars=melt_cols,
-        var_name="model_name",
-        value_name="absolute_error",
-    )
-
-    return test_model_errors_df, error_df
 
 def chart_error_distribution(error_df: pd.DataFrame):
     """ This function charts the distribution of errors in the given dataframe
@@ -1088,21 +1039,22 @@ def chart_error_by_depth(error_df: pd.DataFrame, model_name_list:List):
         .facet(facet="model_name:N", columns=1)
     )
 
-def chart_error_by_township(error_df: pd.DataFrame, model_name_list: List):
+def chart_error_by_township(error_df: pd.DataFrame, model_name_list: List, num_towns:int = 20):
     """ This function charts the distribution of errors in the given dataframe against the townships
         with the most absolute error.
         The chart can be restricted to the models sent in
     :param : error_df: Error dataframe with absolute error and column with model names
     :param : model_name_list: List of model names e.g. SVR_absolute_error
+    :param : num_towns: Number of towns to chart the sorted errors for 
     :return: Altair chart
     """
     errors_by_township_df = (
         error_df[error_df["model_name"].isin(model_name_list)]
         .sort_values(["absolute_error"], ascending=False)
         .groupby("model_name")
-        .head(20)
+        .head(num_towns)
     )
-    return (
+    return errors_by_township_df, (
         alt.Chart(
             errors_by_township_df[
                 errors_by_township_df["model_name"].isin(model_name_list)
@@ -1127,6 +1079,33 @@ def chart_error_by_township(error_df: pd.DataFrame, model_name_list: List):
         )
         .properties(width=850, height=150)
     )        
+
+def chart_depth_diff_error(error_df:pd.DataFrame, full_df:pd.DataFrame):
+    """ In order to visually examine if there is a point at which the difference in current year's depth and next year's depth 
+        difference impacts the absolute error, chart them against each other with this function.
+        The chart can be restricted to the models sent in
+    :param : error_df: Error dataframe with absolute error and column with model names
+    :param : full_df: Dataframe with column which is the difference between current year depth and target depth
+    :return: Altair chart
+    """
+
+    plot_df = error_df[['TOWNSHIP_RANGE', 'model_name', 'absolute_error']].merge(full_df[['TOWNSHIP_RANGE', 'depth_diff']], how='inner', left_on='TOWNSHIP_RANGE', right_on='TOWNSHIP_RANGE')
+    return alt.Chart(plot_df
+                    ).mark_line(
+                        color=sjv_color_range_17[0],
+                        opacity=.8
+                    ).encode(
+                        x='depth_diff:Q',
+                        y='absolute_error',
+                        tooltip=['depth_diff', 'absolute_error']
+                    ).properties(
+                        width=800,
+                        height=100
+                    ).facet(
+                        facet='model_name',
+                        columns=1
+                    )
+
 
 
 

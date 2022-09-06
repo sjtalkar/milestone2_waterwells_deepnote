@@ -199,4 +199,53 @@ def add_cluster_label(X_train_impute_df, X_test_impute_df, n_clusters, random_se
     X_test_cluster_df['km_label'] = test_labels
     return X_train_cluster_df, X_test_cluster_df 
 
+def get_model_errors():
+    """ This function return the evaluation metrics for the top 6 models.
+        It also returns the test-target dataframe along with the predicted targets for each of the 
+        models.
+    :param None
+    :return: dataframe with evaluation scores, dataframe with target value and predicted absolute errors
+    """
+
+    data_dir = "../assets/train_test_target_shifted/"
+    train_test_dict_file_name = "train_test_dict_target_shifted.pickle"
+    X_train_df_file_name = "X_train_impute_target_shifted_df.pkl"
+    X_test_df_file_name = "X_test_impute_target_shifted_df.pkl"
+
+    train_test_dict, X_train_impute_df, X_test_impute_df = read_target_shifted_data(
+        data_dir, train_test_dict_file_name, X_train_df_file_name, X_test_df_file_name
+    )
+    X_test_impute = train_test_dict["X_test_impute"]
+    y_test_df = train_test_dict["y_test"]
+    y_test = y_test_df["GSE_GWE_SHIFTED"].values.ravel()
+
+    test_year_list = list(X_test_impute_df.index.get_level_values("YEAR").unique())
+    with open("../assets/models/supervised_learning_models/models.pickle", "rb") as file:
+        models = pickle.load(file)
+
+
+    test_model_errors_df = final_comparison_sorted(models, X_test_impute, y_test)
+    test_model_errors_df.to_csv("../test_model_errors.csv", index=False)
+
+    for model in models:
+        regressor_name = type(model.best_estimator_.regressor_).__name__
+        y_test_df[regressor_name] = model.best_estimator_.predict(X_test_impute)
+        y_test_df[f'{regressor_name}_absolute_error'] = np.abs(y_test_df[regressor_name] - y_test_df['GSE_GWE_SHIFTED'])
+
+    y_test_df = y_test_df.reset_index()
+    col_subset = [
+        col
+        for col in y_test_df.columns
+        if col.endswith("_absolute_error") or "TOWNSHIP_RANGE" in col or "GSE_GWE" in col
+    ]
+    y_test_df = y_test_df[col_subset]
+    melt_cols = [col for col in y_test_df.columns if col.endswith("_absolute_error")]
+    error_df = y_test_df.melt(
+        id_vars=["TOWNSHIP_RANGE", "GSE_GWE_SHIFTED"],
+        value_vars=melt_cols,
+        var_name="model_name",
+        value_name="absolute_error",
+    )
+
+    return test_model_errors_df, error_df
     
