@@ -1,7 +1,6 @@
 import math
 import altair as alt
-import os
-import pickle
+import math
 import numpy as np
 import pandas as pd
 import geopandas as gpd
@@ -1017,7 +1016,8 @@ def chart_error_distribution(error_df: pd.DataFrame):
         .facet(facet="model_name:N", columns=2)
     )
 
-def chart_error_by_depth(error_df: pd.DataFrame, model_name_list:List):
+
+def chart_error_by_depth(error_df: pd.DataFrame, model_name_list: List):
     """ This function charts the distribution of errors in the given dataframe against the 
         actual test target
     :param : error_df: Error dataframe with absolute error and column with model names
@@ -1039,7 +1039,8 @@ def chart_error_by_depth(error_df: pd.DataFrame, model_name_list:List):
         .facet(facet="model_name:N", columns=1)
     )
 
-def chart_error_by_township(error_df: pd.DataFrame, model_name_list: List, num_towns:int = 20):
+
+def chart_error_by_township(error_df: pd.DataFrame, model_name_list: List, num_towns: int = 20):
     """ This function charts the distribution of errors in the given dataframe against the townships
         with the most absolute error.
         The chart can be restricted to the models sent in
@@ -1080,32 +1081,136 @@ def chart_error_by_township(error_df: pd.DataFrame, model_name_list: List, num_t
         .properties(width=850, height=150)
     )        
 
-def chart_depth_diff_error(error_df:pd.DataFrame, full_df:pd.DataFrame):
-    """ In order to visually examine if there is a point at which the difference in current year's depth and next year's depth 
-        difference impacts the absolute error, chart them against each other with this function.
-        The chart can be restricted to the models sent in
+
+def chart_depth_diff_error(error_df: pd.DataFrame, full_df: pd.DataFrame) -> alt.Chart:
+    """ In order to visually examine if there is a point at which the difference in current year's depth and next year's
+     depth  difference impacts the absolute error, chart them against each other with this function. The chart can be
+     restricted to the models sent in.
+
     :param : error_df: Error dataframe with absolute error and column with model names
     :param : full_df: Dataframe with column which is the difference between current year depth and target depth
     :return: Altair chart
     """
 
-    plot_df = error_df[['TOWNSHIP_RANGE', 'model_name', 'absolute_error']].merge(full_df[['TOWNSHIP_RANGE', 'depth_diff']], how='inner', left_on='TOWNSHIP_RANGE', right_on='TOWNSHIP_RANGE')
-    return alt.Chart(plot_df
-                    ).mark_line(
-                        color=sjv_color_range_17[0],
-                        opacity=.8
-                    ).encode(
-                        x='depth_diff:Q',
-                        y='absolute_error',
-                        tooltip=['depth_diff', 'absolute_error']
-                    ).properties(
-                        width=800,
-                        height=100
-                    ).facet(
-                        facet='model_name',
-                        columns=1
-                    )
+    plot_df = error_df[['TOWNSHIP_RANGE', 'model_name', 'absolute_error']].merge(
+        full_df[['TOWNSHIP_RANGE', 'depth_diff']], how='inner', left_on='TOWNSHIP_RANGE', right_on='TOWNSHIP_RANGE')
+    return alt.Chart(plot_df).mark_line(
+        color=sjv_color_range_17[0],
+        opacity=.8
+    ).encode(
+        x='depth_diff:Q',
+        y='absolute_error',
+        tooltip=['depth_diff', 'absolute_error']
+    ).properties(
+        width=800,
+        height=100
+    ).facet(
+        facet='model_name',
+        columns=1
+    )
 
 
+def draw_hyperparameters_distribution(df: pd.DataFrame, hyperparam_list: List[str] = None, max_rmse: int = 160) \
+        -> alt.Chart:
+    """ This function draws the distribution of the rmse for all trained models and all hyperparameter values
 
-
+    :param df: Dataframe with the hyperparameters and the rmse
+    :param hyperparam_list: List of display order of the hyperparameters columns
+    :param max_rmse: Maximum value of the rmse to display on the X axis
+    """
+    # Transform the dataframe for faceting with Altair
+    # All hyperparameters columns are melted into hyperparameter_name and hyperparameter_value columns
+    hpt_df = pd.melt(df, id_vars=["rmse"], var_name="hyperparameter_name", value_name="hyperparameter_value")
+    # The mean of the RMSE for a specific hyperparameter value is calculated to color the small-multiple chart
+    hpt_df["rmse_mean"] = hpt_df.groupby(["hyperparameter_name", "hyperparameter_value"])["rmse"].transform("mean")
+    # We created bins of RMSE values of size 10 to smoothen the distribution plot
+    max_bins = math.ceil(hpt_df["rmse"].max() / 10) * 10
+    hpt_df["rmse_bin"] = list(pd.cut(hpt_df["rmse"], bins=range(0, max_bins, 10), labels=range(0, max_bins-10, 10)))
+    hpt_df.reset_index(inplace=True, drop=True)
+    hpt_df = hpt_df.groupby(
+        ["hyperparameter_name", "hyperparameter_value", "rmse_mean", "rmse_bin"]).size().reset_index()
+    hpt_df.rename(columns={0: "count"}, inplace=True)
+    # We filter models trained with hyperparameters resulting in too high RMSE to reduce the chart size
+    hpt_df = hpt_df[hpt_df["rmse_bin"] <= max_rmse]
+    # Parameters used to control the vertical overlap between small multiples
+    step = 50
+    overlap = 1
+    hyperparam_chart = None
+    # If not specific display order is passed, take the values from hyperparameter_name as the default
+    if not hyperparam_list:
+        hyperparam_list = hpt_df["hyperparameter_name"].unique()
+    for hyperparameter in hyperparam_list:
+        chart_df = hpt_df[hpt_df["hyperparameter_name"] == hyperparameter].reset_index(drop=True)
+        # Dinamically compute each chart title padding to align them
+        # We do that based on the max hyperparameter_value of the top chart for that column (hyperparameter)
+        # And the max hyperparameter_value amongst all charts in that column (hyperparameter)
+        top_hp_val = chart_df.loc[0, "hyperparameter_value"]
+        top_hp_df = chart_df[chart_df["hyperparameter_value"] == top_hp_val]
+        chart_title_y_padding = (1 - top_hp_df["count"].max()/chart_df["count"].max())*70
+        # By default the row feature is numerical, except for the Optimizer hyperparameter where it is a string
+        row_feature = "hyperparameter_value:Q"
+        if hyperparameter == "optimizer":
+            row_feature = "hyperparameter_value:N"
+        hp_dist = alt.Chart(chart_df, width=250, height=50).mark_area(
+            interpolate='monotone',
+            fillOpacity=0.8,
+            stroke='lightgray',
+            strokeWidth=0.5
+        ).encode(
+            alt.X(
+                "rmse_bin:Q",
+                title="RMSE",
+                axis=alt.Axis(grid=False)),
+            alt.Y(
+                "count:Q",
+                scale=alt.Scale(range=[step, -step * overlap]),
+                axis=None),
+            alt.Fill(
+                "rmse_mean:Q",
+                legend=alt.Legend(
+                    title=["RMSE mean value for all models", "trained with the hyperparameter value",
+                           "(the lower the better)"],
+                    titleLimit=300,
+                    direction="horizontal",
+                    orient="none",
+                    gradientLength=300,
+                    gradientThickness=30,
+                    legendX=50,
+                    legendY=400
+                ),
+                scale=alt.Scale(range=[sjv_blue, sjv_brown])
+            )
+        ).facet(
+            row=alt.Row(
+                row_feature,
+                title=None,
+                header=alt.Header(labelAngle=0, labelAlign="left")
+            )
+        ).properties(
+            title={
+                "text": hyperparameter,
+                "dy": -20 - chart_title_y_padding
+            },
+            bounds="flush"
+        )
+        if hyperparam_chart is None:
+            hyperparam_chart = hp_dist
+        else:
+            hyperparam_chart |= hp_dist
+    hyperparam_chart = hyperparam_chart.properties(
+        title={
+            "text": ["Distribution of the Root Mean Square Error (RMSE) on the validation set, "
+                     "for all trained LSTM models depending on the hyperparameter values"],
+            "subtitle": ["(The lower the RMSE the better)"],
+            "anchor": "start",
+            "fontSize": 20,
+            "fontWeight": "bold",
+            "dy": -30
+        },
+        padding=30
+    ).configure_facet(
+        spacing=0
+    ).configure_view(
+        stroke=None
+    )
+    return hyperparam_chart
