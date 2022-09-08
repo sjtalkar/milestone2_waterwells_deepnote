@@ -44,7 +44,7 @@ all the ETL processes.
 A Python script has been created to all you to do just that. From the project root directory run:
 ```python
 cd lib
-python download_datasets.py
+python download.py
 ```
 ## Pre-Packaged Data
 Some datasets take time to download through internet pages web scraping or API calls. For the same reasons as listed

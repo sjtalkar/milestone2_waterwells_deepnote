@@ -1110,13 +1110,14 @@ def chart_depth_diff_error(error_df: pd.DataFrame, full_df: pd.DataFrame) -> alt
     )
 
 
-def draw_hyperparameters_distribution(df: pd.DataFrame, hyperparam_list: List[str] = None, max_rmse: int = 160) \
-        -> alt.Chart:
+def draw_hyperparameters_distribution(df: pd.DataFrame, hyperparam_list: List[str] = None,
+                                      max_rmse: int = 160, legend_y_pos: int = 400) -> alt.Chart:
     """ This function draws the distribution of the rmse for all trained models and all hyperparameter values
 
     :param df: Dataframe with the hyperparameters and the rmse
     :param hyperparam_list: List of display order of the hyperparameters columns
     :param max_rmse: Maximum value of the rmse to display on the X axis
+    :param legend_y_pos: Position of the legend on the Y axis
     """
     # Transform the dataframe for faceting with Altair
     # All hyperparameters columns are melted into hyperparameter_name and hyperparameter_value columns
@@ -1176,7 +1177,7 @@ def draw_hyperparameters_distribution(df: pd.DataFrame, hyperparam_list: List[st
                     gradientLength=300,
                     gradientThickness=30,
                     legendX=50,
-                    legendY=400
+                    legendY=legend_y_pos
                 ),
                 scale=alt.Scale(range=[sjv_blue, sjv_brown])
             )

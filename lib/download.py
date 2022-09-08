@@ -794,6 +794,18 @@ def download_etl_outputs(etl_outputs_dir: str = "../assets/outputs/") -> None:
     download_and_extract_zip_file(url=etl_outputs_url, extract_dir=etl_outputs_dir)
 
 
+def download_hyperparameter_tuning_results(hpt_results_file: str = "../assets/tuning/hpt_results.csv") -> None:
+    """This function downloads the results of the  hyperparameter tuning analysis
+
+    :param hpt_results_file: the file name where to store the results of the  hyperparameter tuning analysis"""
+    print("Downloading the results of the  hyperparameter tuning analysis. Please wait...")
+    hpt_url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/ml/hpt_results.csv"
+    file_content = requests.get(hpt_url).text
+    os.makedirs(os.path.dirname(hpt_results_file), exist_ok=True)
+    with open(hpt_results_file, "w", encoding="utf-8") as f:
+        f.write(file_content)
+
+
 if __name__ == "__main__":
     print("=========================== San Joaquin Valley Geospatial Dataset ===========================")
     download_sjv_shapefile()
@@ -819,4 +831,6 @@ if __name__ == "__main__":
     download_well_completion_datasets()
     print("=========================== ETL outputs =====================================================")
     download_etl_outputs()
+    print("=========================== Hyperparameter Tuning Analysis Results ==========================")
+    download_hyperparameter_tuning_results()
     print("  ***   ALL DOWNLOADS ARE COMPLETED   ***  ")
