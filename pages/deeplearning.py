@@ -48,7 +48,7 @@ def app():
     
     new_y_pred_df = y_pred_df.copy()
     if county_selected != 'All':
-        new_y_pred_df = np.where(new_y_pred_df['COUNTY'] != county_selected, 0, new_y_pred_df)
+        new_y_pred_df['GSE_GWE'] = np.where(new_y_pred_df['COUNTY'] != county_selected, 0, new_y_pred_df['GSE_GWE'])
     
     if st.button("Predict"):
             st.subheader(f"Groundwater Depth Predictions From LSTM")
