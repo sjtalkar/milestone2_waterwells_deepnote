@@ -69,7 +69,7 @@ def get_geo_prediction_df():
     return y_pred_df
 
 
-def get_lstm_prediction_df(file_name: str = "lstm_predictions.csv"):
+def get_lstm_prediction_df(file_name: str = "./lstm_predictions.csv"):
     """This function combines the LSTM predictions in the dataset for the year 2021 that was set aside with the geometry
     of the township ranges by county
 
@@ -84,7 +84,7 @@ def get_lstm_prediction_df(file_name: str = "lstm_predictions.csv"):
     if os.path.exists(file_name):
         y_pred_df = pd.read_csv(file_name, dtype={'YEAR': str, 'GSE_GWE': np.float64})
     else:
-        y_pred_df = pd.DataFrame()
+        y_pred_df = pd.DataFrame(columns=['TOWNSHIP_RANGE', 'YEAR', 'GSE_GWE'])
 
     y_pred_df = county_tr_mapping.merge(y_pred_df, left_on='TOWNSHIP_RANGE', right_on='TOWNSHIP_RANGE')
     return y_pred_df
