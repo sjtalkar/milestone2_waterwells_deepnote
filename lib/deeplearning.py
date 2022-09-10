@@ -122,11 +122,8 @@ def create_transformation_cols(X: pd.DataFrame) -> dict:
     ]
     pct_cols = ["PCT_OF_CAPACITY"]
     gse_cols = ["GROUNDSURFACEELEVATION_AVG"]
-    other_cols = list(set(X.columns) - set(wcr_cols + veg_soils_crops_cols + population_cols + pct_cols + gse_cols) -
-                      {"SHORTAGE_COUNT", "GSE_GWE"})
 
     # Set the columns that go through the ColumnTransformation pipeline
-    # list_cols_used = wcr_cols + veg_soils_crops_cols + population_cols + pct_cols + gse_cols + other_cols
     list_cols_used = wcr_cols + veg_soils_crops_cols + population_cols + pct_cols + gse_cols
     columns_to_transform = {
         "wcr": wcr_cols,
@@ -134,7 +131,6 @@ def create_transformation_cols(X: pd.DataFrame) -> dict:
         "pop": population_cols,
         "pct": pct_cols,
         "gse": gse_cols,
-        "other": other_cols,
         "used": list_cols_used
     }
     return columns_to_transform
@@ -208,6 +204,7 @@ def evaluate_forecast(y_test: np.ndarray, yhat: np.ndarray) -> Tuple[float, floa
     rmse = rmse_(y_test, yhat).numpy()
     return mae, mse, rmse
 
+
 def reshape_data_to_3d(datasets: List[pd.DataFrame]) -> Tuple[np.ndarray, np.ndarray]:
     """This function reshapes the input pandas Dataframes to 3D (samples, time, features) numpy arrays
 
@@ -221,6 +218,7 @@ def reshape_data_to_3d(datasets: List[pd.DataFrame]) -> Tuple[np.ndarray, np.nda
                                                   dataset.shape[1]))
     return np_datasets
 
+
 def get_sets_shapes(training: np.ndarray, test: np.ndarray) -> pd.DataFrame:
     """This function returns a dataframe with the shapes of the datasets
 
@@ -233,6 +231,7 @@ def get_sets_shapes(training: np.ndarray, test: np.ndarray) -> pd.DataFrame:
                           columns=["nb_items", "nb_timestamps", "nb_features"])
     return shapes
 
+
 def get_train_test_datasets(X: pd.DataFrame, target_variable: str, test_size: int, random_seed: int = 0,
                             save_to_file: bool = False) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, MinMaxScaler]:
     """This function splits the input pandas Dataframe into training and test datasets, applies the impute pipeline
@@ -244,7 +243,8 @@ def get_train_test_datasets(X: pd.DataFrame, target_variable: str, test_size: in
     :param test_size: size of the test dataset
     :param random_seed: random seed for the train_test_split
     :return: a tuple of the training, test, training_labels, test_labels datasets as numpy arrays, the impute pipeline
-    fit on the training dataset and the scaler used to transform the target variable"""
+    fit on the training dataset, the columns names in the order they are modified by the imputation pipeline and the
+    scaler used to transform the target variable"""
     X_train_df, X_test_df, y_train_df, y_test_df = train_test_group_time_split(X, index=["TOWNSHIP_RANGE", "YEAR"],
         group="TOWNSHIP_RANGE", test_size=test_size, random_seed=random_seed)
     # Create, fit and apply the data imputation pipeline to the training and test sets
@@ -271,7 +271,8 @@ def get_train_test_datasets(X: pd.DataFrame, target_variable: str, test_size: in
         os.makedirs(os.path.dirname(dataset_dir), exist_ok=True)
         with open(os.path.join(dataset_dir, "dl_train_test.pkl"), "wb") as file:
             pickle.dump(train_test_dict, file)
-    return X_train, X_test, y_train, y_test, impute_pipeline, target_scaler
+    return X_train, X_test, y_train, y_test, impute_pipeline, columns, target_scaler
+
 
 def get_data_for_prediction(X: pd.DataFrame, impute_pipeline: Pipeline) -> np.ndarray:
     """This function applies the impute pipeline transformation to the input pandas Dataframe and reshapes the dataset to
@@ -280,11 +281,12 @@ def get_data_for_prediction(X: pd.DataFrame, impute_pipeline: Pipeline) -> np.nd
     :param X: dataframe to be transformed
     :param impute_pipeline: the impute pipeline fit on the training dataset
     :return: the transformed dataset as numpy array"""
-    X_impute = impute_pipeline.transform(X)
-    X_impute_df = pd.DataFrame(X_impute, index=X.index, columns=X.columns)
-    X_impute_df.drop("2014", axis=0, level=1, inplace=True)
-    X_impute_reshaped = reshape_data_to_3d([X_impute_df])[0]
-    return X_impute_reshaped
+    x_impute = impute_pipeline.transform(X)
+    x_impute_df = pd.DataFrame(x_impute, index=X.index, columns=X.columns)
+    x_impute_df.drop("2014", axis=0, level=1, inplace=True)
+    x_impute_reshaped = reshape_data_to_3d([x_impute_df])[0]
+    return x_impute_reshaped
+
 
 def combine_all_target_years(X: pd.DataFrame, target_variable: str, predictions: pd.DataFrame) -> pd.DataFrame:
     """This function combines the data of the target variables for the existing years with the predictions into a
@@ -307,6 +309,7 @@ def combine_all_target_years(X: pd.DataFrame, target_variable: str, predictions:
     all_years_df = pd.concat([all_years_df, predictions_df], axis=0)
     all_years_df.sort_index(level=["TOWNSHIP_RANGE", "YEAR"], inplace=True)
     return all_years_df
+
 
 def get_year_to_year_differences(X: pd.DataFrame, target_variable: str, predictions: pd.DataFrame) -> pd.DataFrame:
     """This functions returns the target variable difference year-to-year between all the years and also between the
