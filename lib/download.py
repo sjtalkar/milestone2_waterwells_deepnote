@@ -616,26 +616,20 @@ def download_crops_datasets(input_geodir: str = "../assets/inputs/crops",
         f.write(file_content)
 
 
-def download_groundwater_datasets(
-        input_measurements_file: str = "../assets/inputs/groundwater/groundwater_measurements.csv",
-        input_stations_file: str = "../assets/inputs/groundwater/groundwater_stations.csv") \
-        -> None:
+def download_groundwater_datasets(input_dir: str = "../assets/inputs/groundwater") -> None:
     """This function downloads the groundwater measurements dataset and the groundwater stations dataset from the
     web.
 
-    :param input_measurements_file: the path where to store the measurements dataset.
-    :param input_stations_file: the path where to store the stations dataset.
+    :param input_dir: the path where to store the datasets
     """
     print("Downloading the groundwater measurements dataset. Please wait...")
     measurements_url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/groundwater/" \
                        "groundwater_measurements.zip"
-    download_and_extract_zip_file(url=measurements_url, extract_dir=os.path.dirname(input_measurements_file))
+    download_and_extract_zip_file(url=measurements_url, extract_dir=input_dir)
     print("Downloading the groundwater stations dataset. Please wait...")
-    stations_url = "https://data.cnra.ca.gov/dataset/dd9b15f5-6d08-4d8c-bace-37dc761a9c08/resource/af157380-fb42-" \
-                   "4abf-b72a-6f9f98868077/download/stations.csv"
-    stations_content = requests.get(stations_url).text
-    with open(input_stations_file, "w", encoding="utf-8") as f:
-        f.write(stations_content)
+    stations_url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/groundwater/" \
+                   "groundwater_stations.zip"
+    download_and_extract_zip_file(url=stations_url, extract_dir=input_dir)
 
 
 def downoad_population_datasets(

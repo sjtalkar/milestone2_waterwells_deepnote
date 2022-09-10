@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import geopandas as gpd
 
@@ -9,13 +10,13 @@ from lib.download import download_groundwater_datasets
 
 class GroundwaterDataset(WsGeoDataset):
     """This class loads, processes and exports the Well Completion Reports dataset"""
-    def __init__(self,
-                 input_measurements_file: str = "../assets/inputs/groundwater/groundwater_measurements.csv",
-                 input_stations_file: str = r"../assets/inputs/groundwater/groundwater_stations.csv"):
+    def __init__(self, groundwater_dir: str = "../assets/inputs/groundwater"):
+        input_measurements_file = os.path.join(groundwater_dir, "groundwater_measurements.csv")
+        input_stations_file = os.path.join(groundwater_dir, "groundwater_stations.csv")
         try:
             self._load_local_datasets(input_measurements_file, input_stations_file)
         except (FileNotFoundError, DriverError):
-            self._download_datasets(input_measurements_file, input_stations_file)
+            self._download_datasets(os.path.dirname(groundwater_dir))
             self._load_local_datasets(input_measurements_file, input_stations_file)
 
     def _load_local_datasets(self, input_measurements_file: str, input_stations_file: str):
@@ -34,22 +35,21 @@ class GroundwaterDataset(WsGeoDataset):
         self.map_df = gpd.GeoDataFrame(
             groundwaterstations_df,
             geometry=gpd.points_from_xy(
-                groundwaterstations_df.longitude,
-                groundwaterstations_df.latitude
+                groundwaterstations_df.LONGITUDE,
+                groundwaterstations_df.LATITUDE
             ))
         # Set the coordinate reference system so that we now have the projection axis
         self.map_df = self.map_df.set_crs("epsg:4326")
         print("Loading of datasets complete.")
 
-    def _download_datasets(self, input_measurements_file: str, input_stations_file: str):
+    def _download_datasets(self, groundwater_dir: str):
         """This function downloads the groundwater measurements dataset and the groundwater stations dataset from the
         web.
 
-        :param input_measurements_file: the path where to store the measurements dataset.
-        :param input_stations_file: the path where to store the stations dataset.
+        :param groundwater_dir: the path where to store the groundwater datasets.
         """
         print("Data not found locally.")
-        download_groundwater_datasets(input_measurements_file, input_stations_file)
+        download_groundwater_datasets(groundwater_dir)
         print("Downloads complete.")
 
     def preprocess_data_df(self, features_to_keep: List[str], min_year: int = 2014):
