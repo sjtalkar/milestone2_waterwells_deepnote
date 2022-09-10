@@ -69,7 +69,7 @@ def get_geo_prediction_df():
     return y_pred_df
 
 
-def get_lstm_prediction_df(file_name: str = "./lstm_predictions.csv"):
+def get_lstm_prediction_df(file_name: str = "./pages/lstm_predictions.csv"):
     """This function combines the LSTM predictions in the dataset for the year 2021 that was set aside with the geometry
     of the township ranges by county
 
