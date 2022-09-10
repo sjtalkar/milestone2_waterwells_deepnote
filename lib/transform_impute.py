@@ -182,9 +182,9 @@ def fill_pop_from_prev_year(df: pd.DataFrame):
 
     miss_years = sorted(miss_years, key = lambda x : int(x))
     #print(f"These are the missing years {miss_years}")
-    
+
     # If the dataframe does not have years with missing population density, do nothing
-    
+
     all_years_trend = [f"{year}_trend" for year in all_years]
     # Pivot the dataframe so that the TOWNSHIP_RANGE forms the index and years are along the columns
     pop_pivot_df = df["POPULATION_DENSITY"].reset_index().pivot(
@@ -197,11 +197,14 @@ def fill_pop_from_prev_year(df: pd.DataFrame):
     diff_df.columns = ["TOWNSHIP_RANGE"] + all_years_trend
     pop_pivot_df = pop_pivot_df.droplevel(level=0, axis=1)
     pop_pivot_df = pop_pivot_df.merge(diff_df, how="inner", on=["TOWNSHIP_RANGE"]).reset_index(drop=True)
-    
+
     for one_year in miss_years:
          # Add the trend to past year value for missing year
-        prev_year = str(int(one_year)-1)
+        prev_year = str(int(one_year) - 1)
         pop_pivot_df[one_year] = pop_pivot_df[prev_year] + pop_pivot_df[f"{prev_year}_trend"]
+         # If the next year is also in the missing years, we need to reuse the current trend to compute the net year
+        if str(int(one_year) + 1) in miss_years:
+            pop_pivot_df[f"{one_year}_trend"] = pop_pivot_df[f"{prev_year}_trend"]
 
     pop_pivot_df = pop_pivot_df[["TOWNSHIP_RANGE"] + list(all_years)]
     pop_pivot_df = pd.melt(
