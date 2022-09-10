@@ -15,9 +15,8 @@ conserves, develops, and manages much of California's water supply.
 ## How to download?
 The `ReservoirDataset` class in the `/lib/reservoir.py` custom library is designed to load the reservoir stations data
 and geospatial information from the local `/assets/inputs/reservoir/` folder. If they are not found the data
-are downloaded from [a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) where we
-provide some prepackaged datasets. Please refer to the
-[How to Download the Datasets?](doc/assets/download.md) documentation for more details.
+are downloaded from an AWS S3 bucket (which is publicly available) where we provide some prepackaged datasets. Please
+refer to the [How to Download the Datasets?](doc/assets/download.md) documentation for more details.
 
 ### Original web scrapping
 Web scraping was employed to scrape data over multiple years. The data is only available from April 2018 through 2022 

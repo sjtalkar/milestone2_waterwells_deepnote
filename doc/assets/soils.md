@@ -18,11 +18,10 @@ Citation information:
 ## How to download?
 The `SoilsDataset` class in the `/lib/soils.py` custom library is designed to load the soil survey data and geospatial 
 information from the local `/assets/inputs/soils/` folder. If files are not found the data automatically are downloaded
-from [a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) where we store the 
-required data, we extracted and prepackaged. Also, the survey data in the raw dataset are stored in a Microsoft Access 
-database, making it difficult to automate the loading of the data. To ease reproducibility, we thus provide in the GitHub
-repository the data used in this analysis. Please refer to the
-[How to Download the Datasets?](doc/assets/download.md) documentation for more details.
+from an AWS S3 bucket (which is publicly available) where we store the  required data, we extracted and prepackaged. 
+Also, the survey data in the raw dataset are stored in a Microsoft Access database, making it difficult to automate the 
+loading of the data. To ease reproducibility, we thus provide in the S3 bucket the data used in this analysis. Please 
+refer to the [How to Download the Datasets?](doc/assets/download.md) documentation for more details.
 
 The raw dataset file __wss_gsmsoil_CA_\[2016-10-13\].zip__ can be downloaded from 
 [the U.S. General Soil Map (STATSGO2) by state](https://nrcs.app.box.com/v/soils). It contains both:

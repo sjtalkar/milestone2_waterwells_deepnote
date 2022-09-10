@@ -51,8 +51,8 @@ resource agencies involved in work and planning efforts across the state for cur
 The `CropsDataset` class in the `/lib/crops.py` custom library is designed to load the crops geospatial datasets from 
 the local `/assets/inputs/crops/` folder. If files are not found, the data are automatically downloaded from the 
 [Statewide Crop Mapping](https://data.cnra.ca.gov/dataset/statewide-crop-mapping) page, when running the 
-`/eda/crops.ipynb` notebook. The custom crop name-to-type mapping JSON file is likewise automatically downloaded from 
-[a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) where we provide additional files.
+`/eda/crops.ipynb` notebook. The custom crop name-to-type mapping JSON file is likewise automatically downloaded from
+an AWS S3 bucket which is publicly available where we provide additional files.
 Please refer to the [How to Download the Datasets?](doc/assets/download.md) documentation for more details.
 
 The datasets used for this analysis are the _Statewide Crop Mapping GIS Shapefiles_ datasets for the years 2014, 2016, 

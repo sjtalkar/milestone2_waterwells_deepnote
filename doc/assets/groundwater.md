@@ -52,9 +52,8 @@ Datasets citation information:
 ## How to download?
 The `GroundwaterDataset` class in the `/lib/groundwater.py` custom library is designed to load the groundwater
 measurements dataset and measurement stations geolocation datasets from the local  `/assets/inputs/groundwater/` folder.
-If files are not found, both the measurements and the stations data are automatically downloaded from the
-[Periodic Groundwater Level Measurements](https://data.cnra.ca.gov/dataset/periodic-groundwater-level-measurements)
-page, when running the `/eda/groundwater.ipynb` notebook. Please refer to the 
+If files are not found, both the measurements and the stations data are automatically downloaded from an AWS S3 bucket
+(which is publicly available), when running the `/eda/groundwater.ipynb` notebook. Please refer to the 
 [How to Download the Datasets?](doc/assets/download.md) documentation for more details.
 
 ### Original download

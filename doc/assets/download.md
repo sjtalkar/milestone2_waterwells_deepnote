@@ -23,9 +23,8 @@ Original datasets were downloaded using 3 different methods:
 ## Automated Dataset Download
 For each dataset a custom library has been created in the `/lib` folder with a class for each dataset. Initiating the 
 class loads the local data files from the `/assets/inputs/<dataset name>/` folder and if they are not found, 
-automatically downloads the data either from the original source or from 
-[a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) where we provide some data
-pre-packaged. 
+automatically downloads the data either from the original source or from a dedicated AWS S3 bucket which is publicly 
+available where we provide some data  pre-packaged. 
 
 Running the Jupyter Notebooks in the `/eda` folder will automatically download the data for the datasets corresponding
 to the datasets used in the notebook. There is thus no need to manually pre-download any of the datasets in order to
@@ -48,8 +47,8 @@ python download.py
 ```
 ## Pre-Packaged Data
 Some datasets take time to download through internet pages web scraping or API calls. For the same reasons as listed
-above, and to limit the burden on API services, we provide a pre-packaged version of such the datasets in the 
-[GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data). 
+above, and to limit the burden on API services, we provide a pre-packaged version of such the datasets in an AWS S3 
+bucket which is publicly available. 
 
 Also, the soil survey dataset is a Microsoft Access database, making it complicated to automate the download. We thus,
 manually extracted the data from the database and pre-packaged it.
@@ -59,7 +58,7 @@ This includes the following datasets:
 * The soils survey data and geospatial data
 * The elevation of all the wells in the well completion reports
 
-In addition to the above datasets, we provide the following files in that GitHub repository which were manually created
+In addition to the above datasets, we provide the following files in that S3 bucket which were manually created
 by us for the project:
 * A JSON mapping of all crop names to their respective type code
 * A JSON mapping of all the existing vegetation type code to their names
@@ -111,7 +110,7 @@ We consider the web scraping of these data ethical and acceptable since
 * provides public data
 * the [Conditions of Use](https://water.ca.gov/Conditions-of-Use) do not mention any restriction regarding web scraping
 practices
-* we provide the data pre-packaged in a dedicated [GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data)
+* we provide the data pre-packaged in a dedicated AWS S3 bucket which is publicly available.
 to avoid overloading the CDEC website with requests when reproducing the project.
 
 Should you want to see how we collected those data through web scraping or want to download the raw data instead of

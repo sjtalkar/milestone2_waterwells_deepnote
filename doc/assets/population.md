@@ -51,9 +51,9 @@ Citation information:
 The `PopulationDataset` class in the `/lib/population.py` custom library is designed to load the total 
 population dataset and the Tracts geospatial dataset from the local `/assets/inputs/population/` folder. If files 
 are not found, the data are automatically downloaded. As the Census Bureau API requires an API key, the data are 
-downloaded from [a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) where we 
-provide some prepackaged datasets. The Census Bureau's 2019 TIGER/Line Shapefiles dataset is downloaded directly
-from the [census bureau website](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html).
+downloaded from an AWS S3 bucket (which is publicly available) where we  provide some prepackaged datasets. The Census 
+Bureau's 2019 TIGER/Line Shapefiles dataset is downloaded directly from the 
+[census bureau website](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html).
 Please refer to the [How to Download the Datasets?](doc/assets/download.md) documentation for more details.
 
 As mentioned above, as the Census Bureau's API requires an API key, the population data for the years 2014-2020 has been
@@ -109,8 +109,7 @@ To map the Tracts geospatial data with their population size and land area, we m
 state-county-tract FIPS code. The population density was computed for every year as the population size divided by the 
 Tract land area.
 
-The features generated and provided pre-packaged in the 
-[dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) are :
+The features generated and provided pre-packaged in an AWS S3 bucket (which is publicly available) are :
 
 | Feature Name | Description                                                                                |
 |--------------|--------------------------------------------------------------------------------------------|

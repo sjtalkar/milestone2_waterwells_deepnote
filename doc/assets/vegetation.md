@@ -31,9 +31,8 @@ Central Coast dataset citation information
 The `VegetationDataset` class in the `/lib/vegetation.py` custom library is designed to load the vegetation geospatial
 datasets from the local `/assets/inputs/vegetation/` folder. If files are not found the data are downloaded from the
 [the USDA Forest Service data website](https://data.fs.usda.gov/geodata/edw/datasets.php?xmlKeyword=existing+vegetation)
-page. The custom vegetation cover-type-to-name mapping JSON file is downloaded from 
-[a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) where we provide additional files.
-Please refer to the
+page. The custom vegetation cover-type-to-name mapping JSON file is downloaded from an AWS S3 bucket (which is publicly 
+available) where we provide additional files. Please refer to the
 [How to Download the Datasets?](doc/assets/download.md) documentation for more details.
 
 The 2 datasets are ESRI geodatabases which can be downloaded from [the USDA Forest Service data website](https://data.fs.usda.gov/geodata/edw/datasets.php?xmlKeyword=existing+vegetation)

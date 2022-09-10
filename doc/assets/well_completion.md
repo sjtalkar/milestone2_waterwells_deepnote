@@ -26,9 +26,8 @@ completion report CSV datasets from the local `/assets/inputs/wellcompletion/` f
 completion reports data are automatically downloaded from the 
 [California Well Completion Reports](https://data.cnra.ca.gov/dataset/well-completion-reports) page, when running the 
 `/eda/well_completion.ipynb` notebook. The missing elevation data were downloaded using API but are provided 
-prepackaged in [a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data). These data are 
-also automatically downloaded. Please refer to the
-[How to Download the Datasets?](doc/assets/download.md) documentation for more details.
+prepackaged in an AWS S3 bucket (which is publicly available). These data are  also automatically downloaded. Please 
+refer to the [How to Download the Datasets?](doc/assets/download.md) documentation for more details.
 
 ### Original API download of elevation data
 The elevation data were collected using APIs from the 
@@ -61,8 +60,8 @@ def get_elevation_from_latlon(lat: float, lon: float) -> float:
 
 You can refer to the code in the `/lib/download.py` Python script for the code used to collect the elevation data and
 the corresponding [How to Download the Datasets?](doc/assets/download.md) documentation. These data are prepackaged and 
-provided to you in [a dedicated GitHub repository](https://github.com/mlnrt/milestone2_waterwells_data) we create to e
-ase the collection of the data and the repeatability of the analysis.
+provided to you in an AWS S3 bucket (which is publicly available) we created to ease the collection of the data and the 
+repeatability of the analysis.
 
 **Note:**
 The public dataset site offers 
