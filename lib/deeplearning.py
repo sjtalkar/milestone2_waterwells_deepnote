@@ -173,7 +173,7 @@ def create_transformation_pipelines(X: pd.DataFrame) -> Tuple[Pipeline, List[str
     cols_transformer = ColumnTransformer(
         transformers=[
             ("wcr", wcr_simple_trans, columns_to_transform["wcr"]),
-            ("veg", veg_soil_crops_trans, columns_to_transform["veg_soils_crops"]),
+            ("veg_soils_crops", veg_soil_crops_trans, columns_to_transform["veg_soils_crops"]),
             ("pop", pop_trans, columns_to_transform["pop"]),
             ("pct_capacity", pct_trans, columns_to_transform["pct"]),
             ("gse", gse_trans, columns_to_transform["gse"]),
@@ -274,15 +274,16 @@ def get_train_test_datasets(X: pd.DataFrame, target_variable: str, test_size: in
     return X_train, X_test, y_train, y_test, impute_pipeline, columns, target_scaler
 
 
-def get_data_for_prediction(X: pd.DataFrame, impute_pipeline: Pipeline) -> np.ndarray:
+def get_data_for_prediction(X: pd.DataFrame, impute_pipeline: Pipeline, impute_columns: List[str]) -> np.ndarray:
     """This function applies the impute pipeline transformation to the input pandas Dataframe and reshapes the dataset to
     3D (samples, time, features) numpy arrays.
 
     :param X: dataframe to be transformed
     :param impute_pipeline: the impute pipeline fit on the training dataset
+    :param impute_columns: the columns names in the order they are modified by the imputation pipeline
     :return: the transformed dataset as numpy array"""
     x_impute = impute_pipeline.transform(X)
-    x_impute_df = pd.DataFrame(x_impute, index=X.index, columns=X.columns)
+    x_impute_df = pd.DataFrame(x_impute, index=X.index, columns=impute_columns)
     x_impute_df.drop("2014", axis=0, level=1, inplace=True)
     x_impute_reshaped = reshape_data_to_3d([x_impute_df])[0]
     return x_impute_reshaped
