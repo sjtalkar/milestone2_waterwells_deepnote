@@ -55,7 +55,7 @@ def app():
             st.caption(f"Township-Ranges in San Joaquin river basin")
             st.caption(f"County: {county_selected}")
             st.markdown("""---""")
-            folium_static(new_y_pred_df.explore(cmap='twilight_r'))
+            folium_static(new_y_pred_df.explore(column='GSE_GWE', cmap='twilight_r'))
             st.markdown("""---""")
             #Streamlit cannot deal with geometry column
             new_df = new_y_pred_df.drop(columns=['geometry'])
