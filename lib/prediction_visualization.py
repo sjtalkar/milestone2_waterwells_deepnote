@@ -46,7 +46,7 @@ def get_predictions_df():
 
 
 
-def get_geo_prediction_df():
+def get_geo_prediction_df(prediction_file: str):
     """This function combines the predictions in the dataset for the year 2021 that was set aside with the geometry of the township ranges by county 
      
         :param None
@@ -56,9 +56,12 @@ def get_geo_prediction_df():
     county_tr_mapping = township_range.counties_and_trs_df
    
     # The path of this file is relative to the supervised_learning.py page
-    if os.path.exists("prediction_values.csv"):
-            y_pred_df = pd.read_csv("prediction_values.csv", dtype={ 'YEAR':str, 'XGBRegressor': np.float64, 'SVR':np.float64,
-                          'KNeighborsRegressor':np.float64, 'GradientBoostingRegressor':np.float64, 'CatBoostRegressor':np.float64}) 
+    if os.path.exists(prediction_file):
+        if prediction_file == "prediction_values.csv":
+            y_pred_df = pd.read_csv(prediction_file, dtype={ 'YEAR':str, 'XGBRegressor': np.float64, 'SVR':np.float64,
+                          'KNeighborsRegressor':np.float64, 'GradientBoostingRegressor':np.float64, 'CatBoostRegressor':np.float64})
+        if prediction_file == "lstm_prediction.csv":
+            y_pred_df = pd.read_csv(prediction_file, dtype={ 'YEAR':str, 'GSE_GWE': np.float64})
     else:
         y_pred_df = get_predictions_df()
     

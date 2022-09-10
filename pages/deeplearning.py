@@ -28,7 +28,6 @@ DataFolder = Path("./assets/")
 
 
 def app():
-
     """
         This function in this page is run when the page is invoked in the sidebar
     """
@@ -38,36 +37,28 @@ def app():
 
     # Project Proposal
     ###########################################
-    st.subheader("Supervised Learning", anchor="supervised_learning")
+    st.subheader("Deeplearning", anchor="deeplearning")
            
-    y_pred_df = get_geo_prediction_df("prediction_values.csv")
+    y_pred_df = get_geo_prediction_df("lstm_prediction.csv")
     counties_list = list(y_pred_df.COUNTY.unique())
-    model_list  = list(y_pred_df.columns[-6:])
            
     county_selected  = st.selectbox(
                         'Predict for county:',
                          ['All'] + counties_list)
-    model_selected  = st.selectbox(
-                        'Predict from model:',
-                         model_list)
     
     new_y_pred_df = y_pred_df.copy()
     if county_selected != 'All':
-        new_y_pred_df[model_selected] = np.where(new_y_pred_df['COUNTY'] != county_selected, 0, new_y_pred_df[model_selected])
-
+        new_y_pred_df = np.where(new_y_pred_df['COUNTY'] != county_selected, 0, new_y_pred_df)
     
     if st.button("Predict"):
-            st.subheader(f"Groundwater Depth Predictions From {model_selected}")
+            st.subheader(f"Groundwater Depth Predictions From LSTM")
             st.caption(f"Township-Ranges in San Joaquin river basin")
             st.caption(f"County: {county_selected}")
             st.markdown("""---""")
-            folium_static(new_y_pred_df.explore(column=model_selected, cmap='twilight_r'))
+            folium_static(new_y_pred_df.explore(cmap='twilight_r'))
             st.markdown("""---""")
             #Streamlit cannot deal with geometry column
             new_df = new_y_pred_df.drop(columns=['geometry'])
-            if model_selected == 'All':
-                st.dataframe(new_df[['COUNTY', 'TOWNSHIP_RANGE', 'YEAR', model_selected]])
-            else:    
-                st.dataframe(new_df.loc[new_y_pred_df['COUNTY'] == county_selected][['COUNTY', 'TOWNSHIP_RANGE', 'YEAR', model_selected]])
+            st.dataframe(new_df.loc[new_y_pred_df['COUNTY'] == county_selected][['COUNTY', 'TOWNSHIP_RANGE', 'YEAR', 'GSE_GWE']])
         
     st.markdown("""---""")
