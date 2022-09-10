@@ -39,7 +39,7 @@ def app():
     ###########################################
     st.subheader("Deeplearning", anchor="deeplearning")
            
-    y_pred_df = get_geo_prediction_df("lstm_prediction.csv")
+    y_pred_df = get_geo_prediction_df("lstm_predictions.csv")
     counties_list = list(y_pred_df.COUNTY.unique())
            
     county_selected  = st.selectbox(

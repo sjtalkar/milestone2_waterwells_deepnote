@@ -58,10 +58,10 @@ def get_geo_prediction_df(prediction_file: str):
     # The path of this file is relative to the supervised_learning.py page
     if os.path.exists(prediction_file):
         if prediction_file == "prediction_values.csv":
-            y_pred_df = pd.read_csv(prediction_file, dtype={ 'YEAR':str, 'XGBRegressor': np.float64, 'SVR':np.float64,
+            y_pred_df = pd.read_csv(prediction_file, dtype={'YEAR':str, 'XGBRegressor': np.float64, 'SVR':np.float64,
                           'KNeighborsRegressor':np.float64, 'GradientBoostingRegressor':np.float64, 'CatBoostRegressor':np.float64})
-        if prediction_file == "lstm_prediction.csv":
-            y_pred_df = pd.read_csv(prediction_file, dtype={ 'YEAR':str, 'GSE_GWE': np.float64})
+        if prediction_file == "lstm_predictions.csv":
+            y_pred_df = pd.read_csv(prediction_file, dtype={'YEAR': str, 'GSE_GWE': np.float64})
     else:
         y_pred_df = get_predictions_df()
     
