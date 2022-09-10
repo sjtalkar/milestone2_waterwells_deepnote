@@ -46,26 +46,47 @@ def get_predictions_df():
 
 
 
-def get_geo_prediction_df(prediction_file: str):
-    """This function combines the predictions in the dataset for the year 2021 that was set aside with the geometry of the township ranges by county 
+def get_geo_prediction_df():
+    """This function combines the predictions in the dataset for the year 2021 that was set aside with the geometry of
+    the township ranges by county
      
-        :param None
-        :output: a  dataframe with columns for COUNTY, Year = 2021, TOWNSHIP_RANGE and columns for the predictions from each of the models
+    :param None
+    :output: a  dataframe with columns for COUNTY, Year = 2021, TOWNSHIP_RANGE and columns for the predictions from
+    each of the models
     """
     township_range = TownshipRanges()
     county_tr_mapping = township_range.counties_and_trs_df
    
     # The path of this file is relative to the supervised_learning.py page
-    if os.path.exists(prediction_file):
-        if prediction_file == "prediction_values.csv":
-            y_pred_df = pd.read_csv(prediction_file, dtype={'YEAR':str, 'XGBRegressor': np.float64, 'SVR':np.float64,
-                          'KNeighborsRegressor':np.float64, 'GradientBoostingRegressor':np.float64, 'CatBoostRegressor':np.float64})
-        if prediction_file == "lstm_predictions.csv":
-            y_pred_df = pd.read_csv(prediction_file, dtype={'YEAR': str, 'GSE_GWE': np.float64})
+    if os.path.exists("prediction_values.csv"):
+        y_pred_df = pd.read_csv("prediction_values.csv", dtype={'YEAR':str, 'XGBRegressor': np.float64, 'SVR': np.float64,
+                    'KNeighborsRegressor': np.float64, 'GradientBoostingRegressor': np.float64,
+                    'CatBoostRegressor': np.float64})
     else:
         y_pred_df = get_predictions_df()
     
     y_pred_df = county_tr_mapping.merge(y_pred_df, left_on='TOWNSHIP_RANGE', right_on='TOWNSHIP_RANGE') 
+    return y_pred_df
+
+
+def get_lstm_prediction_df(file_name: str = "lstm_predictions.csv"):
+    """This function combines the LSTM predictions in the dataset for the year 2021 that was set aside with the geometry
+    of the township ranges by county
+
+    :param file_name: name of the file with the LSTM predictions
+    :output: a  dataframe with columns for COUNTY, Year = 2021, TOWNSHIP_RANGE and columns for the predictions from
+    each of the models
+    """
+    township_range = TownshipRanges()
+    county_tr_mapping = township_range.counties_and_trs_df
+
+    # The path of this file is relative to the supervised_learning.py page
+    if os.path.exists(file_name):
+        y_pred_df = pd.read_csv(file_name, dtype={'YEAR': str, 'GSE_GWE': np.float64})
+    else:
+        y_pred_df = pd.DataFrame()
+
+    y_pred_df = county_tr_mapping.merge(y_pred_df, left_on='TOWNSHIP_RANGE', right_on='TOWNSHIP_RANGE')
     return y_pred_df
 
 

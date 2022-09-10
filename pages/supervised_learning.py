@@ -40,7 +40,7 @@ def app():
     ###########################################
     st.subheader("Supervised Learning", anchor="supervised_learning")
            
-    y_pred_df = get_geo_prediction_df("prediction_values.csv")
+    y_pred_df = get_geo_prediction_df()
     counties_list = list(y_pred_df.COUNTY.unique())
     model_list  = list(y_pred_df.columns[-6:])
            

@@ -14,7 +14,7 @@ sys.path.append("..")
 
 from lib.multiapp import MultiPage
 from lib.page_functions import load_image, set_png_as_page_bg
-from lib.prediction_visualization import get_geo_prediction_df, draw_predictions_for_model
+from lib.prediction_visualization import get_lstm_prediction_df, draw_predictions_for_model
 
 
 DataFolder = Path("./assets/")
@@ -39,7 +39,7 @@ def app():
     ###########################################
     st.subheader("Deeplearning", anchor="deeplearning")
            
-    y_pred_df = get_geo_prediction_df("lstm_predictions.csv")
+    y_pred_df = get_lstm_prediction_df()
     counties_list = list(y_pred_df.COUNTY.unique())
            
     county_selected  = st.selectbox(
