@@ -58,7 +58,7 @@ class GroundwaterDataset(WsGeoDataset):
         :param min_year: the minimum year to keep.
         """
         # create simple year and month columns
-        self.data_df["MSMT_DATE"] = pd.to_datetime(self.data_df.msmt_date)
+        self.data_df["MSMT_DATE"] = pd.to_datetime(self.data_df.MSMT_DATE)
         self.data_df["YEAR"] = self.data_df["MSMT_DATE"].dt.year
         df = self.data_df.copy()
         df = df[df.YEAR >= min_year]
