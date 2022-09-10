@@ -58,15 +58,14 @@ class GroundwaterDataset(WsGeoDataset):
         :param min_year: the minimum year to keep.
         """
         # create simple year and month columns
-        self.data_df["msmt_date"] = pd.to_datetime(self.data_df.msmt_date)
-        self.data_df["YEAR"] = self.data_df["msmt_date"].dt.year
+        self.data_df["MSMT_DATE"] = pd.to_datetime(self.data_df.msmt_date)
+        self.data_df["YEAR"] = self.data_df["MSMT_DATE"].dt.year
         df = self.data_df.copy()
         df = df[df.YEAR >= min_year]
         df.drop(columns=["YEAR"], inplace=True)
         df.to_csv("../assets/inputs/groundwater/groundwater_short.csv")
-        self.data_df["MONTH"] = self.data_df["msmt_date"].dt.month
+        self.data_df["MONTH"] = self.data_df["MSMT_DATE"].dt.month
         # Retain only those records that have Groundwater measurements
-        self.data_df.rename(columns={"gse_gwe": "GSE_GWE", "site_code": "SITE_CODE"}, inplace=True)
         self.data_df = self.data_df[~self.data_df["GSE_GWE"].isnull()] # 2325741
         # drop the rows that have incorrect measurements that of 0 or less
         self.data_df = self.data_df[self.data_df["GSE_GWE"] > 0]
@@ -82,7 +81,7 @@ class GroundwaterDataset(WsGeoDataset):
     def preprocess_map_df(self, features_to_keep: List[str]):
         """This function keeps only the features in the features_to_keep list from the original geospatial data.
         :param features_to_keep: the list of features (columns) to keep."""
-        self.map_df.rename(columns={"county_name": "COUNTY", "site_code": "SITE_CODE"}, inplace=True)
+        self.map_df.rename(columns={"COUNTY_NAME": "COUNTY"}, inplace=True)
         self.map_df = self.map_df[features_to_keep]
 
 

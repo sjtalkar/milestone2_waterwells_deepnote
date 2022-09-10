@@ -610,7 +610,7 @@ def download_crops_datasets(input_geodir: str = "../assets/inputs/crops",
         print(f"Downloading the crops geospatial dataset '{dataset_name}'. Please wait...")
         download_and_extract_zip_file(url=url_base + url, extract_dir=os.path.join(input_geodir, dataset_name))
     print("Downloading the crops name-to-type mapping from GitHub repository. Please wait...")
-    url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/crops/crop_name_to_type_mapping.json"
+    url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/crops/crop_name_to_type_mapping.json"
     file_content = requests.get(url).text
     with open(crop_name_to_type_file, "w", encoding="utf-8") as f:
         f.write(file_content)
@@ -627,12 +627,9 @@ def download_groundwater_datasets(
     :param input_stations_file: the path where to store the stations dataset.
     """
     print("Downloading the groundwater measurements dataset. Please wait...")
-    os.makedirs(os.path.dirname(input_measurements_file), exist_ok=True)
-    measurements_url = "https://data.cnra.ca.gov/dataset/dd9b15f5-6d08-4d8c-bace-37dc761a9c08/resource/bfa9f262-24a1-" \
-                       "45bd-8dc8-138bc8107266/download/measurements.csv"
-    measurements_content = requests.get(measurements_url).text
-    with open(input_measurements_file, "w", encoding="utf-8") as f:
-        f.write(measurements_content)
+    measurements_url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/groundwater/" \
+                       "groundwater_measurements.zip"
+    download_and_extract_zip_file(url=measurements_url, extract_dir=os.path.dirname(input_measurements_file))
     print("Downloading the groundwater stations dataset. Please wait...")
     stations_url = "https://data.cnra.ca.gov/dataset/dd9b15f5-6d08-4d8c-bace-37dc761a9c08/resource/af157380-fb42-" \
                    "4abf-b72a-6f9f98868077/download/stations.csv"
@@ -652,7 +649,7 @@ def downoad_population_datasets(
     os.makedirs(os.path.dirname(input_datafile), exist_ok=True)
     print("Downloading the pre-packaged 2014-2020 California Census population estimates at the Tract level."
           " Please wait...")
-    url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/population/population.csv"
+    url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/population/population.csv"
     file_content = requests.get(url).text
     with open(input_datafile, "w", encoding="utf-8") as f:
         f.write(file_content)
@@ -671,12 +668,13 @@ def download_precipitation_datasets(
     """
     os.makedirs(os.path.dirname(input_datafile), exist_ok=True)
     print("Downloading the pre-packaged reservoir dataset. Please wait...")
-    url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/precipitation/precipitation_data.csv"
+    url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/precipitation/" \
+          "precipitation_data.csv"
     file_content = requests.get(url).text
     with open(input_datafile, "w", encoding="utf-8") as f:
         f.write(file_content)
     print("Downloading the geospatial data of the reservoir dataset. Please wait...")
-    tract_url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/precipitation/" \
+    tract_url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/precipitation/" \
                 "precipitation_map.zip"
     download_and_extract_zip_file(url=tract_url, extract_dir=os.path.dirname(input_stationfile))
 
@@ -691,12 +689,12 @@ def download_reservoir_datasets(
     """
     os.makedirs(os.path.dirname(input_datafile), exist_ok=True)
     print("Downloading the pre-packaged reservoir dataset. Please wait...")
-    url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/reservoir/reservoir_data.csv"
+    url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/reservoir/reservoir_data.csv"
     file_content = requests.get(url).text
     with open(input_datafile, "w", encoding="utf-8") as f:
         f.write(file_content)
     print("Downloading the geospatial data of the reservoir dataset. Please wait...")
-    tract_url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/reservoir/reservoir_map.zip"
+    tract_url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/reservoir/reservoir_map.zip"
     download_and_extract_zip_file(url=tract_url, extract_dir=os.path.dirname(input_stationfile))
 
 
@@ -724,12 +722,12 @@ def download_soils_datasets(input_geodir: str = "../assets/inputs/soils/map/",
     """
     os.makedirs(input_geodir, exist_ok=True)
     print("Downloading soil dataset from GitHub repository. Please wait...")
-    data_url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/soils/soil_data.csv"
+    data_url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/soils/soil_data.csv"
     datafile_content = requests.get(data_url).text
     with open(input_datafile, "w", encoding="utf-8") as f:
         f.write(datafile_content)
     print("Downloading soil geospatial dataset from GitHub repository. Please wait...")
-    geofile_baseurl = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/soils/map/"
+    geofile_baseurl = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/soils/map/"
     files_basename = "gsmsoilmu_a_ca."
     extensions = ["dbf", "prj", "shp", "shx"]
     for ext in extensions:
@@ -756,7 +754,7 @@ def download_vegetation_datasets(
         print(f"Downloading the vegetation geospatial dataset '{dataset_name}'. Please wait...")
         download_and_extract_zip_file(url=url, extract_dir=os.path.join(input_geodir, dataset_name))
     print("Downloading the vegetation cover-type-to-name mapping from GitHub repository. Please wait...")
-    url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/vegetation/" \
+    url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/vegetation/" \
           "saf_cover_type_mapping.json"
     file_content = requests.get(url).text
     with open(cover_type_mapping, "w", encoding="utf-8") as f:
@@ -790,7 +788,7 @@ def download_etl_outputs(etl_outputs_dir: str = "../assets/outputs/") -> None:
 
     :param etl_outputs_dir: the path where to store the outputs files of the ETL process"""
     print("Downloading the outputs of the ETL process. Please wait...")
-    etl_outputs_url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/etl/etl_outputs.zip"
+    etl_outputs_url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/etl/etl_outputs.zip"
     download_and_extract_zip_file(url=etl_outputs_url, extract_dir=etl_outputs_dir)
 
 
@@ -799,7 +797,7 @@ def download_hyperparameter_tuning_results(hpt_results_file: str = "../assets/tu
 
     :param hpt_results_file: the file name where to store the results of the  hyperparameter tuning analysis"""
     print("Downloading the results of the  hyperparameter tuning analysis. Please wait...")
-    hpt_url = "https://raw.githubusercontent.com/mlnrt/milestone2_waterwells_data/main/ml/hpt_results.csv"
+    hpt_url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/ml/hpt_results.csv"
     file_content = requests.get(hpt_url).text
     os.makedirs(os.path.dirname(hpt_results_file), exist_ok=True)
     with open(hpt_results_file, "w", encoding="utf-8") as f:
