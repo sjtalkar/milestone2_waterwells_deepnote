@@ -81,6 +81,8 @@ def get_lstm_prediction_df(file_name: str = "./pages/lstm_predictions.csv"):
     county_tr_mapping = township_range.counties_and_trs_df
 
     # The path of this file is relative to the supervised_learning.py page
+    print(os.path.dirname(os.path.realpath(__file__)))
+    print(os.path.exists(file_name))
     if os.path.exists(file_name):
         y_pred_df = pd.read_csv(file_name, dtype={'YEAR': str, 'GSE_GWE': np.float64})
     else:
