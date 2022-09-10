@@ -80,7 +80,13 @@ def get_lstm_prediction_df(file_name: str = "lstm_predictions.csv"):
     township_range = TownshipRanges()
     county_tr_mapping = township_range.counties_and_trs_df
 
-    y_pred_df = pd.read_csv(file_name, dtype={'YEAR': str, 'GSE_GWE': np.float64})
+    try:
+        y_pred_df = pd.read_csv(file_name, dtype={'YEAR': str, 'GSE_GWE': np.float64})
+    except:
+        try:
+            y_pred_df = pd.read_csv("./lstm_predictions.csv", dtype={'YEAR': str, 'GSE_GWE': np.float64})
+        except:
+            y_pred_df = pd.read_csv("./pages/lstm_predictions.csv", dtype={'YEAR': str, 'GSE_GWE': np.float64})
 
     y_pred_df = county_tr_mapping.merge(y_pred_df, left_on='TOWNSHIP_RANGE', right_on='TOWNSHIP_RANGE')
     return y_pred_df
