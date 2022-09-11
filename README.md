@@ -34,6 +34,20 @@ This repository is organized following the below folder structure:
 * __lib__ - contains the code for the custom libraries developed to load, perform etl and output all the datasets
 * __doc__ - contains the detailed documentation organized per category (see the Table of Contents below)
 
+## Python Environment
+The project uses multiple libraries, some having tricky dependencies and requirements, especially on Windows. To
+facilitate the setup of the environment, on top of the requirements.txt listing the version of packages used, we
+recommend to run the below script to create a conda environment with all the required packages and their dependencies.
+```
+conda create -n sjv-groundwater -y python=3.9
+conda activate sjv-groundwater
+conda install -y jupyter
+conda install -c conda-forge -y fiona==1.8.21 altair==4.2.0 beautifulsoup4==4.10.0 geopandas==0.10.2 pygeos==0.12.0 numpy==1.21.5 pandas==1.3.5 ipywidgets==7.7.0 lxml==4.8.0 mapclassify==2.4.3 matplotlib==3.5.2 pillow==9.1.0 plotly==4.4.1 requests==2.27.1 scikit-learn==0.24.2 tqdm==4.64.0 seaborn==0.11.2 xgboost==1.6.2 catboost==1.0.6 shap==0.41.0 
+pip install gpdvega==0.1.1rc1 graphviz==0.19.2 
+pip install tensorflow==2.9.1 keras-tuner==1.1.2
+```
+Note: Streamlit is not included in the above script as it is not required to run the notebooks. 
+
 ## Documentation Table of Contents
 * Datasets
   * [Credits and List of Dataset Sources](doc/assets/credits.md)
