@@ -1111,7 +1111,7 @@ def chart_depth_diff_error(error_df: pd.DataFrame, full_df: pd.DataFrame) -> alt
 
 
 def draw_hyperparameters_distribution(df: pd.DataFrame, hyperparam_list: List[str] = None,
-                                      max_rmse: int = 160, legend_y_pos: int = 400) -> alt.Chart:
+                                      max_rmse: int = 180, legend_y_pos: int = 400) -> alt.Chart:
     """ This function draws the distribution of the rmse for all trained models and all hyperparameter values
 
     :param df: Dataframe with the hyperparameters and the rmse
