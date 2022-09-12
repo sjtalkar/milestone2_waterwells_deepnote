@@ -59,7 +59,7 @@ def get_geo_prediction_df():
    
     # The path of this file is relative to the supervised_learning.py page
     if os.path.exists("./pages/prediction_values.csv"):
-        y_pred_df = pd.read_csv(".pages/prediction_values.csv", dtype={'YEAR':str, 'XGBRegressor': np.float64, 'SVR': np.float64,
+        y_pred_df = pd.read_csv("./pages/prediction_values.csv", dtype={'YEAR':str, 'XGBRegressor': np.float64, 'SVR': np.float64,
                     'KNeighborsRegressor': np.float64, 'GradientBoostingRegressor': np.float64,
                     'CatBoostRegressor': np.float64})
     else:
