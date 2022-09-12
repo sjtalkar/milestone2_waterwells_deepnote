@@ -76,7 +76,7 @@ def get_evaluation_error_metrics():
     :param : None
     :output : dataframe containing evaluation metrics
     """
-    if os.path.exists('./pages/test_set_model_evaluation.csv')
+    if os.path.exists('./pages/test_set_model_evaluation.csv'):
         return pd.read_csv('./pages/test_set_model_evaluation.csv')
     else:
         return pd.DataFrame()
