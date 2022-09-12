@@ -58,8 +58,8 @@ def get_geo_prediction_df():
     county_tr_mapping = township_range.counties_and_trs_df
    
     # The path of this file is relative to the supervised_learning.py page
-    if os.path.exists("prediction_values.csv"):
-        y_pred_df = pd.read_csv("prediction_values.csv", dtype={'YEAR':str, 'XGBRegressor': np.float64, 'SVR': np.float64,
+    if os.path.exists("./pages/prediction_values.csv"):
+        y_pred_df = pd.read_csv(".pages/prediction_values.csv", dtype={'YEAR':str, 'XGBRegressor': np.float64, 'SVR': np.float64,
                     'KNeighborsRegressor': np.float64, 'GradientBoostingRegressor': np.float64,
                     'CatBoostRegressor': np.float64})
     else:
@@ -86,7 +86,7 @@ def get_lstm_prediction_df(file_name: str = "./pages/lstm_predictions.csv"):
     return y_pred_df
 
 
-### Streamlit has an issue with handling geomtery columns and so this function was not used and instead folium was used.
+### Streamlit has an issue with handling geometry columns and so this function was not used and instead folium was used.
 def draw_predictions_for_model(gdf:gpd.GeoDataFrame, model_name: str,county_name:str='All'):
     """
         This function takes in a county (or all counties) and will visualize predictions 
