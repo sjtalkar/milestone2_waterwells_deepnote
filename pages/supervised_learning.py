@@ -14,7 +14,7 @@ sys.path.append("..")
 
 from lib.multiapp import MultiPage
 from lib.page_functions import load_image, set_png_as_page_bg
-from lib.prediction_visualization import get_geo_prediction_df, draw_predictions_for_model
+from lib.prediction_visualization import get_geo_prediction_df, draw_predictions_for_model, get_evaluation_error_metrics
 
 
 DataFolder = Path("./assets/")
@@ -60,6 +60,7 @@ def app():
             st.subheader(f"Groundwater Depth Predictions From {model_selected}")
             st.caption(f"Township-Ranges in San Joaquin river basin")
             st.caption(f"County: {county_selected}")
+            st.caption(f"The prediction values are not absolute. The error metrics for each of the models is tabulated below.")
             st.markdown("""---""")
             folium_static(new_y_pred_df.explore(column=model_selected, cmap='twilight_r'))
             st.markdown("""---""")
@@ -71,3 +72,6 @@ def app():
                 st.dataframe(new_df.loc[new_y_pred_df['COUNTY'] == county_selected][['COUNTY', 'TOWNSHIP_RANGE', 'YEAR', model_selected]])
         
     st.markdown("""---""")
+    st.subheader("Error metrics: Evaluation of model on test set")
+    error_eval_df = get_evaluation_error_metrics()
+    st.dataframe(error_eval_df)  

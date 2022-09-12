@@ -68,6 +68,19 @@ def get_geo_prediction_df():
     y_pred_df = county_tr_mapping.merge(y_pred_df, left_on='TOWNSHIP_RANGE', right_on='TOWNSHIP_RANGE') 
     return y_pred_df
 
+def get_evaluation_error_metrics():
+    """
+    This function returns the error metrics from evaluating models on test set. The data was saved in 
+    the file that will be read.
+
+    :param : None
+    :output : dataframe containing evaluation metrics
+    """
+    if os.path.exists("./pages/test_set_model_evaluation.csv"):
+        return pd.read_csv("./pages/test_set_model_evaluation.csv")
+
+    return pd.Dataframe()
+
 
 def get_lstm_prediction_df(file_name: str = "./pages/lstm_predictions.csv"):
     """This function combines the LSTM predictions in the dataset for the year 2021 that was set aside with the geometry
