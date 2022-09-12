@@ -65,7 +65,7 @@ def app():
             st.markdown("""---""")
             #Streamlit cannot deal with geometry column
             new_df = new_y_pred_df.drop(columns=['geometry'])
-            if model_selected == 'All':
+            if county_selected == 'All':
                 st.dataframe(new_df[['COUNTY', 'TOWNSHIP_RANGE', 'YEAR', model_selected]])
             else:    
                 st.dataframe(new_df.loc[new_y_pred_df['COUNTY'] == county_selected][['COUNTY', 'TOWNSHIP_RANGE', 'YEAR', model_selected]])
