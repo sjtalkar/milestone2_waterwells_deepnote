@@ -76,10 +76,10 @@ def get_evaluation_error_metrics():
     :param : None
     :output : dataframe containing evaluation metrics
     """
-    if os.path.exists("./pages/test_set_model_evaluation.csv"):
-        return pd.read_csv("./pages/test_set_model_evaluation.csv")
-
-    return pd.Dataframe()
+    if os.path.exists('./pages/test_set_model_evaluation.csv')
+        return pd.read_csv('./pages/test_set_model_evaluation.csv')
+    else:
+        return pd.DataFrame()
 
 
 def get_lstm_prediction_df(file_name: str = "./pages/lstm_predictions.csv"):
