@@ -1,0 +1,7 @@
+Model Name,Mean Absolute Error,Mean Squared Error,R^2,RMSE
+SVR,29.1754,2046.5795,0.8779,45.2391
+GradientBoostingRegressor,32.5584,2435.5293,0.8547,49.3511
+RandomForestRegressor,30.9034,2567.8967,0.8468,50.6744
+CatBoostRegressor,31.6958,2793.4808,0.8334,52.8534
+XGBRegressor,31.9311,2896.8935,0.8272,53.8228
+KNeighborsRegressor,54.9149,5785.1928,0.655,76.0605
