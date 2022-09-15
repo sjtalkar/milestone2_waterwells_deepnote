@@ -27,6 +27,7 @@ This repository is organized following the below folder structure:
     dataset is the one used in the data analysis itself
   * __train_test__ contains the datasets used for training and testing the model
   * __models__ contains the artifacts of the trained models
+  * __tuning__ contains a dataset of 33,345 trained LSTM models' hyperparameters and RMSE value
 * __eda__ - contains notebooks of the early exploratory data analysis and ETL. There is one notebook per dataset topic, e.g.
   * __crops.ipynb__ - fo the exploration of the crops dataset
   * __population.ipynb__ - for the exploration of the population density dataset
