@@ -346,7 +346,7 @@ def simple_geodata_viz(gdf: gpd.GeoDataFrame, feature: str, title: str, year: in
         # If we want to reserve a color for error values we reduce the number of features by one
         if color_scheme == "sjv_with_error":
             nb_features -= 1
-        if area_df[feature].dtype == 'object' and 2 < nb_features < len(sjv_color_range_17):
+        if area_df[feature].dtype == "object" and 2 < nb_features < len(sjv_color_range_17):
             color_range = sjv_color_range_17[0::len(sjv_color_range_17)//(nb_features-1)]
             color_range[-1] = sjv_brown
             # If we want to reserve a color for error we add the error color at teh beginning
@@ -357,7 +357,7 @@ def simple_geodata_viz(gdf: gpd.GeoDataFrame, feature: str, title: str, year: in
     else:
         color_scale = alt.Scale(scheme=color_scheme)
     # Set the feature type
-    if area_df[feature].dtype == 'object':
+    if area_df[feature].dtype == "object":
         feature = f"{feature}:N"
     else:
         feature = f"{feature}:Q"
@@ -406,7 +406,7 @@ def view_trs_side_by_side(gdf: gpd.GeoDataFrame, feature: str, value: str, title
     area_df = gdf.copy()
     if "points" in list(area_df.columns):
         area_df.drop(columns=['points'], inplace=True)
-    if area_df[feature].dtype != str:
+    if area_df[feature].dtype != "object":
         area_df[feature] = area_df[feature].astype(str)
     tooltip_columns = list(set(area_df.columns) - {"geometry", "points"})
     # Set the color scale depending on the parameters
@@ -417,22 +417,22 @@ def view_trs_side_by_side(gdf: gpd.GeoDataFrame, feature: str, value: str, title
         # If we want to reserve a color for error values we reduce the number of features by one
         if color_scheme == "sjv_with_error":
             nb_values -= 1
-        if area_df[value].dtype == 'object' and 2 < nb_values < len(sjv_color_range_17):
+        if area_df[value].dtype == "object" and 2 < nb_values < len(sjv_color_range_17):
             color_range = sjv_color_range_17[0::len(sjv_color_range_17)//(nb_values-1)]
             color_range[-1] = sjv_brown
-            # If we want to reserve a color for error we add the error color at teh beginning
+            # If we want to reserve a color for error we add the error color at the beginning
             # Negative values are error values
             if color_scheme == "sjv_with_error":
                 color_range = [sjv_error] + color_range
         if reverse_palette:
             color_scale = alt.Scale(range=reversed(color_range))
         else:
-            color_scale = alt.Scale(range=[sjv_blue, sjv_brown])
+            color_scale = alt.Scale(range=color_range)
     else:
         color_scale = alt.Scale(scheme=color_scheme)
     # Set the feature type
     feature_name = value
-    if area_df[value].dtype == 'object':
+    if area_df[value].dtype == "object":
         value = f"{value}:N"
     else:
         value = f"{value}:Q"

@@ -17,8 +17,8 @@ Example of such multi-variate multi time-series:
 
 ![Multi-Variate Multi TImes-Series Predictions with LSTM - Training and Prediction](../images/lstm_inputs_outputs.jpg)
 
-In our case, the dataset is made of 478 Township-Ranges, each containing a multi-variate (81 features) time-series 
-(data between 2014 to 2021) resulting in a dataset of $478 TownshipRanges * 8 time stamps * 81 features$
+In our case, the dataset is made of 478 Township-Ranges, each containing a multi-variate (80 features) time-series 
+(data between 2014 to 2021) resulting in a dataset of $478 TownshipRanges * 8 time stamps * 80 features$
 
 The objective is to predict the 2022 target value of `GSE_GWE` (Ground Surface Elevation to Groundwater Water Elevation 
 - Depth to groundwater elevation in feet below ground surface) for each Township-Range.
