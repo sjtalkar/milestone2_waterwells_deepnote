@@ -47,9 +47,23 @@ def create_over_under_pred(model, y_pred, explainer, X_test_impute_df):
     over_prediction_shap_values = explainer.shap_values(over_prediction)
 
     print(f"Model : {regressor_name} under prediction")
-    plot = shap.force_plot(explainer.expected_value, under_prediction_shap_values, under_prediction_shap_values, feature_names=X_test_impute_df.columns)
+    plot = shap.force_plot(explainer.expected_value, under_prediction_shap_values, feature_names=X_test_impute_df.columns)
     shap_deepnote_show(plot)
 
-    print(f"Model : {regressor_name} under prediction")
-    plot = shap.force_plot(explainer.expected_value, over_prediction_shap_values, over_prediction_shap_values, feature_names=X_test_impute_df.columns)
+    print(f"Model : {regressor_name} over prediction")
+    plot = shap.force_plot(explainer.expected_value, over_prediction_shap_values, feature_names=X_test_impute_df.columns)
     shap_deepnote_show(plot)
+
+def create_over_under_pred_multiple_samples(model, y_pred, explainer, X_test_impute_df, num_samples):
+        under_prediction_values  =  X_test_impute_df.loc[y_pred.index.get_level_values(0)[0:num_samples]].values
+        over_prediction_values  =  X_test_impute_df.loc[y_pred.index.get_level_values(0)[-num_samples:]].values
+        under_prediction_shap_values = explainer.shap_values(under_prediction_values)
+        over_prediction_shap_values = explainer.shap_values(over_prediction_values)
+
+        print(f"Model : {regressor_name} under prediction")
+        plot = shap.force_plot(explainer.expected_value, under_prediction_shap_values, feature_names=X_test_impute_df.columns)
+        shap_deepnote_show(plot)
+
+        print(f"Model : {regressor_name} over prediction")
+        plot = shap.force_plot(explainer.expected_value, over_prediction_shap_values, feature_names=X_test_impute_df.columns)
+        shap_deepnote_show(plot)
