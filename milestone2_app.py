@@ -30,7 +30,6 @@ app = MultiPage()
 
 #Every page is a py file and has a function app()
 app.add_page("Motivation", motivation.app)
-app.add_page("Project Proposal", project_proposal.app)
 app.add_page("Datasets", datasets.app)
 app.add_page("Supervised Learning", supervised_learning.app)
 app.add_page("Unsupervised Learning", unsupervised_learning.app)
