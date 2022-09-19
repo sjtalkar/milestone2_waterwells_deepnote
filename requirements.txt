@@ -24,5 +24,3 @@ xgboost==1.6.2
 catboost==1.0.6
 shap==0.41.0
 streamlit-folium==0.6.15
-Cython==0.29.32
-
