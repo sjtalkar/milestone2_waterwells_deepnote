@@ -37,17 +37,34 @@ This repository is organized following the below folder structure:
 
 ## Python Environment
 The project uses multiple libraries, some having tricky dependencies and requirements, especially on Windows. To
-facilitate the setup of the environment, on top of the requirements.txt listing the version of packages used, we
+facilitate the setup of the environment, in place of the requirements.txt listing the version of packages used, we
 recommend to run the below script to create a conda environment with all the required packages and their dependencies.
 ```
 conda create -n sjv-groundwater -y python=3.9
 conda activate sjv-groundwater
-conda install -y jupyter
-conda install -c conda-forge -y fiona==1.8.21 altair==4.2.0 beautifulsoup4==4.10.0 geopandas==0.10.2 pygeos==0.12.0 numpy==1.21.5 pandas==1.3.5 ipywidgets==7.7.0 lxml==4.8.0 mapclassify==2.4.3 matplotlib==3.5.2 pillow==9.1.0 plotly==4.4.1 requests==2.27.1 scikit-learn==0.24.2 tqdm==4.64.0 seaborn==0.11.2 xgboost==1.6.2 catboost==1.0.6 shap==0.41.0 
+conda install -c conda-forge -y jupyter==1.0.0 fiona==1.8.21 altair==4.2.0 beautifulsoup4==4.10.0 geopandas==0.10.2 pygeos==0.12.0 numpy==1.21.5 pandas==1.3.5 ipywidgets==7.7.0 lxml==4.8.0 mapclassify==2.4.3 matplotlib==3.5.2 pillow==9.1.0 plotly==4.4.1 requests==2.27.1 scikit-learn==0.24.2 tqdm==4.64.0 seaborn==0.11.2 xgboost==1.6.2 catboost==1.0.6 shap==0.41.0 hdf5==1.12.2 
 pip install gpdvega==0.1.1rc1 graphviz==0.19.2 
 pip install tensorflow==2.9.1 keras-tuner==1.1.2
 ```
 Note: Streamlit is not included in the above script as it is not required to run the notebooks. 
+
+Warning for Windows users: If in Windows you run into one of the below error message when running one of the jupyter notebooks
+```
+AttributeError: partially initialized module 'fiona' has no attribute '_loading' (most likely due to a circular import)
+```
+or
+```
+ImportError: DLL load failed while importing orgext: The specified module could not be found.
+```
+
+You might want to look into [this Fiona GitHub issue](https://github.com/Toblerity/Fiona/issues/944). But based on our 
+experience, none of the solutions mentioned in that thread solved the problem. The issue seems to be related to the GDAL
+library installation and the Conda and Windows environment. The solution that worked of us was the following:
+1. Make sure that on top of Anaconda you have no other Python installation. If so uninstall them.
+2. Uninstall Anaconda 3
+3. Reinstall Anaconda 3 with the options "Add Anaconda to my PATH environment variable" and "Register Anaconda as my 
+default Python 3.9"
+4. Run the above script to create the conda environment
 
 ## Documentation Table of Contents
 * Datasets
