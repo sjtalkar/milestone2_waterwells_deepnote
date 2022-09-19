@@ -35,7 +35,33 @@ This repository is organized following the below folder structure:
 * __lib__ - contains the code for the custom libraries developed to load, perform etl and output all the datasets
 * __doc__ - contains the detailed documentation organized per category (see the Table of Contents below)
 
-## Python Environment
+## Documentation Table of Contents
+* [Python Environment Configuration (see below)](#python-environment-configuration)
+* Datasets
+  * [Credits and List of Dataset Sources](doc/assets/credits.md)
+  * [How to Download the Datasets?](doc/assets/download.md) 
+  * [The Crops Dataset](doc/assets/crops.md)
+  * [The Groundwater Dataset](doc/assets/groundwater.md)
+  * [The Population Dataset](doc/assets/population.md)
+  * [The Precipitation Dataset](doc/assets/precipitation.md)
+  * [The Water Reservoir Dataset](doc/assets/reservoir.md)
+  * [The Water Shortage Reports Dataset](doc/assets/shortage.md)
+  * [The Soils Dataset](doc/assets/soils.md)
+  * [The Vegetation Dataset](doc/assets/vegetation.md)
+  * [The Well Completion Reports Dataset](doc/assets/well_completion.md)
+* Custom Libraries
+  * [The WsGeoDataset Class](doc/etl/wsgeodataset.md)
+* ETL operations
+  * [Overlaying San Joaquin Valley Township-Range Boundaries](doc/etl/township_overlay.md)
+  * [Squaring San Joaquin Valley Township-Ranges](doc/etl/squaring_townships.md)
+  * [Dropping Rare Township Features](doc/etl/drop_rare_features.md)
+  * [Transforming Point Values into Township-Range Values](doc/etl/from_point_to_region_values.md)
+* Machine Learning & Deep Learning
+  * [Multi-Variate Multi Time-Series Predictions with LSTM](doc/ml/multivariate_multi_timeseries.md)
+  * [How to use the Deep Learning Notebooks?](doc/ml/deeplearning.md)
+  * [Explainability](doc/ml/explainability_through_shapely.md)
+
+## Python Environment Configuration
 The project uses multiple libraries, some having tricky dependencies and requirements, especially on Windows. To
 facilitate the setup of the environment, in place of the requirements.txt listing the version of packages used, we
 recommend to run the below script to create a conda environment with all the required packages and their dependencies.
@@ -65,28 +91,3 @@ library installation and the Conda and Windows environment. The solution that wo
 3. Reinstall Anaconda 3 with the options "Add Anaconda to my PATH environment variable" and "Register Anaconda as my 
 default Python 3.9"
 4. Run the above script to create the conda environment
-
-## Documentation Table of Contents
-* Datasets
-  * [Credits and List of Dataset Sources](doc/assets/credits.md)
-  * [How to Download the Datasets?](doc/assets/download.md) 
-  * [The Crops Dataset](doc/assets/crops.md)
-  * [The Groundwater Dataset](doc/assets/groundwater.md)
-  * [The Population Dataset](doc/assets/population.md)
-  * [The Precipitation Dataset](doc/assets/precipitation.md)
-  * [The Water Reservoir Dataset](doc/assets/reservoir.md)
-  * [The Water Shortage Reports Dataset](doc/assets/shortage.md)
-  * [The Soils Dataset](doc/assets/soils.md)
-  * [The Vegetation Dataset](doc/assets/vegetation.md)
-  * [The Well Completion Reports Dataset](doc/assets/well_completion.md)
-* Custom Libraries
-  * [The WsGeoDataset Class](doc/etl/wsgeodataset.md)
-* ETL operations
-  * [Overlaying San Joaquin Valley Township-Range Boundaries](doc/etl/township_overlay.md)
-  * [Squaring San Joaquin Valley Township-Ranges](doc/etl/squaring_townships.md)
-  * [Dropping Rare Township Features](doc/etl/drop_rare_features.md)
-  * [Transforming Point Values into Township-Range Values](doc/etl/from_point_to_region_values.md)
-* Machine Learning & Deep Learning
-  * [Multi-Variate Multi Time-Series Predictions with LSTM](doc/ml/multivariate_multi_timeseries.md)
-  * [How to use the Deep Learning Notebooks?](doc/ml/deeplearning.md)
-  * [Explainability](doc/ml/explainability_through_shapely.md)
