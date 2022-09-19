@@ -17,7 +17,7 @@ sys.path.append('..')
 from lib.multiapp import MultiPage
 from lib.page_functions import load_image
 
-from pages import motivation, datasets, supervised_learning, unsupervised_learning, project_proposal, deeplearning
+from pages import motivation, datasets, supervised_learning, unsupervised_learning, deeplearning
 
 DataFolder = Path("./assets/")
 
