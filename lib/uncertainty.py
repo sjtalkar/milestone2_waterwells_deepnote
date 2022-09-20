@@ -103,8 +103,15 @@ class GradientBoostingPredictionIntervals(BaseEstimator):
 
         return predictions
 
-def create_prediction_uncertainty_gbr():
-    RANDOM_SEED = 42
+def create_prediction_uncertainty_gbr(lower_alpha:int=0.05,  upper_alpha:int= 0.95, random_seed:int=42):
+    """
+        This function creates three models for predictions, for three quantiles, lower quantile, default = 0.05, median = 0.50
+        and upper quantile = 0.95  
+        :param lower_alpha: lower quantile for prediction, default=0.05
+        :param upper_alpha: upper quantile for prediction, default=0.95
+        :param random_seed: random seed for consistency
+    """
+    
     data_dir = "../assets/train_test_target_shifted/"
     train_test_dict_file_name = "train_test_dict_target_shifted.pickle"
     X_train_df_file_name = "X_train_impute_target_shifted_df.pkl"
@@ -122,14 +129,15 @@ def create_prediction_uncertainty_gbr():
 
     y_train = y_train_df['GSE_GWE_SHIFTED'].values.ravel()
 
-    gbr = GradientBoostingPredictionIntervals(lower_alpha = 0.05,
-                                            upper_alpha = 0.95,
+    # The parameters are results of hypertuning using RandomSearchCV
+    gbr = GradientBoostingPredictionIntervals(lower_alpha = lower_alpha,
+                                            upper_alpha = upper_alpha,
                                             n_estimators = 200,
                                             min_samples_split = 20,
                                             min_samples_leaf=10,
                                             max_depth=2,
                                             learning_rate=0.05,
-                                            random_state = RANDOM_SEED)
+                                            random_state = random_seed)
     gbr.fit(X_train_impute, y_train)
     y_pred_df = gbr.predict(X_pred_impute, y_pred_df)  
     township_range = TownshipRanges()
@@ -140,8 +148,16 @@ def create_prediction_uncertainty_gbr():
     return y_pred_df
 
 
-def create_prediction_uncertainty_qrf():
-    RANDOM_SEED = 42
+def create_prediction_uncertainty_qrf(lower_alpha:int=0.05,  upper_alpha:int= 0.95, random_seed:int=42):
+    """
+        This function creates predictions for three quantiles, lower quantile, default = 0.05, median = 0.50
+        and upper quantile = 0.95  
+        :param lower_alpha: lower quantile for prediction, default=0.05
+        :param upper_alpha: upper quantile for prediction, default=0.95
+        :param random_seed: random seed for consistency
+    """
+      
+
     data_dir = "../assets/train_test_target_shifted/"
     train_test_dict_file_name = "train_test_dict_target_shifted.pickle"
     X_train_df_file_name = "X_train_impute_target_shifted_df.pkl"
@@ -158,10 +174,11 @@ def create_prediction_uncertainty_qrf():
 
     y_train = y_train_df['GSE_GWE_SHIFTED'].values.ravel()
 
-    qrf = RandomForestPredictionIntervals(q=[0.05, 0.50, 0.95],
+    # The parameters are results of hypertuning using RandomSearchCV
+    qrf = RandomForestPredictionIntervals(q=[lower_alpha, 0.50, upper_alpha],
                                          n_estimators=150,
                                          max_depth = 5, 
-                                         random_state = RANDOM_SEED)
+                                         random_state = random_seed)
    
 
     qrf.fit(X_train_impute, y_train)
