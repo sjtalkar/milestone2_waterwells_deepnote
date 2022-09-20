@@ -18,3 +18,5 @@
 - [Froeschke, B., Jones, L. and Garman, B. (2020). Spatio-temporal Models of Juvenile and Adult Sheepshead (Archosargus probatocephalus) in Tampa Bay, Florida from 1996 to 2016. Gulf and Caribbean Research, 31(1): 8 – 17.](https://doi.org/10.18785/gcr.3101.04)
 - [A unified approach to Interpreting Model Predictions](https://proceedings.neurips.cc/paper/2017/file/8a20a8621978632d76c43dfd28b67767-Paper.pdf)
 - [Practical Time Series Analysis](https://www.oreilly.com/library/view/practical-time-series/9781492041641/)
+- [Visualizing Geospatial Information Uncertainty:What We Know and What We Need to Know](https://www-tandfonline-com.proxy.lib.umich.edu/doi/pdf/10.1559/1523040054738936?needAccess=true)
+]
