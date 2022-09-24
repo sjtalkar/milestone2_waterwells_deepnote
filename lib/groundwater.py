@@ -27,8 +27,8 @@ class GroundwaterDataset(WsGeoDataset):
         :param input_stations_file: the path to the stations dataset.
         """
         print("Loading local datasets. Please wait...")
-        WsGeoDataset.__init__(self, input_geofiles=[], input_datafile=input_measurements_file,
-                              merging_keys=["SITE_CODE", "SITE_CODE"])
+        super().__init__(input_geofiles=[], input_datafile=input_measurements_file,
+                         merging_keys=["SITE_CODE", "SITE_CODE"])
         # Initializes the Geospatial map_df dataset based on the LATITUDE & LONGITUDE features of the
         # groundwater_stations dataset
         groundwaterstations_df = pd.read_csv(input_stations_file)

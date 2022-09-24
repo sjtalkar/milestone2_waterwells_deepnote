@@ -12,10 +12,8 @@ from lib.download import download_well_completion_datasets
 
 class WellCompletionReportsDataset(WsGeoDataset):
     """This class loads, processes and exports the Well Completion Reports dataset"""
-    def __init__(self,
-                 input_datafile: str = "../assets/inputs/wellcompletion/wellcompletion.csv",
-                 elevation_datadir: str = "../assets/inputs/wellcompletion/elevation_data/",
-                 ):
+    def __init__(self, input_datafile: str = "../assets/inputs/wellcompletion/wellcompletion.csv",
+                 elevation_datadir: str = "../assets/inputs/wellcompletion/elevation_data/"):
         try:
             self._load_local_datasets(input_datafile, elevation_datadir)
         except (FileNotFoundError, DriverError):
@@ -29,7 +27,7 @@ class WellCompletionReportsDataset(WsGeoDataset):
         :param elevation_datadir: the path to the elevation data directory
         """
         print("Loading local datasets. Please wait...")
-        WsGeoDataset.__init__(self, input_geofiles=[], input_datafile="")
+        super().__init__(input_geofiles=[], input_datafile="")
         self.elevation_df = self._get_missing_elevation(elevation_datadir)
         wcr_df = self._load_wcr_data(wcr_datafile=input_datafile)
         self.map_df = gpd.GeoDataFrame(

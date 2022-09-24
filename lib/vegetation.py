@@ -33,7 +33,7 @@ class VegetationDataset(WsGeoDataset):
             raise FileNotFoundError("No vegetation geospatial datasets found in the input directory.")
         for vegetation_subdir in vegetation_subdir_list:
             input_geofiles.append(os.path.join(input_geodir, vegetation_subdir, "a00000009.gdbtable"))
-        WsGeoDataset.__init__(self, input_geofiles=input_geofiles)
+        super().__init__(input_geofiles=input_geofiles)
         with open(saf_cover_type_file) as f:
             self.saf_cover_type_mapping = json.load(f)
         print("Loading of datasets complete.")

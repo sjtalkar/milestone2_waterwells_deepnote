@@ -14,14 +14,14 @@ class SoilsDataset(WsGeoDataset):
                  input_datafile: str = "../assets/inputs/soils/soil_data.csv"):
         try:
             print("Loading local datasets. Please wait...")
-            WsGeoDataset.__init__(self, input_geofiles=[input_geofile], input_datafile=input_datafile,
-                                  merging_keys=["MUKEY", "mukey"])
+            super().__init__(input_geofiles=[input_geofile], input_datafile=input_datafile,
+                             merging_keys=["MUKEY", "mukey"])
             print("Loading of datasets complete.")
         except (FileNotFoundError, DriverError):
             self._download_datasets(os.path.dirname(input_geofile), input_datafile)
             print("Loading local datasets. Please wait...")
-            WsGeoDataset.__init__(self, input_geofiles=[input_geofile], input_datafile=input_datafile,
-                                  merging_keys=["MUKEY", "mukey"])
+            super().__init__(input_geofiles=[input_geofile], input_datafile=input_datafile,
+                             merging_keys=["MUKEY", "mukey"])
             print("Loading of datasets complete.")
 
     def _download_datasets(self, input_geodir: str, input_datafile: str):

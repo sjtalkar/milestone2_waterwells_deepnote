@@ -17,7 +17,7 @@ class CropsDataset(WsGeoDataset):
         :param input_geodir: the directory containing the crops geospatial subfolders (subfolder example: crops_2014)
         :param crop_name_to_type_file: the file containing the crop name to type mapping
         """
-        WsGeoDataset.__init__(self, [])
+        super().__init__([])
         try:
             self._load_local_datasets(input_geodir, crop_name_to_type_file)
         except (FileNotFoundError, DriverError):

@@ -30,8 +30,8 @@ class PopulationDataset(WsGeoDataset):
         :param tract_geofile: the file containing the shapefile of the population census Tracts
         """
         print("Loading local datasets. Please wait...")
-        WsGeoDataset.__init__(self, input_geofiles=[tract_geofile], input_datafile=input_datafile,
-                              merging_keys=["TRACT_ID", "TRACT_ID"])
+        super().__init__(input_geofiles=[tract_geofile], input_datafile=input_datafile,
+                         merging_keys=["TRACT_ID", "TRACT_ID"])
         print("Loading of datasets complete.")
 
     def _download_datasets(self, input_datafile: str, tract_geofile: str):

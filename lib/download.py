@@ -798,6 +798,18 @@ def download_hyperparameter_tuning_results(hpt_results_file: str = "../assets/tu
         f.write(file_content)
 
 
+def download_2021_predictions(supervised_predictions_file: str = "../assets/predictions/hpt_results.csv") -> None:
+    """This function downloads the results of the  hyperparameter tuning analysis
+
+    :param hpt_results_file: the file name where to store the results of the  hyperparameter tuning analysis"""
+    print("Downloading the results of the  hyperparameter tuning analysis. Please wait...")
+    hpt_url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/ml/hpt_results.csv"
+    file_content = requests.get(hpt_url).text
+    os.makedirs(os.path.dirname(hpt_results_file), exist_ok=True)
+    with open(hpt_results_file, "w", encoding="utf-8") as f:
+        f.write(file_content)
+
+
 if __name__ == "__main__":
     print("=========================== San Joaquin Valley Geospatial Dataset ===========================")
     download_sjv_shapefile()

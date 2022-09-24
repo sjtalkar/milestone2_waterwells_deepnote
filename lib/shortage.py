@@ -10,7 +10,7 @@ from lib.download import download_water_shortage_dataset
 class ShortageReportsDataset(WsGeoDataset):
     """This class loads, processes and exports the Water Shortage Reports dataset"""
     def __init__(self, input_datafile: str = "../assets/inputs/shortage/shortage.csv"):
-        WsGeoDataset.__init__(self, input_geofiles=[])
+        super().__init__(input_geofiles=[])
         try:
             self._load_local_datasets(input_datafile)
         except FileNotFoundError:
@@ -23,7 +23,7 @@ class ShortageReportsDataset(WsGeoDataset):
         :param input_datafile: the path to the local data file
         """
         print("Loading local datasets. Please wait...")
-        WsGeoDataset.__init__(self, input_geofiles=[])
+        super().__init__(input_geofiles=[])
         shortage_df = self._clean_shortage_reports(shortage_datafile=input_datafile)
         self.map_df = gpd.GeoDataFrame(
             shortage_df,

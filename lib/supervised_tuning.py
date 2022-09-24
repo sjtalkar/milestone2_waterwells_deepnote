@@ -111,10 +111,10 @@ def final_comparison(models, test_features, test_labels):
     scores.index = ['Mean Absolute Error', 'Mean Squared Error', 'R^2', 'RMSE']
     return scores
 
-def read_target_shifted_data(data_dir:str,
-                             train_test_dict_file_name:str,
-                             X_train_df_file_name:str,
-                             X_test_df_file_name:str):
+def read_target_shifted_data(data_dir: str,
+                             train_test_dict_file_name: str,
+                             X_train_df_file_name: str,
+                             X_test_df_file_name: str):
     """This function creates a dataframe to compare models based on mean absolute error,
         mean squared error. root mean squared error, and r-squared
 
@@ -128,11 +128,11 @@ def read_target_shifted_data(data_dir:str,
     with open(full_path, 'rb') as file:
             train_test_dict = pickle.load( file)
     
-    full_path =  f"{data_dir}{X_train_df_file_name}"
+    full_path = f"{data_dir}{X_train_df_file_name}"
     with open(full_path, 'rb') as file:
             X_train_impute_df = pickle.load( file)
 
-    full_path =  f"{data_dir}{X_test_df_file_name}"
+    full_path = f"{data_dir}{X_test_df_file_name}"
     with open(full_path, 'rb') as file:
             X_test_impute_df = pickle.load( file)
     return train_test_dict, X_train_impute_df, X_test_impute_df 

@@ -1,5 +1,4 @@
 # This file contains the base Class definition for the Waters Shortage Datasets
-import abc
 import os
 import pandas as pd
 import pygeos
@@ -12,13 +11,7 @@ from shapely.ops import voronoi_diagram
 from lib.download import download_sjv_shapefile, download_ca_shapefile
 
 
-class BaseWsDataset(abc.ABC):
-    @abc.abstractmethod
-    def preprocess_map_df(self, features_to_keep: List[str]):
-        pass
-
-
-class WsGeoDataset(BaseWsDataset):
+class WsGeoDataset():
     """
     This is the parent class for the loading, ETL and export of the datasets used in the San Joawuin Valley
     Water Shortage analysis project.

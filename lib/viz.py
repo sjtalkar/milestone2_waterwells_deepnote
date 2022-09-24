@@ -1003,7 +1003,7 @@ def create_silhoutte_cluster_viz(X_train_impute: np.ndarray, random_seed: int):
     return plt
 
 
-def chart_error_distribution(error_df: pd.DataFrame):
+def chart_error_distribution(error_df: pd.DataFrame) -> alt.Chart:
     """ This function charts the distribution of errors in the given dataframe
     :param : Error dataframe with absolute error and column with model names
     :return: Altair chart
@@ -1017,7 +1017,7 @@ def chart_error_distribution(error_df: pd.DataFrame):
     )
 
 
-def chart_error_by_depth(error_df: pd.DataFrame, model_name_list: List):
+def chart_error_by_depth(error_df: pd.DataFrame, model_name_list: List) -> alt.Chart:
     """ This function charts the distribution of errors in the given dataframe against the 
         actual test target
     :param : error_df: Error dataframe with absolute error and column with model names

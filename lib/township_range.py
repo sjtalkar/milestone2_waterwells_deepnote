@@ -8,7 +8,7 @@ class TownshipRanges(WsGeoDataset):
     This class loads, processes and exports the Township-Ranges areas
     """
     def __init__(self):
-        WsGeoDataset.__init__(self, input_geofiles=[])
+        super().__init__(input_geofiles=[])
         self.map_df = self.sjv_township_range_df.copy()
 
     def get_counties_in_sjv(self):

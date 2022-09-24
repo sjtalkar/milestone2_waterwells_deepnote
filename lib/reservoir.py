@@ -22,14 +22,14 @@ class ReservoirDataset(WsGeoDataset):
         # Try to load the dataset for pre-downloaded files. If not scrap the data from the web and save them
         try:
             print("Loading local datasets. Please wait...")
-            WsGeoDataset.__init__(self, input_geofiles=[input_stationfile], input_datafile=input_datafile,
-                                  merging_keys=["STATION_ID", "STATION_ID"])
+            super().__init__(input_geofiles=[input_stationfile], input_datafile=input_datafile,
+                             merging_keys=["STATION_ID", "STATION_ID"])
             print("Loading of datasets complete.")
         except (FileNotFoundError, DriverError):
             # Load the pre-packaged datasets and then initialize the class
             self._download_datasets(input_stationfile, input_datafile)
-            WsGeoDataset.__init__(self, input_geofiles=[input_stationfile], input_datafile=input_datafile,
-                                  merging_keys=["STATION_ID", "STATION_ID"])
+            super().__init__(input_geofiles=[input_stationfile], input_datafile=input_datafile,
+                             merging_keys=["STATION_ID", "STATION_ID"])
             print("Loading of datasets complete.")
 
     def _download_datasets(self, input_stationfile: str, input_datafile: str):
