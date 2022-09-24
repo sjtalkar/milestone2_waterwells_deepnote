@@ -9,7 +9,12 @@ from sklearn.compose import ColumnTransformer
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import FunctionTransformer, MinMaxScaler
+
+import tensorflow
 from tensorflow import keras
+from keras.models import Sequential
+from keras.layers import LSTM, Dense
+
 from lib.split_data import train_test_group_time_split
 from lib.transform_impute import fill_from_prev_year, fill_pop_from_prev_year
 

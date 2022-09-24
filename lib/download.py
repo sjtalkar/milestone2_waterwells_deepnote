@@ -798,43 +798,84 @@ def download_hyperparameter_tuning_results(hpt_results_file: str = "../assets/tu
         f.write(file_content)
 
 
-def download_2021_predictions(supervised_predictions_file: str = "../assets/predictions/hpt_results.csv") -> None:
+def download_supervised_learning_artifacts(
+        x_train_file: str = "../assets/train_test_target_shifted/X_train_impute_target_shifted_df.pkl",
+        x_test_file: str = "../assets/train_test_target_shifted/X_test_impute_target_shifted_df.pkl",
+        x_pred_file: str = "../assets/train_test_target_shifted/X_pred_impute_target_shifted_df.pkl") -> None:
     """This function downloads the results of the  hyperparameter tuning analysis
 
     :param hpt_results_file: the file name where to store the results of the  hyperparameter tuning analysis"""
-    print("Downloading the results of the  hyperparameter tuning analysis. Please wait...")
-    hpt_url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/ml/hpt_results.csv"
-    file_content = requests.get(hpt_url).text
-    os.makedirs(os.path.dirname(hpt_results_file), exist_ok=True)
-    with open(hpt_results_file, "w", encoding="utf-8") as f:
+    print("Downloading the artifact files from the Supervised Learning Model Training. Please wait...")
+    x_train_url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/" \
+                  "train_test_target_shifted/X_train_impute_target_shifted_df.pkl"
+    file_content = requests.get(x_train_url).text
+    os.makedirs(os.path.dirname(x_train_file), exist_ok=True)
+    with open(x_train_file, "w", encoding="utf-8") as f:
+        f.write(file_content)
+    x_test_url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/" \
+                 "train_test_target_shifted/X_test_impute_target_shifted_df.pkl"
+    file_content = requests.get(x_test_url).text
+    os.makedirs(os.path.dirname(x_test_file), exist_ok=True)
+    with open(x_test_file, "w", encoding="utf-8") as f:
+        f.write(file_content)
+    x_pred_url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/" \
+                 "train_test_target_shifted/X_pred_impute_target_shifted_df.pkl"
+    file_content = requests.get(x_pred_url).text
+    os.makedirs(os.path.dirname(x_pred_file), exist_ok=True)
+    with open(x_pred_file, "w", encoding="utf-8") as f:
+        f.write(file_content)
+
+
+def download_2021_predictions(supervised_predictions_file: str = "../assets/predictions/supervised_predictions.csv",
+                              lstm_predictions_file: str = "../assets/predictions/lstm_predictions.csv") -> None:
+    """This function downloads the results of the  hyperparameter tuning analysis
+
+    :param supervised_predictions_file: the file name where to store the predictions of the supervised model
+    :param lstm_predictions_file: the file name where to store the predictions of the LSTM model"""
+    print("Downloading the predictions from the different models. Please wait...")
+    supervised_predictions_url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/" \
+                                 "predictions/supervised_predictions.csv"
+    file_content = requests.get(supervised_predictions_url).text
+    os.makedirs(os.path.dirname(supervised_predictions_file), exist_ok=True)
+    with open(supervised_predictions_file, "w", encoding="utf-8") as f:
+        f.write(file_content)
+    lstm_predictions_url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/predictions/" \
+                           "lstm_predictions.csv"
+    file_content = requests.get(lstm_predictions_url).text
+    os.makedirs(os.path.dirname(lstm_predictions_file), exist_ok=True)
+    with open(lstm_predictions_file, "w", encoding="utf-8") as f:
         f.write(file_content)
 
 
 if __name__ == "__main__":
-    print("=========================== San Joaquin Valley Geospatial Dataset ===========================")
-    download_sjv_shapefile()
-    print("=========================== California Geospatial Dataset ===================================")
-    download_ca_shapefile()
-    print("=========================== Crops Dataset ===================================================")
-    download_crops_datasets()
-    print("=========================== Ground Water Dataset ============================================")
-    download_groundwater_datasets()
-    print("=========================== Population Dataset ==============================================")
-    downoad_population_datasets()
-    print("=========================== Precipitation Dataset ===========================================")
-    download_precipitation_datasets()
-    print("=========================== Reservoir Dataset ===============================================")
-    download_reservoir_datasets()
-    print("=========================== Water Shortage Datasets =========================================")
-    download_water_shortage_dataset()
-    print("=========================== Soil Datasets ===================================================")
-    download_soils_datasets()
-    print("=========================== Vegetation Datasets =============================================")
-    download_vegetation_datasets()
-    print("=========================== Well Completion Datasets ========================================")
-    download_well_completion_datasets()
-    print("=========================== ETL outputs =====================================================")
-    download_etl_outputs()
+    # print("=========================== San Joaquin Valley Geospatial Dataset ===========================")
+    # download_sjv_shapefile()
+    # print("=========================== California Geospatial Dataset ===================================")
+    # download_ca_shapefile()
+    # print("=========================== Crops Dataset ===================================================")
+    # download_crops_datasets()
+    # print("=========================== Ground Water Dataset ============================================")
+    # download_groundwater_datasets()
+    # print("=========================== Population Dataset ==============================================")
+    # downoad_population_datasets()
+    # print("=========================== Precipitation Dataset ===========================================")
+    # download_precipitation_datasets()
+    # print("=========================== Reservoir Dataset ===============================================")
+    # download_reservoir_datasets()
+    # print("=========================== Water Shortage Datasets =========================================")
+    # download_water_shortage_dataset()
+    # print("=========================== Soil Datasets ===================================================")
+    # download_soils_datasets()
+    # print("=========================== Vegetation Datasets =============================================")
+    # download_vegetation_datasets()
+    # print("=========================== Well Completion Datasets ========================================")
+    # download_well_completion_datasets()
+    # print("=========================== ETL outputs =====================================================")
+    # download_etl_outputs()
+    # print("=========================== Supervised Learning Models' Artifacts ===========================")
+    # download_supervised_learning_artifacts()
     print("=========================== Hyperparameter Tuning Analysis Results ==========================")
     download_hyperparameter_tuning_results()
+    print("=========================== All Models 2021 Predictions =====================================")
+    download_2021_predictions()
     print("  ***   ALL DOWNLOADS ARE COMPLETED   ***  ")

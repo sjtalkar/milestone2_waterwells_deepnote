@@ -68,7 +68,7 @@ recommend to run the below script to create a conda environment with all the req
 ```
 conda create -n sjv-groundwater -y python=3.9
 conda activate sjv-groundwater
-conda install -c conda-forge -y jupyter==1.0.0 fiona==1.8.21 altair==4.2.0 beautifulsoup4==4.10.0 geopandas==0.10.2 pygeos==0.12.0 numpy==1.21.5 pandas==1.3.5 ipywidgets==7.7.0 lxml==4.8.0 mapclassify==2.4.3 matplotlib==3.5.2 pillow==9.1.0 plotly==4.4.1 requests==2.27.1 scikit-learn==0.24.2 tqdm==4.64.0 seaborn==0.11.2 xgboost==1.6.2 catboost==1.0.6 shap==0.41.0 hdf5==1.12.2 
+conda install -c conda-forge -y jupyter fiona==1.8.21 altair==4.2.0 beautifulsoup4==4.10.0 geopandas==0.10.2 pygeos==0.12.0 numpy==1.21.5 pandas==1.3.5 ipywidgets==7.7.0 lxml==4.8.0 mapclassify==2.4.3 matplotlib==3.5.2 pillow==9.1.0 plotly==4.4.1 requests==2.27.1 scikit-learn==0.24.2 tqdm==4.64.0 h5py==3.7.0 seaborn==0.11.2 xgboost==1.6.2 catboost==1.0.6 shap==0.41.0 
 pip install gpdvega==0.1.1rc1 graphviz==0.19.2 
 pip install tensorflow==2.9.1 keras-tuner==1.1.2
 ```

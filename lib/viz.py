@@ -579,6 +579,37 @@ def draw_corr_heatmap(df: pd.DataFrame, drop_columns: List[str] = None) -> alt.C
         
     return rects
 
+def draw_line_chart(df: pd.DataFrame, x: str, x_title: str, y: str, y_title: str, title: str, subtitle: str = "",
+                    color: str = sjv_blue) -> alt.Chart:
+    """ This function draws a line chart with the given parameters
+
+    :param df: Dataframe with the data to plot
+    :param x: Name of the column to use as the X axis
+    :param x_title: Title of the X axis
+    :param y: Name of the column to use as the Y axis
+    :param y_title: Title of the Y axis
+    :param title: Title of the chart
+    :param subtitle: Subtitle of the chart
+    :param color: Name of the column to use as the color
+    :return: The Altair line chart
+    """
+    return alt.Chart(df).mark_line(color=color).encode(
+        x=alt.X(x, title=x_title, axis=alt.Axis(tickMinStep=1)),
+        y=alt.Y(y, title=y_title)
+    ).properties(
+        title={
+            "text": [title],
+            "subtitle": [subtitle],
+            "anchor": "start",
+            "fontSize": 15,
+            "fontWeight": "bold",
+            "dy": -30
+        },
+        width=800,
+        height=400
+    )
+
+
 
 def draw_components_variance_chart(pca) -> alt.Chart:
     """This function creates a scree plot. A scree plot plots the explained variance against number of components
@@ -591,7 +622,9 @@ def draw_components_variance_chart(pca) -> alt.Chart:
         'n_components': range(1, pca.n_components_ + 1),
         'explained_variance': pca.explained_variance_ratio_
     })
-    return alt.Chart(df).mark_line(color=sjv_blue).encode(x='n_components:O', y='explained_variance:Q')
+    return draw_line_chart(df, x="n_components:O", x_title="Number of Principal components", y="explained_variance:Q",
+                           y_title="Explained Variance",
+                           title="Dataset Explained Variance by Number of Principal Component",)
 
 
 def biplot(score, coeff, maxdim, pcax, pcay, labels=None):
@@ -1003,21 +1036,21 @@ def create_silhoutte_cluster_viz(X_train_impute: np.ndarray, random_seed: int):
     return plt
 
 
-def chart_error_distribution(error_df: pd.DataFrame) -> alt.Chart:
+def chart_model_error_distribution(error_df: pd.DataFrame) -> alt.Chart:
     """ This function charts the distribution of errors in the given dataframe
     :param : Error dataframe with absolute error and column with model names
     :return: Altair chart
     """
     return (
         alt.Chart(error_df, title="Error distribution by model")
-        .mark_bar(color=sjv_color_range_17[3], opacity=0.4)
-        .encode(alt.X("absolute_error:Q", bin=True), y="count()", tooltip=["count()"])
+        .mark_bar(color=sjv_blue)
+        .encode(alt.X("absolute_error:Q", bin=alt.Bin(step=10.0)), y="count()", tooltip=["count()"])
         .properties(width=400, height=125)
         .facet(facet="model_name:N", columns=2)
     )
 
 
-def chart_error_by_depth(error_df: pd.DataFrame, model_name_list: List) -> alt.Chart:
+def chart_model_error_by_depth(error_df: pd.DataFrame, model_name_list: List) -> alt.Chart:
     """ This function charts the distribution of errors in the given dataframe against the 
         actual test target
     :param : error_df: Error dataframe with absolute error and column with model names
@@ -1029,7 +1062,7 @@ def chart_error_by_depth(error_df: pd.DataFrame, model_name_list: List) -> alt.C
             error_df[error_df["model_name"].isin(model_name_list)],
             title="Error distribution by model",
         )
-        .mark_line(color=sjv_color_range_17[16], opacity=0.9)
+        .mark_line(color=sjv_brown, opacity=0.9)
         .encode(
             alt.X("GSE_GWE_SHIFTED:Q"),
             y="absolute_error:Q",
@@ -1040,7 +1073,7 @@ def chart_error_by_depth(error_df: pd.DataFrame, model_name_list: List) -> alt.C
     )
 
 
-def chart_error_by_township(error_df: pd.DataFrame, model_name_list: List, num_towns: int = 20):
+def chart_model_error_by_township(error_df: pd.DataFrame, model_name_list: List, num_towns: int = 20) -> alt.Chart:
     """ This function charts the distribution of errors in the given dataframe against the townships
         with the most absolute error.
         The chart can be restricted to the models sent in
@@ -1069,11 +1102,7 @@ def chart_error_by_township(error_df: pd.DataFrame, model_name_list: List, num_t
                 "model_name:N",
                 scale=alt.Scale(
                     domain=model_name_list,
-                    range=[
-                        sjv_color_range_9[0],
-                        sjv_color_range_17[14],
-                        sjv_color_range_17[5],
-                    ],
+                    range=[sjv_blue, sjv_pink, sjv_brown],
                 ),
             ),
             tooltip=["model_name", "absolute_error", "TOWNSHIP_RANGE"],
@@ -1082,7 +1111,7 @@ def chart_error_by_township(error_df: pd.DataFrame, model_name_list: List, num_t
     )        
 
 
-def chart_depth_diff_error(error_df: pd.DataFrame, full_df: pd.DataFrame) -> alt.Chart:
+def chart_model_depth_diff_error(error_df: pd.DataFrame, full_df: pd.DataFrame) -> alt.Chart:
     """ In order to visually examine if there is a point at which the difference in current year's depth and next year's
      depth  difference impacts the absolute error, chart them against each other with this function. The chart can be
      restricted to the models sent in.
@@ -1095,7 +1124,7 @@ def chart_depth_diff_error(error_df: pd.DataFrame, full_df: pd.DataFrame) -> alt
     plot_df = error_df[['TOWNSHIP_RANGE', 'model_name', 'absolute_error']].merge(
         full_df[['TOWNSHIP_RANGE', 'depth_diff']], how='inner', left_on='TOWNSHIP_RANGE', right_on='TOWNSHIP_RANGE')
     return alt.Chart(plot_df).mark_line(
-        color=sjv_color_range_17[0],
+        color=sjv_blue,
         opacity=.8
     ).encode(
         x='depth_diff:Q',
