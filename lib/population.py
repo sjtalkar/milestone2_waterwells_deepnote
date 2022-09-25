@@ -4,7 +4,7 @@ import geopandas as gpd
 from typing import List
 from fiona.errors import DriverError
 from lib.wsdatasets import WsGeoDataset
-from lib.download import downoad_population_datasets
+from lib.download import download_population_datasets
 
 
 class PopulationDataset(WsGeoDataset):
@@ -41,7 +41,7 @@ class PopulationDataset(WsGeoDataset):
         :param tract_geofile: the file where to store the shapefile of the population census Tracts
         """
         print("Data not found locally.")
-        downoad_population_datasets(input_datafile, tract_geofile)
+        download_population_datasets(input_datafile, tract_geofile)
         print("Downloads complete.")
 
     def preprocess_map_df(self, features_to_keep: List[str]):
