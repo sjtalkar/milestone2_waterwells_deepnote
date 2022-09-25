@@ -801,10 +801,14 @@ def download_hyperparameter_tuning_results(hpt_results_file: str = "../assets/tu
 def download_supervised_learning_artifacts(
         x_train_file: str = "../assets/train_test_target_shifted/X_train_impute_target_shifted_df.pkl",
         x_test_file: str = "../assets/train_test_target_shifted/X_test_impute_target_shifted_df.pkl",
-        x_pred_file: str = "../assets/train_test_target_shifted/X_pred_impute_target_shifted_df.pkl") -> None:
+        x_pred_file: str = "../assets/train_test_target_shifted/X_pred_impute_target_shifted_df.pkl",
+        train_test_dic_file: str = "../assets/train_test_target_shifted/train_test_dict_target_shifted.pickle") -> None:
     """This function downloads the results of the  hyperparameter tuning analysis
 
-    :param hpt_results_file: the file name where to store the results of the  hyperparameter tuning analysis"""
+    :param x_train_file: the file name where to store the training set
+    :param x_test_file: the file name where to store the test set
+    :param x_pred_file: the file name where to store the prediction set
+    :param train_test_dic_file: the file name where to store the dictionary containing the train/test split"""
     print("Downloading the artifact files from the Supervised Learning Model Training. Please wait...")
     x_train_url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/" \
                   "train_test_target_shifted/X_train_impute_target_shifted_df.pkl"
@@ -823,6 +827,12 @@ def download_supervised_learning_artifacts(
     file_content = requests.get(x_pred_url).text
     os.makedirs(os.path.dirname(x_pred_file), exist_ok=True)
     with open(x_pred_file, "w", encoding="utf-8") as f:
+        f.write(file_content)
+    train_test_dict_url = "https://milestone2-sanjoaquinvalley-groundwater.s3.eu-west-1.amazonaws.com/" \
+                     "train_test_target_shifted/train_test_dict_target_shifted.pickle"
+    file_content = requests.get(train_test_dict_url).text
+    os.makedirs(os.path.dirname(train_test_dic_file), exist_ok=True)
+    with open(train_test_dic_file, "w", encoding="utf-8") as f:
         f.write(file_content)
 
 
