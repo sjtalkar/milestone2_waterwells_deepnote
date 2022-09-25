@@ -1043,12 +1043,11 @@ def chart_model_error_distribution(error_df: pd.DataFrame) -> alt.Chart:
     """
     return (
         alt.Chart(error_df, title="Error distribution by model")
-        .mark_bar(color=sjv_blue)
+        .mark_bar(color=sjv_color_range_17[3], opacity=0.4)
         .encode(alt.X("absolute_error:Q", bin=alt.Bin(step=10.0)), y="count()", tooltip=["count()"])
         .properties(width=400, height=125)
         .facet(facet="model_name:N", columns=2)
     )
-
 
 def chart_model_error_by_depth(error_df: pd.DataFrame, model_name_list: List) -> alt.Chart:
     """ This function charts the distribution of errors in the given dataframe against the 
