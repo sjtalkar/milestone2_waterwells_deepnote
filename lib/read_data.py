@@ -78,7 +78,7 @@ def combine_datasets(x_df: pd.DataFrame, y: pd.Series, target_name: str = 'GSE_G
     :param x_df: feature dataframe
     :param y: target series
 
-    :output: Full datafrrame with features and target
+    :output: Full dataframe with features and target
                 
     """
     x_df = x_df.reset_index()
