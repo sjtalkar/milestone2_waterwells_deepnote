@@ -274,7 +274,7 @@ def get_supervised_models_predictions():
 
     test_model_errors_df = final_comparison_sorted(models, X_test_impute, y_test)
     test_model_errors_df.reset_index(drop=False, inplace=True)
-    test_model_errors_df.rename(columns={"index": "MODEL"}, inplace=True)
+    test_model_errors_df.rename(columns={"index": "MODEL", "Mean Absolute Error": "MAE", "Mean Square Error": "MSE"}, inplace=True)
 
     for model in models:
         regressor_name = type(model.best_estimator_.regressor_).__name__
