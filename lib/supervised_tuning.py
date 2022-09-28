@@ -248,4 +248,40 @@ def get_model_errors():
     )
 
     return test_model_errors_df, error_df
-    
+
+def get_supervised_models_predictions():
+    """ This function return the predictions of the supervised learning models.
+    :param None
+    :return: dataframe with evaluation scores, dataframe with target value and predicted absolute errors
+    """
+
+    data_dir = "../assets/train_test_target_shifted/"
+    train_test_dict_file_name = "train_test_dict_target_shifted.pickle"
+    X_train_df_file_name = "X_train_impute_target_shifted_df.pkl"
+    X_test_df_file_name = "X_test_impute_target_shifted_df.pkl"
+
+    train_test_dict, X_train_impute_df, X_test_impute_df = read_target_shifted_data(
+        data_dir, train_test_dict_file_name, X_train_df_file_name, X_test_df_file_name
+    )
+    X_test_impute = train_test_dict["X_test_impute"]
+    y_test_df = train_test_dict["y_test"]
+    y_test = y_test_df["GSE_GWE_SHIFTED"].values.ravel()
+
+    test_year_list = list(X_test_impute_df.index.get_level_values("YEAR").unique())
+    with open("../assets/models/supervised_learning_models/models.pickle", "rb") as file:
+        models = pickle.load(file)
+
+
+    test_model_errors_df = final_comparison_sorted(models, X_test_impute, y_test)
+    test_model_errors_df.reset_index(drop=False, inplace=True)
+    test_model_errors_df.rename(columns={"index": "MODEL"}, inplace=True)
+
+    for model in models:
+        regressor_name = type(model.best_estimator_.regressor_).__name__
+        y_test_df[regressor_name] = model.best_estimator_.predict(X_test_impute)
+
+    y_test_df = y_test_df.reset_index()
+    y_test_df.rename(columns={"GSE_GWE_SHIFTED": "2021_GSE_GWE"}, inplace=True)
+    y_test_df.drop(columns=["YEAR"], inplace=True)
+
+    return test_model_errors_df, y_test_df
