@@ -6,7 +6,7 @@ import pandas as pd
 import geopandas as gpd
 import seaborn as sns
 import matplotlib.cm as cm
-from typing import List
+from typing import List, Tuple
 import matplotlib.pyplot as plt
 from datetime import datetime
 from matplotlib.colors import LinearSegmentedColormap
@@ -1114,38 +1114,81 @@ def chart_model_error_by_depth(error_df: pd.DataFrame, model_name_list: List) ->
     )
 
 
-def draw_model_error_by_depth(df: pd.DataFrame, model_name_list: List[str]) -> alt.Chart:
+def draw_model_error_by_depth(df: pd.DataFrame, binned: bool=False) -> alt.Chart:
     """ This function charts the distribution of errors in the given dataframe against the
         actual test target
     :param : error_df: Error dataframe with absolute error and column with model names
-    :param : model_name_list: List of model names e.g. SVR_absolute_error
+    :param : binned: Whether to bin the data or not
     :return: Altair chart
     """
     df = melt_model_error_df(df)
-    chart = alt.Chart(df[df["MODEL"].isin(model_name_list)]).mark_line(
-        color=sjv_brown
-    ).encode(
-        alt.X(
-            "2021_GSE_GWE:Q",
-            title="Ground Water Depth"),
-        y=alt.Y(
-            "ABS_ERROR:Q",
-            title="Prediction Absolute Error"),
-        tooltip=["MODEL", "ABS_ERROR", "TOWNSHIP_RANGE"]
-    ).properties(
-        width=1200,
-        height=125
-    ).facet(
-        facet="MODEL:N",
-        columns=1,
-        title=""
-    ).properties(
-        title="Predictions' Absolute Error by Groundwater Depth"
-    )
+    if not binned:
+        chart = alt.Chart(df).mark_line(
+            color=sjv_brown
+        ).encode(
+            alt.X(
+                "2021_GSE_GWE:Q",
+                title="Ground Water Depth"),
+            y=alt.Y(
+                "ABS_ERROR:Q",
+                title="Prediction Absolute Error"),
+            tooltip=["MODEL", "ABS_ERROR", "TOWNSHIP_RANGE"]
+        ).properties(
+            width=1200,
+            height=125
+        ).facet(
+            facet="MODEL:N",
+            columns=1,
+            title=""
+        ).properties(
+            title="Predictions' Absolute Error by Groundwater Depth"
+        )
+    else:
+        # The mean of the error is calculated to color the distribution chart
+        df["ERROR_MEAN"] = df.groupby(["MODEL"])["ABS_ERROR"].transform("mean")
+        # We create bins of error values of size 10 to smoothen the distribution plot
+        max_bins = math.ceil(df["2021_GSE_GWE"].max() / 10) * 10
+        df["GSE_GWE_BIN"] = list(pd.cut(df["2021_GSE_GWE"], bins=range(0, max_bins, 10), labels=range(0, max_bins-10, 10)))
+        df.reset_index(inplace=True, drop=True)
+        df.sort_values(["MODEL", "2021_GSE_GWE"])
+        df = df.groupby(
+            ["MODEL", "ERROR_MEAN", "GSE_GWE_BIN"]).mean().reset_index()
+        df.rename(columns={0: "COUNT"}, inplace=True)
+        chart = alt.Chart(df).mark_area(
+            interpolate='monotone',
+            stroke='lightgray',
+            strokeWidth=0.5
+        ).encode(
+            alt.X(
+                "GSE_GWE_BIN:Q",
+                title="Ground Water Depth"),
+            alt.Y(
+                "ABS_ERROR:Q",
+                title="Average Absolute Error"),
+            alt.Fill(
+                "ERROR_MEAN:Q",
+                legend=alt.Legend(
+                    title="Prediction Error",
+                ),
+                scale=alt.Scale(range=[sjv_blue, sjv_brown])
+            )
+        ).properties(
+            width=1200,
+            height=125
+        ).facet(
+            row=alt.Row(
+                "MODEL:N",
+                title=None,
+                header=alt.Header(labelAngle=0, labelAlign="left")
+            )
+        ).properties(
+            title="Mean of the Predictions Absolute Error per 10 ft. of Groundwater Depth"
+        )
     return chart
 
 
-def chart_model_error_by_township(error_df: pd.DataFrame, model_name_list: List, num_towns: int = 20) -> alt.Chart:
+def chart_model_error_by_township(error_df: pd.DataFrame, model_name_list: List, num_towns: int = 20) -> \
+        Tuple[pd.DataFrame, alt.Chart]:
     """ This function charts the distribution of errors in the given dataframe against the townships
         with the most absolute error.
         The chart can be restricted to the models sent in
@@ -1181,6 +1224,42 @@ def chart_model_error_by_township(error_df: pd.DataFrame, model_name_list: List,
         )
         .properties(width=850, height=150)
     )
+
+
+def draw_model_error_by_township(df: pd.DataFrame, num_towns: int = 20) -> alt.Chart:
+    """ This function charts the distribution of errors in the given dataframe against the townships
+        with the most absolute error.
+    :param : df: Error dataframe with absolute error and column with model names
+    :param : num_towns: Number of towns to chart the sorted errors for
+    :return: Altair chart
+    """
+    df = melt_model_error_df(df).sort_values("ABS_ERROR", ascending=False).groupby("MODEL").head(num_towns)
+
+    nb_x = len(df["MODEL"].unique())
+    if 2 < nb_x < len(sjv_color_range_17):
+        color_range = sjv_color_range_17[0::len(sjv_color_range_17)//(nb_x-1)]
+        color_range[-1] = sjv_brown
+    else:
+        color_range = [sjv_blue, sjv_brown]
+
+    chart = alt.Chart(df).mark_bar(opacity=1).encode(
+        x=alt.X(
+            "TOWNSHIP_RANGE:N",
+            title="Township-Ranges",
+            sort="-y"),
+        y=alt.Y(
+            "ABS_ERROR:Q",
+            title="Prediction Absolute Error"),
+        color=alt.Color(
+            "MODEL:N",
+            scale=alt.Scale(
+                domain=df["MODEL"].unique(),
+                range=color_range,
+            ),
+        ),
+        tooltip=["MODEL", "ABS_ERROR", "TOWNSHIP_RANGE"],
+    ).properties(width=850, height=150)
+    return chart
 
 
 def chart_model_depth_diff_error(error_df: pd.DataFrame, full_df: pd.DataFrame) -> alt.Chart:
@@ -1225,7 +1304,7 @@ def draw_hyperparameters_distribution(df: pd.DataFrame, hyperparam_list: List[st
     hpt_df = pd.melt(df, id_vars=["rmse"], var_name="hyperparameter_name", value_name="hyperparameter_value")
     # The mean of the RMSE for a specific hyperparameter value is calculated to color the small-multiple chart
     hpt_df["rmse_mean"] = hpt_df.groupby(["hyperparameter_name", "hyperparameter_value"])["rmse"].transform("mean")
-    # We created bins of RMSE values of size 10 to smoothen the distribution plot
+    # We create bins of RMSE values of size 10 to smoothen the distribution plot
     max_bins = math.ceil(hpt_df["rmse"].max() / 10) * 10
     hpt_df["rmse_bin"] = list(pd.cut(hpt_df["rmse"], bins=range(0, max_bins, 10), labels=range(0, max_bins-10, 10)))
     hpt_df.reset_index(inplace=True, drop=True)

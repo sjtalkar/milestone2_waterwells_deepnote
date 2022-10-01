@@ -10,12 +10,9 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import FunctionTransformer, MinMaxScaler
 
-import tensorflow
 from tensorflow import keras
-from keras.models import Sequential
-from keras.layers import LSTM, Dense
 
-from lib.split_data import train_test_group_time_split
+from lib.split_data import train_test_group_time_split, train_test_time_split
 from lib.transform_impute import fill_from_prev_year, fill_pop_from_prev_year
 
 
@@ -238,7 +235,8 @@ def get_sets_shapes(training: np.ndarray, test: np.ndarray) -> pd.DataFrame:
 
 
 def get_train_test_datasets(X: pd.DataFrame, target_variable: str, test_size: int, random_seed: int = 0,
-                            save_to_file: bool = False) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, MinMaxScaler]:
+                            save_to_file: bool = False) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray,
+                                                                 Pipeline, List[str], MinMaxScaler]:
     """This function splits the input pandas Dataframe into training and test datasets, applies the impute pipeline
     transformation and reshapes the datasets to 3D (samples, time, features) numpy arrays. The function also returns the
      mpute pipeline fit on the training dataset and the scaler used to transform the target variable.
@@ -276,6 +274,50 @@ def get_train_test_datasets(X: pd.DataFrame, target_variable: str, test_size: in
         os.makedirs(os.path.dirname(dataset_dir), exist_ok=True)
         with open(os.path.join(dataset_dir, "dl_train_test.pkl"), "wb") as file:
             pickle.dump(train_test_dict, file)
+    return X_train, X_test, y_train, y_test, impute_pipeline, columns, target_scaler
+
+
+def get_train_test_datasets_with_2021_as_target(X: pd.DataFrame, target_variable: str) -> \
+        Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, Pipeline, List[str], MinMaxScaler]:
+    """This function splits the input pandas Dataframe into training and test datasets, applies the impute pipeline
+    transformation and reshapes the datasets to 3D (samples, time, features) numpy arrays. The function also returns the
+     mpute pipeline fit on the training dataset and the scaler used to transform the target variable.
+
+    :param X: dataframe to be split into training and test datasets
+    :param target_variable: the name of the target variable
+    :return: a tuple of the training, test, training_labels, test_labels datasets as numpy arrays, the impute pipeline
+    fit on the training dataset, the columns names in the order they are modified by the imputation pipeline and the
+    scaler used to transform the target variable"""
+
+    # We get the X and y test data from the 2015 to 2021 data
+    # The 2015-2020 are the X training data and the 2021 is the y target
+    X_test_df, y_test_df = train_test_time_split(X, index=["TOWNSHIP_RANGE", "YEAR"], group="TOWNSHIP_RANGE")
+    y_test_df = y_test_df[[target_variable]]
+    # We get the X and y training data from the 2014 to 2020 data
+    # The 2014-2019 are the X training data and the 2020 is the y target
+    X_train_df, y_train_df = train_test_time_split(X.drop("2021", level=1, axis=0), index=["TOWNSHIP_RANGE", "YEAR"],
+                                                  group="TOWNSHIP_RANGE")
+    y_train_df = y_train_df[[target_variable]]
+    # Create, fit and apply the data imputation pipeline to the training and test sets
+    impute_pipeline, columns = create_transformation_pipelines(X_train_df)
+    X_train_impute = impute_pipeline.fit_transform(X_train_df)
+    X_test_impute = impute_pipeline.transform(X_test_df)
+    # Convert the X_train and X_test back to dataframes
+    X_train_impute_df = pd.DataFrame(X_train_impute, index=X_train_df.index, columns=columns)
+    X_test_impute_df = pd.DataFrame(X_test_impute, index=X_test_df.index, columns=columns)
+    X_test_impute_df.drop("2014", level=1, axis=0, inplace=True)
+    # Keep only the target_variable variable as the outcome variable
+    target_scaler = MinMaxScaler()
+    y_train = target_scaler.fit_transform(y_train_df[[target_variable]])
+    y_test = y_test_df[target_variable].to_numpy()
+    X_train, X_test = reshape_data_to_3d([X_train_impute_df, X_test_impute_df])
+    # Save the train test X and y datasets as a pickle file
+    train_test_dict = {
+        "X_train": X_train_impute_df,
+        "X_test": X_test_impute_df,
+        "y_train": y_train_df[[target_variable]],
+        "y_test": y_test_df[[target_variable]],
+    }
     return X_train, X_test, y_train, y_test, impute_pipeline, columns, target_scaler
 
 
