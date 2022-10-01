@@ -36,7 +36,7 @@ def create_feature_target_heatmap(full_df: pd.DataFrame(), target: str, sort_by_
     corr_df = full_df.corr()[[target]].copy()
     plt.figure(figsize=(8, 30))
     color_map = sjv_cmap
-    
+
     if sort_by_absolute:
         corr_df['sort_by_value'] = np.abs(corr_df[target])
         corr_df.sort_values(by='sort_by_value', ascending=False, inplace=True)
@@ -51,7 +51,7 @@ def create_feature_target_heatmap(full_df: pd.DataFrame(), target: str, sort_by_
 def create_feature_importance_charts(models: list, X_train_impute_df: pd.DataFrame()) -> List[alt.Chart]:
     """Given a list of best models, this function charts feature importances if the model has that property
 
-    :param models: List of models that have been hypertuned 
+    :param models: List of models that have been hypertuned
     :param X_train_impute_df: feature dataframe
     :returns: chart_list : list of Altair charts that can be displayed
     """
@@ -159,7 +159,7 @@ def chart_feature_target_relation(x_df: pd.DataFrame, y: pd.Series, feature: str
 
     :param x_df: The fetaures DataFrame containing feature = variable
     :param y: Series containing target
-    :param: feature: Name of feature to correlate with target 
+    :param: feature: Name of feature to correlate with target
     :param target: Name of target
     """
     feature_to_target_df_year = x_df.reset_index()
@@ -177,7 +177,7 @@ def chart_feature_target_relation(x_df: pd.DataFrame, y: pd.Series, feature: str
 def get_feature_target_correlation(X_df: pd.DataFrame, y_target: pd.Series, target: str = 'GSE_GWE') -> pd.DataFrame:
     """This function returns the correlation coefficient of each feature with respect to target
 
-    :param X_df: The features DataFrame 
+    :param X_df: The features DataFrame
     :param y_target: Series containing target
     :param target: Name of target
     """
@@ -532,7 +532,7 @@ def display_data_on_map(gdf: gpd.GeoDataFrame, feature: str, year: int = None, c
 
 def draw_corr_heatmap(df: pd.DataFrame, drop_columns: List[str] = None) -> alt.Chart:
     """Function to generate an Altair heatmap vizualisation for a dataframe
-    
+
     :params df : pd.Dataframe Dataframe with features
     :param drop_columns: Category columns should not be included in the correlation map
     :return: Altair heatmap chart
@@ -552,7 +552,7 @@ def draw_corr_heatmap(df: pd.DataFrame, drop_columns: List[str] = None) -> alt.C
                  'VEGETATION_BLUE_OAK-GRAY_PINE', 'VEGETATION_CALIFORNIA_COAST_LIVE_OAK', 'VEGETATION_CANYON_LIVE_OAK',
                  'VEGETATION_HARD_CHAPARRAL', 'VEGETATION_KNOBCONE_PINE', 'VEGETATION_NON-NATIVE_HARDWOOD_FOREST',
                  'VEGETATION_PINYON-JUNIPER']
-    
+
     alt.data_transformers.disable_max_rows()
     if drop_columns:
         chart_df = df.drop(columns=drop_columns)
@@ -564,7 +564,7 @@ def draw_corr_heatmap(df: pd.DataFrame, drop_columns: List[str] = None) -> alt.C
                 .reset_index()
                 .rename(columns={0: 'correlation', 'level_0': 'feature_1', 'level_1': 'feature_2'}))
     cor_data['correlation_label'] = cor_data['correlation'].map('{:.2f}'.format)  # Round to 2 decimal
-    
+
     base = alt.Chart(cor_data).encode(
          x=alt.X("feature_1:N", sort=sort_cols),
          y=alt.Y("feature_2:N", sort=sort_cols),
@@ -576,7 +576,7 @@ def draw_corr_heatmap(df: pd.DataFrame, drop_columns: List[str] = None) -> alt.C
     rects = base.mark_rect().encode(
         color=alt.Color('correlation_label:Q', scale=alt.Scale(scheme="lightgreyteal"))
     ).properties(width=1000, height=1000)
-        
+
     return rects
 
 def draw_line_chart(df: pd.DataFrame, x: str, x_title: str, y: str, y_title: str, title: str, subtitle: str = "",
@@ -631,7 +631,7 @@ def biplot(score, coeff, maxdim, pcax, pcay, labels=None):
     """ This function uses:
     score - the transformed data returned by pca - data as expressed according to the new axis
     coeff - the loadings from the pca_components_
-      
+
     For the feaures we are interested in, it plots the correlation between the original features and the PCAs.
     Use cosine similarity and angle measures between axes.
 
@@ -653,10 +653,10 @@ def biplot(score, coeff, maxdim, pcax, pcay, labels=None):
     scalex = width/(xs.max() - xs.min())
     scaley = width/(ys.max() - ys.min())
     text_scale_factor = 1.3
-        
+
     fig = plt.gcf()
     fig.set_size_inches(16, 16)
-    
+
     plt.scatter(xs*scalex, ys*scaley, s=9)
     for i in range(n):
         plt.arrow(0, 0, coeff[i, pca1], coeff[i, pca2],
@@ -669,7 +669,7 @@ def biplot(score, coeff, maxdim, pcax, pcay, labels=None):
             plt.text(coeff[i, pca1] * text_scale_factor,
                      coeff[i, pca2] * text_scale_factor,
                      labels[i], color=sjv_brown, ha='center', va='center')
-    
+
     plt.xlim(-zoom, zoom)
     plt.ylim(-zoom, zoom)
     plt.xlabel("PC{}".format(pcax))
@@ -709,7 +709,7 @@ def draw_histogram(df: pd.DataFrame, col_name: str) -> alt.Chart:
         'value': [f"Mean = {x_mean}", f"Median = {x_median}"]})
 
     txt_chart = alt.Chart(mean_df).mark_text(
-        align='left', 
+        align='left',
         fontSize=15,
         color="black"
     ).encode(
@@ -1043,14 +1043,48 @@ def chart_model_error_distribution(error_df: pd.DataFrame) -> alt.Chart:
     """
     return (
         alt.Chart(error_df, title="Error distribution by model")
-        .mark_bar(color=sjv_color_range_17[3], opacity=0.4)
+        .mark_bar(color=sjv_blue, opacity=0.4)
         .encode(alt.X("absolute_error:Q", bin=alt.Bin(step=10.0)), y="count()", tooltip=["count()"])
         .properties(width=400, height=125)
         .facet(facet="model_name:N", columns=2)
     )
 
+def draw_model_error_distribution(df: pd.DataFrame) -> alt.Chart:
+    """ This function draws the distribution of errors in the given dataframe
+    :param : Error dataframe with absolute error and column with model names
+    :return: Altair chart
+    """
+    col_names = [col[:-6] if col.endswith("_ERROR") else col for col in df.columns]
+    df.columns = col_names
+    col_names = list(set(df.columns) - set(["TOWNSHIP_RANGE", "2021_GSE_GWE"]))
+    df = pd.melt(df, id_vars=["TOWNSHIP_RANGE", "2021_GSE_GWE"],
+                 value_vars=col_names, var_name="MODEL", value_name="ABS_ERROR")
+    chart = alt.Chart(df).mark_bar(
+        color=sjv_blue,
+        opacity=0.4
+    ).encode(
+        alt.X(
+            "ABS_ERROR:Q",
+            title="Absolute Error",
+            bin=alt.Bin(step=10.0)),
+        y=alt.Y(
+            "count()",
+            title="Number of Predictions"),
+        tooltip=["count()"]
+    ).properties(
+        width=400,
+        height=125
+    ).facet(
+        facet="MODEL:N",
+        columns=2,
+        title=""
+    ).properties(
+        title="Distribution of Models' Predictions Absolute Error"
+    )
+    return chart
+
 def chart_model_error_by_depth(error_df: pd.DataFrame, model_name_list: List) -> alt.Chart:
-    """ This function charts the distribution of errors in the given dataframe against the 
+    """ This function charts the distribution of errors in the given dataframe against the
         actual test target
     :param : error_df: Error dataframe with absolute error and column with model names
     :param : model_name_list: List of model names e.g. SVR_absolute_error
@@ -1078,7 +1112,7 @@ def chart_model_error_by_township(error_df: pd.DataFrame, model_name_list: List,
         The chart can be restricted to the models sent in
     :param : error_df: Error dataframe with absolute error and column with model names
     :param : model_name_list: List of model names e.g. SVR_absolute_error
-    :param : num_towns: Number of towns to chart the sorted errors for 
+    :param : num_towns: Number of towns to chart the sorted errors for
     :return: Altair chart
     """
     errors_by_township_df = (
@@ -1107,7 +1141,7 @@ def chart_model_error_by_township(error_df: pd.DataFrame, model_name_list: List,
             tooltip=["model_name", "absolute_error", "TOWNSHIP_RANGE"],
         )
         .properties(width=850, height=150)
-    )        
+    )
 
 
 def chart_model_depth_diff_error(error_df: pd.DataFrame, full_df: pd.DataFrame) -> alt.Chart:
