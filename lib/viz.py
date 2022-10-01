@@ -1049,16 +1049,24 @@ def chart_model_error_distribution(error_df: pd.DataFrame) -> alt.Chart:
         .facet(facet="model_name:N", columns=2)
     )
 
+def melt_model_error_df(df: pd.DataFrame) -> pd.DataFrame:
+    """ This function melts the model error dataframe into a long format
+    :param df: Model error dataframe
+    :return: Long format dataframe
+    """
+    col_names = [col[:-6] if col.endswith("_ERROR") else col for col in df.columns]
+    df.columns = col_names
+    col_names = list(set(df.columns) - set(["TOWNSHIP_RANGE", "2021_GSE_GWE"]))
+    melted_df = pd.melt(df, id_vars=["TOWNSHIP_RANGE", "2021_GSE_GWE"],
+                 value_vars=col_names, var_name="MODEL", value_name="ABS_ERROR")
+    return melted_df
+
 def draw_model_error_distribution(df: pd.DataFrame) -> alt.Chart:
     """ This function draws the distribution of errors in the given dataframe
     :param : Error dataframe with absolute error and column with model names
     :return: Altair chart
     """
-    col_names = [col[:-6] if col.endswith("_ERROR") else col for col in df.columns]
-    df.columns = col_names
-    col_names = list(set(df.columns) - set(["TOWNSHIP_RANGE", "2021_GSE_GWE"]))
-    df = pd.melt(df, id_vars=["TOWNSHIP_RANGE", "2021_GSE_GWE"],
-                 value_vars=col_names, var_name="MODEL", value_name="ABS_ERROR")
+    df = melt_model_error_df(df)
     chart = alt.Chart(df).mark_bar(
         color=sjv_blue,
         opacity=0.4
@@ -1079,7 +1087,7 @@ def draw_model_error_distribution(df: pd.DataFrame) -> alt.Chart:
         columns=2,
         title=""
     ).properties(
-        title="Distribution of Models' Predictions Absolute Error"
+        title="Distribution of Predictions Absolute Errors"
     )
     return chart
 
@@ -1104,6 +1112,37 @@ def chart_model_error_by_depth(error_df: pd.DataFrame, model_name_list: List) ->
         .properties(width=900, height=125)
         .facet(facet="model_name:N", columns=1)
     )
+
+
+def draw_model_error_by_depth(df: pd.DataFrame, model_name_list: List[str]) -> alt.Chart:
+    """ This function charts the distribution of errors in the given dataframe against the
+        actual test target
+    :param : error_df: Error dataframe with absolute error and column with model names
+    :param : model_name_list: List of model names e.g. SVR_absolute_error
+    :return: Altair chart
+    """
+    df = melt_model_error_df(df)
+    chart = alt.Chart(df[df["MODEL"].isin(model_name_list)]).mark_line(
+        color=sjv_brown
+    ).encode(
+        alt.X(
+            "2021_GSE_GWE:Q",
+            title="Ground Water Depth"),
+        y=alt.Y(
+            "ABS_ERROR:Q",
+            title="Prediction Absolute Error"),
+        tooltip=["MODEL", "ABS_ERROR", "TOWNSHIP_RANGE"]
+    ).properties(
+        width=1200,
+        height=125
+    ).facet(
+        facet="MODEL:N",
+        columns=1,
+        title=""
+    ).properties(
+        title="Predictions' Absolute Error by Groundwater Depth"
+    )
+    return chart
 
 
 def chart_model_error_by_township(error_df: pd.DataFrame, model_name_list: List, num_towns: int = 20) -> alt.Chart:
