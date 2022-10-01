@@ -1,20 +1,14 @@
 import pandas as pd
 import numpy as np
-
-import os
 import pickle
 
+from typing import Tuple
 from math import sqrt
-from sklearn.metrics import mean_squared_error, median_absolute_error, r2_score, mean_absolute_error
-from sklearn import metrics
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 from sklearn.cluster import KMeans
-from sklearn.dummy import DummyRegressor
-from sklearn.linear_model import Ridge, Lasso
-from sklearn.linear_model import LinearRegression
 from sklearn.compose import TransformedTargetRegressor
 from sklearn.model_selection import RandomizedSearchCV
-from catboost import CatBoostRegressor
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+
 
 # Create a feature importance property for the the TransformedTargetRegressor
 class FeatureTTRegressor(TransformedTargetRegressor):
@@ -249,8 +243,8 @@ def get_model_errors():
 
     return test_model_errors_df, error_df
 
-def get_supervised_models_predictions():
-    """ This function return the predictions of the supervised learning models.
+def get_ml_models_2021_predictions() -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """ This function return the 2021 predictions of the machine learning models.
     :param None
     :return: dataframe with evaluation scores, dataframe with target value and predicted absolute errors
     """
@@ -274,7 +268,11 @@ def get_supervised_models_predictions():
 
     test_model_errors_df = final_comparison_sorted(models, X_test_impute, y_test)
     test_model_errors_df.reset_index(drop=False, inplace=True)
-    test_model_errors_df.rename(columns={"index": "MODEL", "Mean Absolute Error": "MAE", "Mean Square Error": "MSE"}, inplace=True)
+    # Rename and reorder columns
+    test_model_errors_df.rename(
+        columns={"index": "MODEL", "Mean Absolute Error": "MAE", "Mean Squared Error": "MSE"},
+        inplace=True)
+    test_model_errors_df = test_model_errors_df[["MODEL", "MAE", "MSE", "RMSE", "R^2"]]
 
     for model in models:
         regressor_name = type(model.best_estimator_.regressor_).__name__
