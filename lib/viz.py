@@ -1,4 +1,3 @@
-import math
 import altair as alt
 import math
 import numpy as np
@@ -1049,15 +1048,16 @@ def chart_model_error_distribution(error_df: pd.DataFrame) -> alt.Chart:
         .facet(facet="model_name:N", columns=2)
     )
 
-def melt_model_error_df(df: pd.DataFrame) -> pd.DataFrame:
+def melt_model_error_df(df: pd.DataFrame, feature_to_keep: str="2021_GSE_GWE") -> pd.DataFrame:
     """ This function melts the model error dataframe into a long format
     :param df: Model error dataframe
+    :param feature_to_keep: Extra feature to keep in the dataframe
     :return: Long format dataframe
     """
     col_names = [col[:-6] if col.endswith("_ERROR") else col for col in df.columns]
     df.columns = col_names
-    col_names = list(set(df.columns) - set(["TOWNSHIP_RANGE", "2021_GSE_GWE"]))
-    melted_df = pd.melt(df, id_vars=["TOWNSHIP_RANGE", "2021_GSE_GWE"],
+    col_names = list(set(df.columns) - set(["TOWNSHIP_RANGE", feature_to_keep]))
+    melted_df = pd.melt(df, id_vars=["TOWNSHIP_RANGE", feature_to_keep],
                  value_vars=col_names, var_name="MODEL", value_name="ABS_ERROR")
     return melted_df
 
@@ -1114,45 +1114,45 @@ def chart_model_error_by_depth(error_df: pd.DataFrame, model_name_list: List) ->
     )
 
 
-def draw_model_error_by_depth(df: pd.DataFrame, binned: bool=False) -> alt.Chart:
+def draw_model_error_by_feature(df: pd.DataFrame, x: str, x_title: str, title: str, binned: bool=False) -> alt.Chart:
     """ This function charts the distribution of errors in the given dataframe against the
         actual test target
     :param : error_df: Error dataframe with absolute error and column with model names
     :param : binned: Whether to bin the data or not
     :return: Altair chart
     """
-    df = melt_model_error_df(df)
+    df = melt_model_error_df(df, x)
     if not binned:
         chart = alt.Chart(df).mark_line(
             color=sjv_brown
         ).encode(
             alt.X(
-                "2021_GSE_GWE:Q",
-                title="Ground Water Depth"),
+                f"{x}:Q",
+                title=x_title),
             y=alt.Y(
                 "ABS_ERROR:Q",
                 title="Prediction Absolute Error"),
             tooltip=["MODEL", "ABS_ERROR", "TOWNSHIP_RANGE"]
         ).properties(
-            width=1200,
+            width=900,
             height=125
         ).facet(
             facet="MODEL:N",
             columns=1,
             title=""
         ).properties(
-            title="Predictions' Absolute Error by Groundwater Depth"
+            title=title
         )
     else:
         # The mean of the error is calculated to color the distribution chart
         df["ERROR_MEAN"] = df.groupby(["MODEL"])["ABS_ERROR"].transform("mean")
         # We create bins of error values of size 10 to smoothen the distribution plot
-        max_bins = math.ceil(df["2021_GSE_GWE"].max() / 10) * 10
-        df["GSE_GWE_BIN"] = list(pd.cut(df["2021_GSE_GWE"], bins=range(0, max_bins, 10), labels=range(0, max_bins-10, 10)))
+        max_bins = math.ceil(df[x].max() / 10) * 10
+        df[f"{x}_BIN"] = list(pd.cut(df[x], bins=range(0, max_bins, 10), labels=range(0, max_bins-10, 10)))
         df.reset_index(inplace=True, drop=True)
-        df.sort_values(["MODEL", "2021_GSE_GWE"])
+        df.sort_values(["MODEL", x])
         df = df.groupby(
-            ["MODEL", "ERROR_MEAN", "GSE_GWE_BIN"]).mean().reset_index()
+            ["MODEL", "ERROR_MEAN", f"{x}_BIN"]).mean().reset_index()
         df.rename(columns={0: "COUNT"}, inplace=True)
         chart = alt.Chart(df).mark_area(
             interpolate='monotone',
@@ -1160,11 +1160,13 @@ def draw_model_error_by_depth(df: pd.DataFrame, binned: bool=False) -> alt.Chart
             strokeWidth=0.5
         ).encode(
             alt.X(
-                "GSE_GWE_BIN:Q",
-                title="Ground Water Depth"),
+                f"{x}:Q",
+                title=x_title,
+                axis=alt.Axis(grid=False)),
             alt.Y(
                 "ABS_ERROR:Q",
-                title="Average Absolute Error"),
+                title=None,
+                axis=alt.Axis(grid=False)),
             alt.Fill(
                 "ERROR_MEAN:Q",
                 legend=alt.Legend(
@@ -1173,16 +1175,18 @@ def draw_model_error_by_depth(df: pd.DataFrame, binned: bool=False) -> alt.Chart
                 scale=alt.Scale(range=[sjv_blue, sjv_brown])
             )
         ).properties(
-            width=1200,
+            width=900,
             height=125
         ).facet(
             row=alt.Row(
                 "MODEL:N",
-                title=None,
+                title="Average Absolute Error",
                 header=alt.Header(labelAngle=0, labelAlign="left")
             )
         ).properties(
-            title="Mean of the Predictions Absolute Error per 10 ft. of Groundwater Depth"
+            title=title
+        ).configure_view(
+            stroke=None
         )
     return chart
 
@@ -1233,7 +1237,8 @@ def draw_model_error_by_township(df: pd.DataFrame, num_towns: int = 20) -> alt.C
     :param : num_towns: Number of towns to chart the sorted errors for
     :return: Altair chart
     """
-    df = melt_model_error_df(df).sort_values("ABS_ERROR", ascending=False).groupby("MODEL").head(num_towns)
+    df = melt_model_error_df(df).sort_values("ABS_ERROR", ascending=False).groupby("MODEL").\
+        head(num_towns)
 
     nb_x = len(df["MODEL"].unique())
     if 2 < nb_x < len(sjv_color_range_17):
@@ -1246,6 +1251,7 @@ def draw_model_error_by_township(df: pd.DataFrame, num_towns: int = 20) -> alt.C
         x=alt.X(
             "TOWNSHIP_RANGE:N",
             title="Township-Ranges",
+            axis=alt.Axis(labelAngle=-45),
             sort="-y"),
         y=alt.Y(
             "ABS_ERROR:Q",
@@ -1258,7 +1264,11 @@ def draw_model_error_by_township(df: pd.DataFrame, num_towns: int = 20) -> alt.C
             ),
         ),
         tooltip=["MODEL", "ABS_ERROR", "TOWNSHIP_RANGE"],
-    ).properties(width=850, height=150)
+    ).properties(
+        width=850,
+        height=150,
+        title="Prediction Error of the Models by Township-Ranges"
+    )
     return chart
 
 
