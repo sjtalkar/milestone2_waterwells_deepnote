@@ -200,7 +200,6 @@ def get_model_errors():
     :param None
     :return: dataframe with evaluation scores, dataframe with target value and predicted absolute errors
     """
-
     data_dir = "../assets/train_test_target_shifted/"
     train_test_dict_file_name = "train_test_dict_target_shifted.pickle"
     X_train_df_file_name = "X_train_impute_target_shifted_df.pkl"
@@ -213,11 +212,8 @@ def get_model_errors():
     y_test_df = train_test_dict["y_test"]
     y_test = y_test_df["GSE_GWE_SHIFTED"].values.ravel()
 
-    test_year_list = list(X_test_impute_df.index.get_level_values("YEAR").unique())
     with open("../assets/models/supervised_learning_models/models.pickle", "rb") as file:
         models = pickle.load(file)
-
-
     test_model_errors_df = final_comparison_sorted(models, X_test_impute, y_test)
     test_model_errors_df.to_csv("../test_model_errors.csv", index=False)
 
@@ -240,7 +236,6 @@ def get_model_errors():
         var_name="model_name",
         value_name="absolute_error",
     )
-
     return test_model_errors_df, error_df
 
 def get_ml_models_2021_predictions() -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -248,7 +243,6 @@ def get_ml_models_2021_predictions() -> Tuple[pd.DataFrame, pd.DataFrame]:
     :param None
     :return: dataframe with evaluation scores, dataframe with target value and predicted absolute errors
     """
-
     data_dir = "../assets/train_test_target_shifted/"
     train_test_dict_file_name = "train_test_dict_target_shifted.pickle"
     X_train_df_file_name = "X_train_impute_target_shifted_df.pkl"
@@ -261,11 +255,8 @@ def get_ml_models_2021_predictions() -> Tuple[pd.DataFrame, pd.DataFrame]:
     y_test_df = train_test_dict["y_test"]
     y_test = y_test_df["GSE_GWE_SHIFTED"].values.ravel()
 
-    test_year_list = list(X_test_impute_df.index.get_level_values("YEAR").unique())
     with open("../assets/models/supervised_learning_models/models.pickle", "rb") as file:
         models = pickle.load(file)
-
-
     test_model_errors_df = final_comparison_sorted(models, X_test_impute, y_test)
     test_model_errors_df.reset_index(drop=False, inplace=True)
     # Rename and reorder columns
@@ -281,5 +272,4 @@ def get_ml_models_2021_predictions() -> Tuple[pd.DataFrame, pd.DataFrame]:
     y_test_df = y_test_df.reset_index()
     y_test_df.rename(columns={"GSE_GWE_SHIFTED": "2021_GSE_GWE"}, inplace=True)
     y_test_df.drop(columns=["YEAR"], inplace=True)
-
     return test_model_errors_df, y_test_df

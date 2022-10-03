@@ -1,19 +1,16 @@
 import sys
 sys.path.append('..')
 
-import os
-import shap
-import pickle
 import tempfile
 import shap
 from IPython.core.display import display, HTML
 
 
-def shap_deepnote_show(plot):
+def show_shap_viz(plot):
     tmp_output_filename = tempfile.NamedTemporaryFile(suffix='.html').name
     shap.save_html(tmp_output_filename, plot)
 
-    f = open(tmp_output_filename, "r")
+    f = open(tmp_output_filename, "r", encoding='UTF-8')
     data = f.read()
     display(HTML(data))
 
@@ -48,11 +45,11 @@ def create_over_under_pred(model, y_pred, explainer, X_test_impute_df, under_pre
 
     print(f"Model : {regressor_name} under prediction")
     plot = shap.force_plot(explainer.expected_value, under_prediction_shap_values, feature_names=X_test_impute_df.columns)
-    shap_deepnote_show(plot)
+    show_shap_viz(plot)
 
     print(f"Model : {regressor_name} over prediction")
     plot = shap.force_plot(explainer.expected_value, over_prediction_shap_values, feature_names=X_test_impute_df.columns)
-    shap_deepnote_show(plot)
+    show_shap_viz(plot)
 
 def create_over_under_pred_multiple_samples(model, y_pred, explainer, X_test_impute_df, num_samples):
         under_prediction_values  =  X_test_impute_df.loc[y_pred.index.get_level_values(0)[0:num_samples]].values
@@ -62,8 +59,8 @@ def create_over_under_pred_multiple_samples(model, y_pred, explainer, X_test_imp
 
         print(f"Model : {model} under prediction")
         plot = shap.force_plot(explainer.expected_value, under_prediction_shap_values, feature_names=X_test_impute_df.columns)
-        shap_deepnote_show(plot)
+        show_shap_viz(plot)
 
         print(f"Model : {model} over prediction")
         plot = shap.force_plot(explainer.expected_value, over_prediction_shap_values, feature_names=X_test_impute_df.columns)
-        shap_deepnote_show(plot)
+        show_shap_viz(plot)
