@@ -19,4 +19,6 @@
 - [A unified approach to Interpreting Model Predictions](https://proceedings.neurips.cc/paper/2017/file/8a20a8621978632d76c43dfd28b67767-Paper.pdf)
 - [Practical Time Series Analysis](https://www.oreilly.com/library/view/practical-time-series/9781492041641/)
 - [Visualizing Geospatial Information Uncertainty:What We Know and What We Need to Know](https://www-tandfonline-com.proxy.lib.umich.edu/doi/pdf/10.1559/1523040054738936?needAccess=true)
-]
+- Statistical Intervals: A Guide for Practitioners and Researchers, 2017.
+- (Prediction Intervals in Forecasting: Quantile Loss Function)[https://medium.com/analytics-vidhya/prediction-intervals-in-forecasting-quantile-loss-function-18f72501586f]
+- Prediction Intervals for Machine Learning (https://machinelearningmastery.com/prediction-intervals-for-machine-learning/)
