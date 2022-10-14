@@ -1098,19 +1098,23 @@ def chart_model_error_by_depth(error_df: pd.DataFrame, model_name_list: List) ->
     :param : model_name_list: List of model names e.g. SVR_absolute_error
     :return: Altair chart
     """
+    error_df = error_df.copy()
+    error_df.rename(columns={'model_name':"Model Name"}, inplace=True)
+    error_df = error_df[error_df["Model Name"].isin(model_name_list)].copy()
+    error_df["Model Name"] = error_df["Model Name"].str.replace("_absolute_error", "")
     return (
         alt.Chart(
-            error_df[error_df["model_name"].isin(model_name_list)],
+            error_df,
             title="Error distribution by model",
         )
-        .mark_line(color=sjv_brown, opacity=0.9)
+        .mark_line(color=sjv_color_range_17[10] )
         .encode(
-            alt.X("GSE_GWE_SHIFTED:Q"),
-            y="absolute_error:Q",
-            tooltip=["model_name", "absolute_error", "TOWNSHIP_RANGE"],
+            x=alt.X("GSE_GWE_SHIFTED:Q", title="2021 groundwater predicted depth"),
+            y=alt.Y("absolute_error:Q", title="Absolute Error"),
+            tooltip=["Model Name", "absolute_error", "TOWNSHIP_RANGE"],
         )
         .properties(width=900, height=125)
-        .facet(facet="model_name:N", columns=1)
+        .facet(facet="Model Name:N", columns=1)
     )
 
 

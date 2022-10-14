@@ -1,4 +1,5 @@
 # Credits
+- [Well Drilling LA Times article](https://www.latimes.com/projects/california-farms-water-wells-drought/)
 - [USGS info on groundwater](https://www.usgs.gov/special-topics/water-science-school/science/groundwater)
 - [County Of Colusa](https://www.countyofcolusa.org/DocumentCenter/View/4260/Series1Article4-GroundwaterLevelMonitoring?bidId=#:~:text=The%20elevation%20of%20the%20groundwater,groundwater%20flow%20can%20be%20determined.&text=Figure%201.)
 - [Exploratory Analysis of Well Completion Reports](https://richpauloo.github.io/oswcr_1.html)
@@ -20,5 +21,5 @@
 - [Practical Time Series Analysis](https://www.oreilly.com/library/view/practical-time-series/9781492041641/)
 - [Visualizing Geospatial Information Uncertainty:What We Know and What We Need to Know](https://www-tandfonline-com.proxy.lib.umich.edu/doi/pdf/10.1559/1523040054738936?needAccess=true)
 - Statistical Intervals: A Guide for Practitioners and Researchers, 2017.
-- (Prediction Intervals in Forecasting: Quantile Loss Function)[https://medium.com/analytics-vidhya/prediction-intervals-in-forecasting-quantile-loss-function-18f72501586f]
-- Prediction Intervals for Machine Learning (https://machinelearningmastery.com/prediction-intervals-for-machine-learning/)
+- [Prediction Intervals in Forecasting: Quantile Loss Function](https://medium.com/analytics-vidhya/prediction-intervals-in-forecasting-quantile-loss-function-18f72501586f)
+- [Prediction Intervals for Machine Learning](https://machinelearningmastery.com/prediction-intervals-for-machine-learning/)
