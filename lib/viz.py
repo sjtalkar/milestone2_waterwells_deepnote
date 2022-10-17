@@ -1109,7 +1109,7 @@ def chart_model_error_by_depth(error_df: pd.DataFrame, model_name_list: List) ->
         )
         .mark_line(color=sjv_color_range_17[10] )
         .encode(
-            x=alt.X("GSE_GWE_SHIFTED:Q", title="2021 groundwater predicted depth"),
+            x=alt.X("GSE_GWE_SHIFTED:Q", title="True Target Depth"),
             y=alt.Y("absolute_error:Q", title="Absolute Error"),
             tooltip=["Model Name", "absolute_error", "TOWNSHIP_RANGE"],
         )
