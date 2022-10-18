@@ -132,14 +132,14 @@ predicted value and blue bar denoting a decrease. The gray text before
 the feature names shows the value of each feature for this sample, in
 the below it is normalized data.
 
-!["Shapely Waterfall"](../images/shapely-6.png)
+!["Shapely Waterfall"](https://github.com/sjtalkar/milestone2_waterwells_deepnote/blob/master/doc/images/shapley-6.png)
 
 To understand an individual instance's prediction a force plot was executed. In the below figure,
 we see over and under-predictions analyzed using a force plot that explains the features that create the final predicted
 value. Here the current depth and precipitation increase the prediction while decrease in mollisols soil and well feature which 
 is the well filter location decrease the prediction.
 
-!["Force Plot"](../images/shapely-7.png)
+!["Force Plot"](https://github.com/sjtalkar/milestone2_waterwells_deepnote/blob/master/doc/images/shapley-7.png)
 
 Credits: [SHAP Values explained exactly how you wished someone
 explained to
